@@ -57,3 +57,4 @@ Unit Tests are created with PyUnit and can be ran with `python run_tests.py`
 License
 -------
 The BlockTrail Python SDK is released under the terms of the MIT license. See LICENCE.md for more information or see http://opensource.org/licenses/MIT.
+
