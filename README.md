@@ -52,9 +52,8 @@ Note: Core developers, who receive a tip, will donate those tips back to the pro
 
 Unit Tests
 ----------
-Unit Tests are created with PyUnit and can be ran with `python run_tests.py`
+Unit Tests are created with Mocha and can be ran with `npm test` (or `mocha`)
 
 License
 -------
 The BlockTrail Python SDK is released under the terms of the MIT license. See LICENCE.md for more information or see http://opensource.org/licenses/MIT.
-
