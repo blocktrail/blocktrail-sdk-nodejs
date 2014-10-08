@@ -18,7 +18,7 @@
     "main": "./main.js",
     "dependencies": {
         "q": "~1.0.1",
-        "http-signature": "git://github.com/blocktrail/node-http-signature.git#0860e748dde4fd2efc0b27ebcb91161df5c3bb17",
+        "http-signature": "git://github.com/blocktrail/node-http-signature.git#68f8a51438cb0c49460e9b883b2608a6879ff137",
         "debug": "~0.8.1",
         "crypto": "~0.0.3"
     },
