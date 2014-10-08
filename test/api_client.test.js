@@ -6,13 +6,22 @@ var assert = require('assert');
  */
 var client = BlockTrail({
     apiKey : "MYKEY",
-    apiSecret : "MYSECRET",
-    network : "BTC",
-    testnet : false,
-    apiVersion : 'v1'
+    apiSecret : "MYSECRET"
 });
 
 module.exports = {
+    'test auth failure': function(cb) {
+        var client = BlockTrail({
+            apiKey : "TESTKEY-FAIL",
+            apiSecret : "TESTSECRET-FAIL"
+        });
+
+        client.address("1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp", function(err, address) {
+            assert.ok(err);
+
+            cb();
+        });
+    },
     'test address': function(cb) {
         client.address("1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp", function(err, address) {
             assert.ifError(err);
