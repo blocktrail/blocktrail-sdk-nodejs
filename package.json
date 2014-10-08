@@ -1,0 +1,39 @@
+{
+    "name": "blocktrail-sdk",
+    "description": "BlockTrail's Developer Friendly API binding for Python",
+    "keywords": ["bitcoin", "blocktrail"],
+    "version": "0.1.0",
+    "homepage": "https://www.blocktrail.com/api/docs",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/blocktrail/blocktrail-sdk-nodejs.git"
+    },
+    "bugs": {
+        "url": "http://github.com/blocktrail/blocktrail-sdk-nodejs/issues"
+    },
+    "engines": {
+        "node": ">= 0.8.0"
+    },
+    "main": "./main.js",
+    "dependencies": {
+        "q": "~1.0.1",
+        "http-signature": "git://github.com/blocktrail/node-http-signature.git#0860e748dde4fd2efc0b27ebcb91161df5c3bb17",
+        "debug": "~0.8.1",
+        "crypto": "~0.0.3"
+    },
+    "author": {
+        "name": "Ruben de Vries <ruben@blocktrail.com>"
+    },
+    "contributors": [
+        {
+            "name": "Ruben de Vries"
+        }
+    ],
+    "devDependencies": {
+        "mocha": "*"
+    },
+    "scripts": {
+        "test": "mocha"
+    }
+}
