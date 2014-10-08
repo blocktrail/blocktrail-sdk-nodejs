@@ -52,7 +52,6 @@ module.exports = {
             cb();
         });
     },
-    ///*
     'test verify_address': function(cb) {
         client.verify_address("16dwJmR4mX5RguGrocMfN9Q9FR2kZcLw2z", "HPMOHRgPSMKdXrU6AqQs/i9S7alOakkHsJiqLGmInt05Cxj6b/WhS7kJxbIQxKmDW08YKzoFnbVZIoTI2qofEzk=", function(err, result) {
             assert.ifError(err);
@@ -61,7 +60,6 @@ module.exports = {
             cb();
         });
     },
-    //*/
     'test block by hash': function(cb) {
         client.block("000000000000034a7dedef4a161fa058a2d67a173a90155f3a2fe6fc132e0ebf", function(err, block) {
             assert.ifError(err);
