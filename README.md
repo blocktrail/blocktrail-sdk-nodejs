@@ -67,6 +67,10 @@ Unit Tests
 ----------
 Unit Tests are created with Mocha and can be ran with `npm test` (or `mocha`)
 
+Node Modules Symlink
+--------------------
+To make all the examples and tests use `require('blocktrail-sdk')` just like when the module would have been installed with NPM we symlinked `node_modules/blocktrail-sdk` to the root of this directory.
+
 License
 -------
 The BlockTrail NodeJS SDK is released under the terms of the MIT license. See LICENCE.md for more information or see http://opensource.org/licenses/MIT.
