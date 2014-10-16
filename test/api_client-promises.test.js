@@ -1,12 +1,12 @@
-var BlockTrail = require('blocktrail-sdk');
+var blocktrail = require('blocktrail-sdk');
 var assert = require('assert');
 
 /**
  * @type APIClient
  */
-var client = BlockTrail({
-    apiKey : "MYKEY",
-    apiSecret : "MYSECRET",
+var client = blocktrail({
+    apiKey : "MY_APIKEY",
+    apiSecret : "MY_APISECRET",
     network : "BTC",
     testnet : false,
     apiVersion : 'v1'

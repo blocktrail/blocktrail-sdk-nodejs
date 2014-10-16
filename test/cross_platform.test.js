@@ -1,20 +1,8 @@
-var BlockTrail = require('blocktrail-sdk');
 var assert = require('assert');
 var crypto = require('crypto');
 var qs = require('querystring');
 var http = require('http'),
     httpSignature = require('http-signature');
-
-/**
- * @type APIClient
- */
-var client = BlockTrail({
-    apiKey : "MYKEY",
-    apiSecret : "MYSECRET",
-    network : "BTC",
-    testnet : false,
-    apiVersion : 'v1'
-});
 
 module.exports = {
     'test content MD5': function(cb) {

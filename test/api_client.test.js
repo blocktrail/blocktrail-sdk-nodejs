@@ -1,17 +1,26 @@
-var BlockTrail = require('blocktrail-sdk');
+var blocktrail = require('blocktrail-sdk');
 var assert = require('assert');
 
 /**
  * @type APIClient
  */
-var client = BlockTrail({
-    apiKey : "MYKEY",
-    apiSecret : "MYSECRET"
+var client = blocktrail({
+    apiKey : "MY_APIKEY",
+    apiSecret : "MY_APISECRET"
+
+    ,host: 'api.blocktrail.localhost', https: false
 });
 
 module.exports = {
+    'test Coin Value': function(cb) {
+        assert.equal(blocktrail.toSatoshi(0.00000001), 1);
+        assert.equal(blocktrail.toBTC(100000000), 1.0);
+
+        assert.equal(blocktrail.toSatoshi(1.23456789), 123456789);
+        assert.equal(blocktrail.toBTC(123456789), 1.23456789);
+    },
     'test auth failure': function(cb) {
-        var client = BlockTrail({
+        var client = blocktrail({
             apiKey : "TESTKEY-FAIL",
             apiSecret : "TESTSECRET-FAIL"
         });
