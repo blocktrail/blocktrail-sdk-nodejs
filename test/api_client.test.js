@@ -7,8 +7,6 @@ var assert = require('assert');
 var client = blocktrail({
     apiKey : "MY_APIKEY",
     apiSecret : "MY_APISECRET"
-
-    ,host: 'api.blocktrail.localhost', https: false
 });
 
 module.exports = {
@@ -40,8 +38,8 @@ module.exports = {
             cb();
         });
     },
-    'test address_transactions': function(cb) {
-        client.address_transactions("1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp", {limit: 23}, function(err, address_txs) {
+    'test addressTransactions': function(cb) {
+        client.addressTransactions("1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp", {limit: 23}, function(err, address_txs) {
             assert.ifError(err);
             assert.ok(address_txs['data']);
             assert.ok(address_txs['total']);
@@ -50,8 +48,8 @@ module.exports = {
             cb();
         });
     },
-    'test address_unconfirmed_transactions': function(cb) {
-        client.address_unconfirmed_transactions("1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp", {limit: 23}, function(err, address_txs) {
+    'test addressUnconfirmedTransactions': function(cb) {
+        client.addressUnconfirmedTransactions("1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp", {limit: 23}, function(err, address_txs) {
             assert.ifError(err);
             assert.ok(address_txs['data']);
             assert.ok(address_txs['total']);
@@ -60,8 +58,8 @@ module.exports = {
             cb();
         });
     },
-    'test address_unspent_outputs': function(cb) {
-        client.address_unspent_outputs("1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp", {limit: 23}, function(err, address_utxo) {
+    'test addressUnspentOutputs': function(cb) {
+        client.addressUnspentOutputs("1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp", {limit: 23}, function(err, address_utxo) {
             assert.ifError(err);
             assert.ok(address_utxo['data']);
             assert.ok(address_utxo['total']);
@@ -70,8 +68,8 @@ module.exports = {
             cb();
         });
     },
-    'test verify_address': function(cb) {
-        client.verify_address("16dwJmR4mX5RguGrocMfN9Q9FR2kZcLw2z", "HPMOHRgPSMKdXrU6AqQs/i9S7alOakkHsJiqLGmInt05Cxj6b/WhS7kJxbIQxKmDW08YKzoFnbVZIoTI2qofEzk=", function(err, result) {
+    'test verifyAddress': function(cb) {
+        client.verifyAddress("16dwJmR4mX5RguGrocMfN9Q9FR2kZcLw2z", "HPMOHRgPSMKdXrU6AqQs/i9S7alOakkHsJiqLGmInt05Cxj6b/WhS7kJxbIQxKmDW08YKzoFnbVZIoTI2qofEzk=", function(err, result) {
             assert.ifError(err);
             assert.ok(result);
 
@@ -96,8 +94,8 @@ module.exports = {
             cb();
         });
     },
-    'test block_transactions': function(cb) {
-        client.block_transactions("000000000000034a7dedef4a161fa058a2d67a173a90155f3a2fe6fc132e0ebf", {limit: 23}, function(err, block_txs) {
+    'test blockTransactions': function(cb) {
+        client.blockTransactions("000000000000034a7dedef4a161fa058a2d67a173a90155f3a2fe6fc132e0ebf", {limit: 23}, function(err, block_txs) {
             assert.ifError(err);
             assert.ok(block_txs['data']);
             assert.ok(block_txs['total']);
@@ -106,8 +104,8 @@ module.exports = {
             cb();
         });
     },
-    'test all_blocks': function(cb) {
-        client.all_blocks({page:2, limit: 23, sort_dir: 'asc'}, function(err, blocks) {
+    'test allBlocks': function(cb) {
+        client.allBlocks({page:2, limit: 23, sort_dir: 'asc'}, function(err, blocks) {
             assert.ifError(err);
             assert.ok(blocks['data']);
             assert.ok(blocks['total']);
@@ -118,8 +116,8 @@ module.exports = {
             cb();
         });
     },
-    'test block_latest': function(cb) {
-        client.block_latest(function(err, block) {
+    'test blockLatest': function(cb) {
+        client.blockLatest(function(err, block) {
             assert.ifError(err);
             assert.ok(block['hash']);
 
