@@ -2,7 +2,7 @@
     "name": "blocktrail-sdk",
     "description": "BlockTrail's Developer Friendly API binding for Python",
     "keywords": ["bitcoin", "blocktrail"],
-    "version": "0.1.0",
+    "version": "1.0.0",
     "homepage": "https://www.blocktrail.com/api/docs",
     "license": "MIT",
     "repository": {
