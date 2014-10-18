@@ -15,6 +15,7 @@ module.exports = {
     },
     'test HMAC': function(cb) {
         var req = http.request({
+            host: 'example.com',
             method: 'GET',
             path: '/path?query=123',
             headers: {
