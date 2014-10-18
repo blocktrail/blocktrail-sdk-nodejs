@@ -74,3 +74,4 @@ To make all the examples and tests use `require('blocktrail-sdk')` just like whe
 License
 -------
 The BlockTrail NodeJS SDK is released under the terms of the MIT license. See LICENCE.md for more information or see http://opensource.org/licenses/MIT.
+
