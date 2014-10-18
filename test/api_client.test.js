@@ -16,6 +16,8 @@ module.exports = {
 
         assert.equal(blocktrail.toSatoshi(1.23456789), 123456789);
         assert.equal(blocktrail.toBTC(123456789), 1.23456789);
+
+        cb();
     },
     'test auth failure': function(cb) {
         var client = blocktrail({
