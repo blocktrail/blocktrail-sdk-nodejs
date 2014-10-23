@@ -53,8 +53,8 @@ module.exports = {
     'test addressUnconfirmedTransactions': function(cb) {
         client.addressUnconfirmedTransactions("1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp", {limit: 23}, function(err, address_txs) {
             assert.ifError(err);
-            assert.ok(address_txs['data']);
-            assert.ok(address_txs['total']);
+            assert.ok('data' in address_txs);
+            assert.ok('total' in address_txs);
             // assert.ok(address_txs['total'] >= address_txs['data'].length);
 
             cb();
@@ -63,8 +63,8 @@ module.exports = {
     'test addressUnspentOutputs': function(cb) {
         client.addressUnspentOutputs("1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp", {limit: 23}, function(err, address_utxo) {
             assert.ifError(err);
-            assert.ok(address_utxo['data']);
-            assert.ok(address_utxo['total']);
+            assert.ok('data' in address_utxo);
+            assert.ok('total' in address_utxo);
             assert.ok(address_utxo['total'] >= address_utxo['data'].length);
 
             cb();
