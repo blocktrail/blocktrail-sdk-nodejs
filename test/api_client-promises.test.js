@@ -6,10 +6,7 @@ var assert = require('assert');
  */
 var client = blocktrail({
     apiKey : "MY_APIKEY",
-    apiSecret : "MY_APISECRET",
-    network : "BTC",
-    testnet : false,
-    apiVersion : 'v1'
+    apiSecret : "MY_APISECRET"
 });
 
 module.exports = {
@@ -26,7 +23,7 @@ module.exports = {
             cb();
         });
     },
-    'test verify_address': function(cb) {
+    'test verifyAddress': function(cb) {
         client.verifyAddress("16dwJmR4mX5RguGrocMfN9Q9FR2kZcLw2z", "HPMOHRgPSMKdXrU6AqQs/i9S7alOakkHsJiqLGmInt05Cxj6b/WhS7kJxbIQxKmDW08YKzoFnbVZIoTI2qofEzk=")
             .then(function(result) {
                 assert.ok(result);
