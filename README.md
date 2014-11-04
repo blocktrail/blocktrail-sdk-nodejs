@@ -5,7 +5,7 @@ Below are examples to get you started. For additional examples, please see our o
 at https://www.blocktrail.com/api/docs
 
 [![Latest Stable Version](https://badge.fury.io/js/blocktrail-sdk.svg)](https://www.npmjs.org/package/blocktrail-sdk)
-[![Build Status](https://travis-ci.org/blocktrail/blocktrail-sdk-nodejs.png)](https://travis-ci.org/blocktrail/blocktrail-sdk-nodejs)
+[![Build Status](https://travis-ci.org/blocktrail/blocktrail-sdk-nodejs.png?branch=master)](https://travis-ci.org/blocktrail/blocktrail-sdk-nodejs)
 [![tip for next commit](https://tip4commit.com/projects/1013.svg)](https://tip4commit.com/github/blocktrail/blocktrail-sdk-nodejs)
 
 IMPORTANT! FLOATS ARE EVIL!!
