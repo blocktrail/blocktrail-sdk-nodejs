@@ -146,4 +146,165 @@ module.exports = {
             cb();
         });
     }
-}
+};
+
+
+describe('webhooks api', function() {
+    var createdWebhooks = [];
+    var cleanup = function(done){
+        client.allWebhooks({page:1, limit:500}, function(err, response){
+            //delete each webhook
+            var allWebhooks = response.data;
+            if(!response.data.length) {
+                done();
+            }
+            allWebhooks.forEach(function(webhook){
+                client.deleteWebhook(webhook.identifier, function(err, response){
+                    allWebhooks.splice(webhook, 1);
+                    if(allWebhooks.length==0) {
+                        done();
+                    }
+                });
+            });
+        });
+    };
+    before(function(done) {
+        // runs before all tests in this block..cleanup any existing data that could conflict with the tests
+        cleanup(done);
+    });
+    after(function(done){
+        //cleanup after all tests
+        cleanup(done);
+    });
+
+    // test cases
+    it('create new webhook with custom identifier', function(done){
+        client.setupWebhook("https://www.blocktrail.com/webhook-test", 'my-webhook-id', function(err, webhook) {
+            assert.ifError(err);
+            assert.equal(webhook.url, "https://www.blocktrail.com/webhook-test");
+            assert.equal(webhook.identifier, "my-webhook-id");
+            createdWebhooks.push(webhook.identifier);
+            done();
+        });
+    });
+
+    it('create new webhook with random identifier', function(done){
+        client.setupWebhook("https://www.blocktrail.com/webhook-test", function(err, webhook) {
+            assert.ifError(err);
+            assert.equal(webhook.url, "https://www.blocktrail.com/webhook-test");
+            assert.ok(webhook.identifier);
+            createdWebhooks.push(webhook.identifier);
+            done();
+        });
+    });
+
+    it('get all user webhooks', function(done){
+        client.allWebhooks(null, function(err, response) {
+            assert.ifError(err);
+            assert.ok('data' in response, "'data' key not in response");
+            assert.ok('total' in response, "'total' key not in response");
+            assert.equal(parseInt(response['total']), 2, "'total' does not match expected value");
+            assert.equal(response['data'].length, 2, "Count of webhooks returned is not equal to 2");
+
+            assert.ok('url' in response['data'][0], "'url' key not in first webhook of response");
+            assert.ok('url' in response['data'][1], "'url' key not in second webhook of response");
+            assert.equal(response['data'][0]['identifier'], createdWebhooks[0], "First webhook identifier does not match expected value");
+            assert.equal(response['data'][1]['identifier'], createdWebhooks[1], "Second webhook identifier does not match expected value");
+            done();
+        });
+    });
+
+    it('get a single webhook', function(done){
+        client.getWebhook(createdWebhooks[0], function(err, response) {
+            assert.ifError(err);
+            assert.ok('url' in response, "'url' key not in response");
+            assert.ok('identifier' in response, "'identifier' key not in response");
+            assert.equal(response['url'], "https://www.blocktrail.com/webhook-test", "'url' does not match expected value");
+            assert.equal(response['identifier'], "my-webhook-id", "'identifier' does not match expected value");
+            done();
+        });
+    });
+
+    it('delete a webhook', function(done){
+        client.deleteWebhook(createdWebhooks[0], function(err, response) {
+            assert.ifError(err);
+            assert.ok(response);
+            done();
+        });
+    });
+
+    it('update a webhook', function(done){
+        var newIdentifier = "a-new-identifier";
+        var newUrl = "https://www.blocktrail.com/new-webhook-url";
+        client.updateWebhook(createdWebhooks[1], {identifier: newIdentifier, url: newUrl}, function(err, response) {
+            assert.ifError(err);
+            assert.ok('url' in response, "'url' key not in response");
+            assert.ok('identifier' in response, "'identifier' key not in response");
+            assert.equal(response['url'], newUrl, "'url' does not match expected value");
+            assert.equal(response['identifier'], newIdentifier, "'identifier' does not match expected value");
+
+            createdWebhooks[1] = newIdentifier;
+            done();
+        });
+    });
+
+    it('subscribe to address-transaction events', function(done){
+        var address = "1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp";
+        client.subscribeAddressTransactions(createdWebhooks[1], address, 2, function(err, response) {
+            assert.ifError(err);
+            assert.ok('event_type' in response, "'event_type' key not in response");
+            assert.ok('address' in response, "'address' key not in response");
+            assert.ok('confirmations' in response, "'confirmations' key not in response");
+            assert.equal(response['event_type'], "address-transactions", "'event_type' does not match expected value");
+            assert.equal(response['address'], address, "'address' does not match expected value");
+            assert.equal(response['confirmations'], 2, "'confirmations' does not match expected value");
+            done();
+        });
+    });
+
+    it('subscribe to new block events', function(done){
+        client.subscribeNewBlocks(createdWebhooks[1], function(err, response) {
+            assert.ifError(err);
+            assert.ok('event_type' in response, "'event_type' key not in response");
+            assert.ok('address' in response, "'address' key not in response");
+            assert.ok('confirmations' in response, "'confirmations' key not in response");
+            assert.equal(response['event_type'], "block", "'event_type' does not match expected value");
+            assert.equal(response['address'], null, "'address' does not match expected value");
+            assert.equal(response['confirmations'], null, "'confirmations' does not match expected value");
+            done();
+        });
+    });
+
+    it('get webhook event subscriptions', function(done){
+        client.getWebhookEvents(createdWebhooks[1], function(err, response) {
+            assert.ifError(err);
+            assert.ok('data' in response, "'data' key not in response");
+            assert.ok('total' in response, "'total' key not in response");
+            assert.equal(parseInt(response['total']), 2, "'total' does not match expected value");
+            assert.equal(response['data'].length, 2, "Count of event subscriptions returned is not equal to 2");
+
+            assert.ok('event_type' in response['data'][0], "'event_type' key not in first event subscription of response");
+            assert.ok('event_type' in response['data'][1], "'event_type' key not in second event subscription of response");
+            assert.equal(response['data'][0]['event_type'], "address-transactions", "First event subscription event type does not match expected value");
+            assert.equal(response['data'][1]['event_type'], "block", "Second event subscription event type does not match expected value");
+            done();
+        });
+    });
+
+    it('unsubscribe from address-transaction events', function(done){
+        var address = "1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp";
+        client.unsubscribeAddressTransactions(createdWebhooks[1], address, function(err, response) {
+            assert.ifError(err);
+            assert.ok(response);
+            done();
+        });
+    });
+
+    it('unsubscribe from new block events', function(done){
+        client.unsubscribeNewBlocks(createdWebhooks[1], function(err, response) {
+            assert.ifError(err);
+            assert.ok(response);
+            done();
+        });
+    });
+})
