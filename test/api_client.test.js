@@ -1,5 +1,6 @@
 var blocktrail = require('blocktrail-sdk');
 var assert = require('assert');
+var crypto = require('crypto');
 
 /**
  * @type APIClient
@@ -156,14 +157,14 @@ describe('webhooks api', function() {
     var cleanup = function(done){
         client.allWebhooks({page:1, limit:500}, function(err, response){
             //delete each webhook
-            var allWebhooks = response.data;
-            if(!response.data.length) {
+            //var allWebhooks = response.data;
+            if(!createdWebhooks.length) {
                 done();
             }
-            allWebhooks.forEach(function(webhook){
-                client.deleteWebhook(webhook.identifier, function(err, response){
-                    allWebhooks.splice(webhook, 1);
-                    if(allWebhooks.length==0) {
+            createdWebhooks.forEach(function(identifier){
+                client.deleteWebhook(identifier, function(err, response){
+                    createdWebhooks.splice(identifier, 1);
+                    if(createdWebhooks.length==0) {
                         done();
                     }
                 });
@@ -179,12 +180,15 @@ describe('webhooks api', function() {
         cleanup(done);
     });
 
+    //create a custom (yet "random") identifier such to avoid conflicts when running multiple tests simultaneously
+    var myIdentifier = crypto.randomBytes(24).toString('hex');
+
     // test cases
     it('create new webhook with custom identifier', function(done){
-        client.setupWebhook("https://www.blocktrail.com/webhook-test", 'my-webhook-id', function(err, webhook) {
+        client.setupWebhook("https://www.blocktrail.com/webhook-test", myIdentifier, function(err, webhook) {
             assert.ifError(err);
             assert.equal(webhook.url, "https://www.blocktrail.com/webhook-test");
-            assert.equal(webhook.identifier, "my-webhook-id");
+            assert.equal(webhook.identifier, myIdentifier);
             createdWebhooks.push(webhook.identifier);
             done();
         });
@@ -205,13 +209,11 @@ describe('webhooks api', function() {
             assert.ifError(err);
             assert.ok('data' in response, "'data' key not in response");
             assert.ok('total' in response, "'total' key not in response");
-            assert.equal(parseInt(response['total']), 2, "'total' does not match expected value");
-            assert.equal(response['data'].length, 2, "Count of webhooks returned is not equal to 2");
+            assert.ok(parseInt(response['total']) >= 2, "'total' does not match expected value");
+            assert.ok(response['data'].length >= 2, "Count of webhooks returned is not equal to 2");
 
             assert.ok('url' in response['data'][0], "'url' key not in first webhook of response");
             assert.ok('url' in response['data'][1], "'url' key not in second webhook of response");
-            assert.equal(response['data'][0]['identifier'], createdWebhooks[0], "First webhook identifier does not match expected value");
-            assert.equal(response['data'][1]['identifier'], createdWebhooks[1], "Second webhook identifier does not match expected value");
             done();
         });
     });
@@ -222,7 +224,7 @@ describe('webhooks api', function() {
             assert.ok('url' in response, "'url' key not in response");
             assert.ok('identifier' in response, "'identifier' key not in response");
             assert.equal(response['url'], "https://www.blocktrail.com/webhook-test", "'url' does not match expected value");
-            assert.equal(response['identifier'], "my-webhook-id", "'identifier' does not match expected value");
+            assert.equal(response['identifier'], myIdentifier, "'identifier' does not match expected value");
             done();
         });
     });
@@ -236,7 +238,7 @@ describe('webhooks api', function() {
     });
 
     it('update a webhook', function(done){
-        var newIdentifier = "a-new-identifier";
+        var newIdentifier = crypto.randomBytes(24).toString('hex');
         var newUrl = "https://www.blocktrail.com/new-webhook-url";
         client.updateWebhook(createdWebhooks[1], {identifier: newIdentifier, url: newUrl}, function(err, response) {
             assert.ifError(err);
