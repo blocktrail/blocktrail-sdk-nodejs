@@ -1,6 +1,6 @@
 {
     "name": "blocktrail-sdk",
-    "description": "BlockTrail's Developer Friendly API binding for Python",
+    "description": "BlockTrail's Developer Friendly API binding for NodeJS",
     "keywords": ["bitcoin", "blocktrail"],
     "version": "1.0.3",
     "homepage": "https://www.blocktrail.com/api/docs",
