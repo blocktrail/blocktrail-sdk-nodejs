@@ -28,6 +28,10 @@
     "contributors": [
         {
             "name": "Ruben de Vries"
+        },
+        {
+            "name": "Oisin Akiboye Conolly",
+            "email": "oisin@blocktrail.com"
         }
     ],
     "devDependencies": {
