@@ -6,7 +6,6 @@ at https://www.blocktrail.com/api/docs
 
 [![Latest Stable Version](https://badge.fury.io/js/blocktrail-sdk.svg)](https://www.npmjs.org/package/blocktrail-sdk)
 [![Build Status](https://travis-ci.org/blocktrail/blocktrail-sdk-nodejs.png?branch=master)](https://travis-ci.org/blocktrail/blocktrail-sdk-nodejs)
-[![tip for next commit](https://tip4commit.com/projects/1013.svg)](https://tip4commit.com/github/blocktrail/blocktrail-sdk-nodejs)
 
 IMPORTANT! FLOATS ARE EVIL!!
 ----------------------------
@@ -54,14 +53,6 @@ If you find a bug, please submit the issue in Github directly.
 
 As always, if you need additional assistance, drop us a note at
 [support@blocktrail.com](mailto:support@blocktrail.com).
-
-Community Donations & Contributions
------------------------------------
-This project supports community developers via http://tip4commit.com. If participating, developers will receive a Bitcoin tip for each commit that is merged to the master branch.
-
-Note: Core developers, who receive a tip, will donate those tips back to the project's tip jar. This includes all BlockTrail employees.
-
-[![tip for next commit](https://tip4commit.com/projects/1013.svg)](https://tip4commit.com/github/blocktrail/blocktrail-sdk-nodejs)
 
 Unit Tests
 ----------
