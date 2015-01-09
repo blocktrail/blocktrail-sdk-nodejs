@@ -2,7 +2,7 @@ BlockTrail NodeJS SDK
 =====================
 This is the BlockTrail NodeJS SDK. This SDK contains methods for easily interacting with the BlockTrail API.
 Below are examples to get you started. For additional examples, please see our official documentation
-at https://www.blocktrail.com/api/docs
+at https://www.blocktrail.com/api/docs/lang/nodejs
 
 [![Latest Stable Version](https://badge.fury.io/js/blocktrail-sdk.svg)](https://www.npmjs.org/package/blocktrail-sdk)
 [![Build Status](https://travis-ci.org/blocktrail/blocktrail-sdk-nodejs.png?branch=master)](https://travis-ci.org/blocktrail/blocktrail-sdk-nodejs)
@@ -23,7 +23,7 @@ console.log("123456789 Satoshi to BTC: ", blocktrail.toBTC(123456789));
 console.log("1.23456789 BTC to Satoshi: ", blocktrail.toSatoshi(1.23456789));
 ```
 
-A bit more about this can be found [in our documentation](https://www.blocktrail.com/api/docs/nodejs#api_coin_format).
+A bit more about this can be found [in our documentation](https://www.blocktrail.com/api/docs/lang/nodejs#api_coin_format).
 
 Installation
 ------------
@@ -41,11 +41,11 @@ The following dependancies are required:
 
 Usage
 -----
-Please visit our official documentation at https://www.blocktrail.com/api/docs/nodejs for the usage.
+Please visit our official documentation at https://www.blocktrail.com/api/docs/lang/nodejs for the usage.
 
 Support and Feedback
 --------------------
-Be sure to visit the BlockTrail API official [documentation website](https://www.blocktrail.com/api/docs/nodejs)
+Be sure to visit the BlockTrail API official [documentation website](https://www.blocktrail.com/api/docs/lang/nodejs)
 for additional information about our API.
 
 If you find a bug, please submit the issue in Github directly.
