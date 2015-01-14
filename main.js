@@ -1,14 +1,8 @@
-var blocktrail = require('./lib/api_client');
+var APIClient = require('./lib/api_client');
+var blocktrail = require('./lib/blocktrail');
 
-blocktrail.COIN = 100000000;
-blocktrail.PRECISION = 8;
+Object.keys(blocktrail).forEach(function(key) {
+    APIClient[key] = blocktrail[key];
+});
 
-blocktrail.toSatoshi = function(btc) {
-    return (btc * blocktrail.COIN).toFixed(0);
-};
-
-blocktrail.toBTC = function(satoshi) {
-    return (satoshi / blocktrail.COIN).toFixed(blocktrail.PRECISION);
-};
-
-exports = module.exports = blocktrail;
+exports = module.exports = APIClient;
