@@ -37,6 +37,9 @@ module.exports = {
         assert.ok(authHeader.indexOf('algorithm="hmac-sha256') >= 0);
         assert.ok(authHeader.indexOf('signature="SFlytCGpsqb/9qYaKCQklGDvwgmrwfIERFnwt+yqPJw="') >= 0);
 
+        // close req
+        req.end();
+
         cb();
     }
 }
