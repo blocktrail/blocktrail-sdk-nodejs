@@ -279,18 +279,44 @@ describe('webhooks api', function() {
         });
     });
 
+    it('batch subscribe to address-transaction events', function(done){
+        var batchData = [
+            {
+                'event_type': 'address-transactions',
+                'address': '18FA8Tn54Hu8fjn7kkfAygPoGEJLHMbHzo',
+                'confirmations': 1
+            },
+            {
+                'address': '1LUCKYwD6V9JHVXAFEEjyQSD4Dj5GLXmte',
+                'confirmations': 1
+            },
+            {
+                'address': '1qMBuZnrmGoAc2MWyTnSgoLuWReDHNYyF'
+            }
+        ];
+        client.batchSubscribeAddressTransactions(createdWebhooks[1], batchData, function(err, response) {
+            assert.ifError(err);
+            assert.ok(response);
+            done();
+        });
+    });
+
     it('get webhook event subscriptions', function(done){
         client.getWebhookEvents(createdWebhooks[1], function(err, response) {
             assert.ifError(err);
             assert.ok('data' in response, "'data' key not in response");
             assert.ok('total' in response, "'total' key not in response");
-            assert.equal(parseInt(response['total']), 2, "'total' does not match expected value");
-            assert.equal(response['data'].length, 2, "Count of event subscriptions returned is not equal to 2");
+            assert.equal(parseInt(response['total']), 5, "'total' does not match expected value");
+            assert.equal(response['data'].length, 5, "Count of event subscriptions returned is not equal to 2");
 
             assert.ok('event_type' in response['data'][0], "'event_type' key not in first event subscription of response");
             assert.ok('event_type' in response['data'][1], "'event_type' key not in second event subscription of response");
+            /*
+            //following are unreliable as order can change
             assert.equal(response['data'][0]['event_type'], "address-transactions", "First event subscription event type does not match expected value");
             assert.equal(response['data'][1]['event_type'], "block", "Second event subscription event type does not match expected value");
+            assert.equal(response['data'][2]['address'], "18FA8Tn54Hu8fjn7kkfAygPoGEJLHMbHzo", "Third event subscription address does not match expected value");
+            */
             done();
         });
     });
