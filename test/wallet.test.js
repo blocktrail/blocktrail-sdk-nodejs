@@ -57,7 +57,7 @@ var createTestWallet = function(identifier, passphrase, cb) {
 };
 
 describe('test new blank wallet', function() {
-    var myIdentifier = crypto.randomBytes(24).toString('hex');
+    var myIdentifier = "nodejs-sdk-" + crypto.randomBytes(24).toString('hex');
     var wallet;
 
     after(function() {
@@ -110,7 +110,7 @@ describe('test new blank wallet', function() {
 });
 
 describe('test wallet with balance', function() {
-    var myIdentifier = crypto.randomBytes(24).toString('hex');
+    var myIdentifier = "nodejs-sdk-" + crypto.randomBytes(24).toString('hex');
     var wallet;
 
     after(function() {
@@ -198,7 +198,7 @@ describe('test wallet with balance', function() {
 });
 
 describe('test wallet upgrade key index', function() {
-    var myIdentifier = crypto.randomBytes(24).toString('hex');
+    var myIdentifier = "nodejs-sdk-" + crypto.randomBytes(24).toString('hex');
     var wallet;
 
     after(function() {
@@ -282,7 +282,7 @@ describe('test wallet upgrade key index', function() {
 });
 
 describe('test wallet with bad password', function() {
-    var myIdentifier = crypto.randomBytes(24).toString('hex');
+    var myIdentifier = "nodejs-sdk-" + crypto.randomBytes(24).toString('hex');
     var wallet;
 
     after(function() {
