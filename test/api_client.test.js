@@ -33,6 +33,7 @@ describe('SDK general', function() {
         });
     });
 });
+
 describe('data api', function() {
     it('test address', function(cb) {
         client.address("1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp", function(err, address) {
@@ -150,7 +151,6 @@ describe('data api', function() {
         });
     });
 });
-
 
 describe('webhooks api', function() {
     var createdWebhooks = [];
@@ -337,4 +337,15 @@ describe('webhooks api', function() {
             done();
         });
     });
-})
+});
+
+describe('market api', function() {
+    it('should have a price', function(done) {
+        client.price(function(err, price) {
+            assert.ifError(err);
+            assert.ok(price);
+            assert.ok(price['USD']);
+            done();
+        });
+    });
+});
