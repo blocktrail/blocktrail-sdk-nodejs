@@ -2,7 +2,7 @@
     "name": "blocktrail-sdk",
     "description": "BlockTrail's Developer Friendly API binding for NodeJS",
     "keywords": ["bitcoin", "blocktrail"],
-    "version": "1.1.1",
+    "version": "1.1.2",
     "homepage": "https://www.blocktrail.com/api/docs/lang/nodejs",
     "license": "MIT",
     "repository": {
