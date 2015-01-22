@@ -339,3 +339,122 @@ describe('test wallet with bad password', function() {
         });
     });
 });
+
+describe('test wallet webhook', function() {
+    // this.timeout(0); // disable, can take long
+
+    var myIdentifier = "nodejs-sdk-" + crypto.randomBytes(24).toString('hex');
+    var wallet;
+
+    after(function() {
+        wallet && wallet.deleteWallet();
+    });
+
+    it("shouldn't already exist", function(cb) {
+        client.initWallet(myIdentifier, "password", function(err, wallet) {
+            assert.ok(err);
+            assert.ok(!wallet, "wallet with random ID [" + myIdentifier + "] already exists...");
+
+            cb();
+        });
+    });
+
+    it("should be created", function(cb) {
+        client.createNewWallet(myIdentifier, "password", 9999, function(err, _wallet) {
+            assert.ifError(err);
+            assert.ok(_wallet);
+
+            wallet = _wallet;
+
+            assert.equal(wallet.identifier, myIdentifier);
+            assert.equal(wallet.blocktrailPublicKeys[9999][0], "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
+            assert.equal(wallet.getBlocktrailPublicKey("m/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
+            assert.equal(wallet.getBlocktrailPublicKey("M/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
+            cb();
+        });
+    });
+
+    it("should have a 0 balance", function(cb) {
+        wallet.getBalance(function(err, confirmed, unconfirmed) {
+            assert.ifError(err);
+            assert.equal(confirmed, 0);
+            assert.equal(unconfirmed, 0);
+
+            cb();
+        });
+    });
+
+    it("should be able to create a webhook", function(cb) {
+        wallet.setupWebhook("https://www.blocktrail.com/webhook-test", function(err, webhook) {
+            assert.ifError(err);
+            assert.equal(webhook['url'], "https://www.blocktrail.com/webhook-test");
+            assert.equal(webhook['identifier'], "WALLET-" + myIdentifier);
+
+            wallet.deleteWebhook(function(err, result) {
+                assert.ifError(err);
+
+                cb();
+            });
+        });
+    });
+
+    it("should be able to create a webhook with custom identifier", function(cb) {
+        var myWebhookIdentifier = "nodejs-sdk-" + crypto.randomBytes(24).toString('hex');
+
+        wallet.setupWebhook("https://www.blocktrail.com/webhook-test", myWebhookIdentifier, function(err, webhook) {
+            assert.ifError(err);
+            assert.equal(webhook['url'], "https://www.blocktrail.com/webhook-test");
+            assert.equal(webhook['identifier'], myWebhookIdentifier);
+
+            client.getWebhookEvents(myWebhookIdentifier, function(err, result) {
+                assert.ifError(err);
+                assert.ok(result['data'].length == 0);
+
+                wallet.getNewAddress(function(err, address1) {
+                    assert.ifError(err);
+
+                    wallet.deleteWebhook(myWebhookIdentifier, function(err, result) {
+                        assert.ifError(err);
+
+                        var myWebhookIdentifier = "nodejs-sdk-" + crypto.randomBytes(24).toString('hex');
+
+                        wallet.setupWebhook("https://www.blocktrail.com/webhook-test", myWebhookIdentifier, function(err, webhook) {
+                            assert.ifError(err);
+                            assert.equal(webhook['url'], "https://www.blocktrail.com/webhook-test");
+                            assert.equal(webhook['identifier'], myWebhookIdentifier);
+
+                            client.getWebhookEvents(myWebhookIdentifier, function(err, result) {
+                                assert.ifError(err);
+                                assert.ok(result['data'].length == 1);
+                                assert.equal(result['data'][0]['address'], address1);
+
+                                wallet.getNewAddress(function(err, address2) {
+                                    assert.ifError(err);
+
+                                    client.getWebhookEvents(myWebhookIdentifier, function(err, result) {
+                                        assert.ifError(err);
+                                        assert.ok(result['data'].length == 2);
+                                        assert.ok([address1, address2].indexOf(result['data'][0]['address']) !== -1);
+                                        assert.ok([address1, address2].indexOf(result['data'][1]['address']) !== -1);
+
+                                        wallet.deleteWallet(function(err, result) {
+                                            assert.ifError(err);
+
+                                            client.deleteWebhook(myWebhookIdentifier, function(err, result) {
+                                                assert.ok(err);
+
+                                                cb();
+                                            });
+                                        });
+                                    })
+
+                                });
+                            });
+                        });
+                    });
+
+                });
+            });
+        });
+    });
+});
