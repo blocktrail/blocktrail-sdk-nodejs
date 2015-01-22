@@ -2,8 +2,8 @@
     "name": "blocktrail-sdk",
     "description": "BlockTrail's Developer Friendly API binding for NodeJS",
     "keywords": ["bitcoin", "blocktrail"],
-    "version": "1.0.3",
-    "homepage": "https://www.blocktrail.com/api/docs",
+    "version": "1.1.0",
+    "homepage": "https://www.blocktrail.com/api/docs/lang/nodejs",
     "license": "MIT",
     "repository": {
         "type": "git",
@@ -31,7 +31,8 @@
     },
     "contributors": [
         {
-            "name": "Ruben de Vries"
+            "name": "Ruben de Vries",
+            "email": "ruben@blocktrail.com"
         },
         {
             "name": "Oisin Akiboye Conolly",
