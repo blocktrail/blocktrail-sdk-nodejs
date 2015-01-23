@@ -458,3 +458,92 @@ describe('test wallet webhook', function() {
         });
     });
 });
+
+describe('test wallet list transactions and addresses', function() {
+    var myIdentifier = "nodejs-sdk-" + crypto.randomBytes(24).toString('hex');
+    var wallet;
+
+    after(function() {
+        wallet && wallet.deleteWallet();
+    });
+
+    it("should be created", function(cb) {
+        createTestWallet(myIdentifier, "password", function(err, _wallet) {
+            assert.ifError(err);
+            assert.ok(_wallet);
+
+            wallet = _wallet;
+
+            assert.equal(wallet.primaryMnemonic, "give pause forget seed dance crawl situate hole keen");
+            assert.equal(wallet.identifier, myIdentifier);
+            assert.equal(wallet.blocktrailPublicKeys[9999][0], "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
+            assert.equal(wallet.getBlocktrailPublicKey("m/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
+            assert.equal(wallet.getBlocktrailPublicKey("M/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
+            cb();
+        });
+    });
+
+    it("should have the expected addresses", function(cb) {
+        async.series([
+            function(cb) {
+                wallet.getNewAddress(function(err, address, path) {
+                    assert.ifError(err);
+                    assert.equal(path, "M/9999'/0/0");
+                    assert.equal(address, "2MzyKviSL6pnWxkbHV7ecFRE3hWKfzmT8WS");
+
+                    cb();
+                });
+            },
+            function(cb) {
+                wallet.getNewAddress(function(err, address, path) {
+                    assert.ifError(err);
+                    assert.equal(path, "M/9999'/0/1");
+                    assert.equal(address, "2N65RcfKHiKQcPGZAA2QVeqitJvAQ8HroHD");
+
+                    cb();
+                });
+            },
+            function(cb) {
+                assert.equal(wallet.getAddressByPath("M/9999'/0/1"), "2N65RcfKHiKQcPGZAA2QVeqitJvAQ8HroHD");
+                assert.equal(wallet.getAddressByPath("M/9999'/0/6"), "2MynrezSyqCq1x5dMPtRDupTPA4sfVrNBKq");
+                assert.equal(wallet.getAddressByPath("M/9999'/0/44"), "2N5eqrZE7LcfRyCWqpeh1T1YpMdgrq8HWzh");
+
+                cb();
+            },
+        ], cb);
+    });
+
+    it("should have a balance after discovery", function(cb) {
+        this.timeout(0);
+
+        wallet.doDiscovery(function(err, confirmed, unconfirmed) {
+            assert.ok(confirmed + unconfirmed > 0);
+
+            cb();
+        });
+    });
+
+    it("should list expected transactions", function(cb) {
+        wallet.transactions({page: 1, limit: 23}, function(err, transactions) {
+            assert.ifError(err);
+            assert.ok(transactions['data']);
+            assert.ok(transactions['total']);
+            assert.ok(transactions['data'].length == 23);
+            assert.ok(transactions['data'][0]['hash'], "2cb21783635a5f22e9934b8c3262146b42d251dfb14ee961d120936a6c40fe89");
+
+            cb();
+        });
+    });
+
+    it("should list expected addresses", function(cb) {
+        wallet.addresses({page: 1, limit: 23}, function(err, addresses) {
+            assert.ifError(err);
+            assert.ok(addresses['data']);
+            assert.ok(addresses['total']);
+            assert.ok(addresses['data'].length == 23);
+            assert.ok(addresses['data'][0]['address'], "2MzyKviSL6pnWxkbHV7ecFRE3hWKfzmT8WS");
+
+            cb();
+        });
+    });
+});
