@@ -60,8 +60,10 @@ describe('test new blank wallet', function() {
     var myIdentifier = "nodejs-sdk-" + crypto.randomBytes(24).toString('hex');
     var wallet;
 
-    after(function() {
-        wallet && wallet.deleteWallet();
+    after(function(cb) {
+        wallet && wallet.deleteWallet(function(err, result) {
+            cb();
+        });
     });
 
     it("shouldn't already exist", function(cb) {
@@ -113,8 +115,10 @@ describe('test wallet with balance', function() {
     var myIdentifier = "nodejs-sdk-" + crypto.randomBytes(24).toString('hex');
     var wallet;
 
-    after(function() {
-        wallet && wallet.deleteWallet();
+    after(function(cb) {
+        wallet && wallet.deleteWallet(function(err, result) {
+            cb();
+        });
     });
 
     it("should be created", function(cb) {
@@ -201,8 +205,10 @@ describe('test wallet upgrade key index', function() {
     var myIdentifier = "nodejs-sdk-" + crypto.randomBytes(24).toString('hex');
     var wallet;
 
-    after(function() {
-        wallet && wallet.deleteWallet();
+    after(function(cb) {
+        wallet && wallet.deleteWallet(function(err, result) {
+            cb();
+        });
     });
 
     it("should be created", function(cb) {
@@ -285,8 +291,10 @@ describe('test wallet with bad password', function() {
     var myIdentifier = "nodejs-sdk-" + crypto.randomBytes(24).toString('hex');
     var wallet;
 
-    after(function() {
-        wallet && wallet.deleteWallet();
+    after(function(cb) {
+        wallet && wallet.deleteWallet(function(err, result) {
+            cb();
+        });
     });
 
     it("should be created", function(cb) {
@@ -346,8 +354,10 @@ describe('test wallet webhook', function() {
     var myIdentifier = "nodejs-sdk-" + crypto.randomBytes(24).toString('hex');
     var wallet;
 
-    after(function() {
-        wallet && wallet.deleteWallet();
+    after(function(cb) {
+        wallet && wallet.deleteWallet(function(err, result) {
+            cb();
+        });
     });
 
     it("shouldn't already exist", function(cb) {
@@ -463,8 +473,10 @@ describe('test wallet list transactions and addresses', function() {
     var myIdentifier = "nodejs-sdk-" + crypto.randomBytes(24).toString('hex');
     var wallet;
 
-    after(function() {
-        wallet && wallet.deleteWallet();
+    after(function(cb) {
+        wallet && wallet.deleteWallet(function(err, result) {
+            cb();
+        });
     });
 
     it("should be created", function(cb) {
@@ -474,12 +486,19 @@ describe('test wallet list transactions and addresses', function() {
 
             wallet = _wallet;
 
-            assert.equal(wallet.primaryMnemonic, "give pause forget seed dance crawl situate hole keen");
-            assert.equal(wallet.identifier, myIdentifier);
-            assert.equal(wallet.blocktrailPublicKeys[9999][0], "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
-            assert.equal(wallet.getBlocktrailPublicKey("m/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
-            assert.equal(wallet.getBlocktrailPublicKey("M/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
-            cb();
+            client.allWallets({page: 1}, function(err, wallets) {
+                assert.ifError(err);
+
+                assert.ok(wallets['data'].length > 0);
+
+                assert.equal(wallet.primaryMnemonic, "give pause forget seed dance crawl situate hole keen");
+                assert.equal(wallet.identifier, myIdentifier);
+                assert.equal(wallet.blocktrailPublicKeys[9999][0], "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
+                assert.equal(wallet.getBlocktrailPublicKey("m/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
+                assert.equal(wallet.getBlocktrailPublicKey("M/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
+
+                cb();
+            });
         });
     });
 
