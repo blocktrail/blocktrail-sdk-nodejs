@@ -27,7 +27,7 @@ client.createNewWallet(walletIdentifier, "example-strong-password", 9999, functi
         console.log(result);
     });
 
-    //can also be html, an image, or plain text
+    //can also be html or an image
     var result = backup.generateHTML();
      fs.writeFile(LIBPATH + "/examples/my-wallet-backup.html", result, function(err) {
          if(err) {
@@ -36,8 +36,6 @@ client.createNewWallet(walletIdentifier, "example-strong-password", 9999, functi
             console.log("The file was saved!");
          }
      });
-
-
 
     //image (png)
     backup.generateImage(LIBPATH + "/examples/my-wallet-backup.png", function (result) {
