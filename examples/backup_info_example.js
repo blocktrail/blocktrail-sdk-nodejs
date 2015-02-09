@@ -3,6 +3,9 @@ var crypto = require('crypto');
 var backupGenerator = require('blocktrail-sdk/lib/backup_generator');
 
 var fs = require('fs');
+var path = require('path');
+
+var LIBPATH = path.normalize(__dirname + '/..');
 
 var client = blocktrail({
     apiKey : "MY_APIKEY",
@@ -17,20 +20,28 @@ client.createNewWallet(walletIdentifier, "example-strong-password", 9999, functi
         return console.log("createNewWallet ERR", err);
     }
 
-    //console.log('primary mnemonic', primaryMnemonic);
-    //console.log('backup mnemonic', backupMnemonic);
-    //console.log('blocktrail pubkeys', blocktrailPubKeys);
-
-    //generate the backup document
+    //generate the backup document as a pdf
     var backup = new backupGenerator(primaryMnemonic, backupMnemonic, blocktrailPubKeys);
-    var result = backup.generateHTML();
-
-    fs.writeFile("examples/my-wallet-backup.html", result, function(err) {
-        if(err) {
-            console.log(err);
-        } else {
-            console.log("The file was saved!");
-        }
+    //pdf
+    backup.generatePDF(LIBPATH + "/examples/my-wallet-backup.pdf", function (result) {
+        console.log(result);
     });
-    console.log();
+
+    //can also be html, an image, or plain text
+    var result = backup.generateHTML();
+     fs.writeFile(LIBPATH + "/examples/my-wallet-backup.html", result, function(err) {
+         if(err) {
+            console.log(err);
+         } else {
+            console.log("The file was saved!");
+         }
+     });
+
+
+
+    //image (png)
+    backup.generateImage(LIBPATH + "/examples/my-wallet-backup.png", function (result) {
+        console.log(result);
+    });
+
 });
