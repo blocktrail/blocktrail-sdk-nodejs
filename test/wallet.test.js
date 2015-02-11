@@ -449,6 +449,7 @@ describe('test wallet webhook', function() {
 
                                         wallet.deleteWallet(function(err, result) {
                                             assert.ifError(err);
+                                            assert.ok(result);
 
                                             client.deleteWebhook(myWebhookIdentifier, function(err, result) {
                                                 assert.ok(err);
