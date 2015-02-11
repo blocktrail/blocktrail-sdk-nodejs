@@ -6,8 +6,8 @@ var crypto = require('crypto');
  * @type APIClient
  */
 var client = blocktrail({
-    apiKey : "MY_APIKEY",
-    apiSecret : "MY_APISECRET"
+    apiKey : process.env.BLOCKTRAIL_SDK_APIKEY || "EXAMPLE_BLOCKTRAIL_SDK_NODEJS_APIKEY",
+    apiSecret : process.env.BLOCKTRAIL_SDK_APISECRET || "EXAMPLE_BLOCKTRAIL_SDK_NODEJS_APISECRET"
 });
 
 describe('SDK general', function() {

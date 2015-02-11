@@ -5,8 +5,8 @@ var assert = require('assert');
  * @type APIClient
  */
 var client = blocktrail({
-    apiKey : "MY_APIKEY",
-    apiSecret : "MY_APISECRET"
+    apiKey : process.env.BLOCKTRAIL_SDK_APIKEY || "EXAMPLE_BLOCKTRAIL_SDK_NODEJS_APIKEY",
+    apiSecret : process.env.BLOCKTRAIL_SDK_APISECRET || "EXAMPLE_BLOCKTRAIL_SDK_NODEJS_APISECRET"
 });
 
 module.exports = {
@@ -17,11 +17,7 @@ module.exports = {
 
             cb();
         })
-        .catch(function(err) {
-            assert.ifError(err);
-
-            cb();
-        });
+        .done();
     },
     'test verifyAddress': function(cb) {
         client.verifyAddress("16dwJmR4mX5RguGrocMfN9Q9FR2kZcLw2z", "HPMOHRgPSMKdXrU6AqQs/i9S7alOakkHsJiqLGmInt05Cxj6b/WhS7kJxbIQxKmDW08YKzoFnbVZIoTI2qofEzk=")
@@ -30,10 +26,6 @@ module.exports = {
 
                 cb();
             })
-            .catch(function(err) {
-                assert.ifError(err);
-
-                cb();
-            });
-    },
+            .done();
+    }
 }
