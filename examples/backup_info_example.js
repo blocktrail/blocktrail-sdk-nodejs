@@ -20,9 +20,9 @@ client.createNewWallet(walletIdentifier, "example-strong-password", 9999, functi
         return console.log("createNewWallet ERR", err);
     }
 
-    //generate the backup document as a pdf
+    //generate the backup document
     var backup = new backupGenerator(primaryMnemonic, backupMnemonic, blocktrailPubKeys);
-    //pdf
+    //create a pdf
     backup.generatePDF(LIBPATH + "/examples/my-wallet-backup.pdf", function (result) {
         console.log(result);
     });
@@ -37,7 +37,7 @@ client.createNewWallet(walletIdentifier, "example-strong-password", 9999, functi
          }
      });
 
-    //image (png)
+    //image (only png)
     backup.generateImage(LIBPATH + "/examples/my-wallet-backup.png", function (result) {
         console.log(result);
     });
