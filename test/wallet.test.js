@@ -1,15 +1,14 @@
-var blocktrail = require('blocktrail-sdk');
+var blocktrail = require('../');
 var assert = require('assert');
 var crypto = require('crypto');
 var async = require('async');
-var bitcoin = require('bitcoinjs-lib'),
-    bip39 = require("bip39"),
-    Wallet = require('blocktrail-sdk/lib/wallet');
+var bitcoin = require('bitcoinjs-lib');
+var bip39 = require("bip39");
 
 /**
  * @type APIClient
  */
-var client = blocktrail({
+var client = blocktrail.BlocktrailSDK({
     apiKey : process.env.BLOCKTRAIL_SDK_APIKEY || "EXAMPLE_BLOCKTRAIL_SDK_NODEJS_APIKEY",
     apiSecret : process.env.BLOCKTRAIL_SDK_APISECRET || "EXAMPLE_BLOCKTRAIL_SDK_NODEJS_APISECRET",
     testnet : true
@@ -60,7 +59,7 @@ var _createTestWallet = function(identifier, passphrase, primaryMnemonic, backup
 
         var blocktrailPubKeys = result.blocktrail_public_keys;
 
-        var wallet = new Wallet(
+        var wallet = new blocktrail.Wallet(
             client,
             identifier,
             primaryMnemonic,

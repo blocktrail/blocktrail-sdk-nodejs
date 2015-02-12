@@ -1,15 +1,13 @@
 var blocktrail = require('blocktrail-sdk');
 var crypto = require('crypto');
-var backupGenerator = require('blocktrail-sdk/lib/backup_generator');
-
 var fs = require('fs');
 var path = require('path');
 
 var LIBPATH = path.normalize(__dirname + '/..');
 
-var client = blocktrail({
-    apiKey : "MY_APIKEY",
-    apiSecret : "MY_APISECRET",
+var client = blocktrail.BlocktrailSDK({
+    apiKey : "YOUR_APIKEY_HERE",
+    apiSecret : "YOUR_APISECRET_HERE",
     testnet : true
 });
 
@@ -21,7 +19,7 @@ client.createNewWallet(walletIdentifier, "example-strong-password", 9999, functi
     }
 
     //generate the backup document
-    var backup = new backupGenerator(primaryMnemonic, backupMnemonic, blocktrailPubKeys);
+    var backup = new blocktrail.BackupGenerator(primaryMnemonic, backupMnemonic, blocktrailPubKeys);
     //create a pdf
     backup.generatePDF(LIBPATH + "/examples/my-wallet-backup.pdf", function (result) {
         console.log(result);

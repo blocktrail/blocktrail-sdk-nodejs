@@ -1,11 +1,11 @@
-var blocktrail = require('blocktrail-sdk');
+var blocktrail = require('../');
 var assert = require('assert');
 var crypto = require('crypto');
 
 /**
  * @type APIClient
  */
-var client = blocktrail({
+var client = blocktrail.BlocktrailSDK({
     apiKey : process.env.BLOCKTRAIL_SDK_APIKEY || "EXAMPLE_BLOCKTRAIL_SDK_NODEJS_APIKEY",
     apiSecret : process.env.BLOCKTRAIL_SDK_APISECRET || "EXAMPLE_BLOCKTRAIL_SDK_NODEJS_APISECRET"
 });
@@ -21,7 +21,7 @@ describe('SDK general', function() {
         cb();
     });
     it('test auth failure', function(cb) {
-        var client = blocktrail({
+        var client = blocktrail.BlocktrailSDK({
             apiKey: "TESTKEY-FAIL",
             apiSecret: "TESTSECRET-FAIL"
         });

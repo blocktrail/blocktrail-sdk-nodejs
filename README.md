@@ -60,7 +60,8 @@ Unit Tests are created with Mocha and can be ran with `npm test` (or `mocha`)
 
 Node Modules Symlink
 --------------------
-To make all the examples and tests use `require('blocktrail-sdk')` just like when the module would have been installed with NPM we symlinked `node_modules/blocktrail-sdk` to the root of this directory.
+To make all the examples use `require('blocktrail-sdk')` just like when the module would have been installed with NPM 
+we symlinked `node_modules/blocktrail-sdk` to the root of this directory.
 
 License
 -------

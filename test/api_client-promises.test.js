@@ -1,10 +1,10 @@
-var blocktrail = require('blocktrail-sdk');
+var blocktrail = require('../');
 var assert = require('assert');
 
 /**
  * @type APIClient
  */
-var client = blocktrail({
+var client = blocktrail.BlocktrailSDK({
     apiKey : process.env.BLOCKTRAIL_SDK_APIKEY || "EXAMPLE_BLOCKTRAIL_SDK_NODEJS_APIKEY",
     apiSecret : process.env.BLOCKTRAIL_SDK_APISECRET || "EXAMPLE_BLOCKTRAIL_SDK_NODEJS_APISECRET"
 });
