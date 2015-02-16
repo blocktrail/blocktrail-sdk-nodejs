@@ -15,10 +15,30 @@ var client = blocktrail({
     testnet : true
 });
 
-var createTestWallet = function(identifier, passphrase, cb) {
+var createDiscoveryTestWallet = function(identifier, passphrase, cb) {
+    var primaryMnemonic = "give pause forget seed dance crawl situate hole kingdom";
+    var backupMnemonic = "give pause forget seed dance crawl situate hole course";
+
+    return _createTestWallet(identifier, passphrase, primaryMnemonic, backupMnemonic, cb);
+};
+
+var createTransactionTestWallet = function(identifier, passphrase, cb) {
+    var primaryMnemonic = "give pause forget seed dance crawl situate hole keen";
+    var backupMnemonic = "give pause forget seed dance crawl situate hole give";
+
+    return _createTestWallet(identifier, passphrase, primaryMnemonic, backupMnemonic, cb);
+};
+
+var createRecoveryTestWallet = function(identifier, passphrase, cb) {
+    var primaryMnemonic = "give pause forget seed dance crawl situate hole join";
+    var backupMnemonic = "give pause forget seed dance crawl situate hole crater";
+
+    return _createTestWallet(identifier, passphrase, primaryMnemonic, backupMnemonic, cb);
+};
+
+var _createTestWallet = function(identifier, passphrase, primaryMnemonic, backupMnemonic, cb) {
     var keyIndex = 9999;
 
-    var primaryMnemonic = "give pause forget seed dance crawl situate hole keen";
     var primaryPrivateKey = bitcoin.HDNode.fromSeedBuffer(
         bip39.mnemonicToSeed(primaryMnemonic, passphrase),
         client.testnet ? bitcoin.networks.testnet : bitcoin.networks.bitcoin
@@ -26,7 +46,6 @@ var createTestWallet = function(identifier, passphrase, cb) {
     var primaryPublicKey = primaryPrivateKey.deriveHardened(keyIndex).neutered();
     primaryPublicKey = [primaryPublicKey.toBase58(), "M/" + keyIndex + "'"];
 
-    var backupMnemonic = "give pause forget seed dance crawl situate hole give";
     var backupPrivateKey = bitcoin.HDNode.fromSeedBuffer(
         bip39.mnemonicToSeed(backupMnemonic, ""),
         client.testnet ? bitcoin.networks.testnet : bitcoin.networks.bitcoin
@@ -35,7 +54,7 @@ var createTestWallet = function(identifier, passphrase, cb) {
     backupPublicKey = [backupPublicKey.toBase58(), "M"];
 
     // @TODO: checksum
-    var checksum = "";
+    var checksum = primaryPrivateKey.getAddress().toBase58Check();
 
     client._createNewWallet(identifier, primaryPublicKey, backupPublicKey, primaryMnemonic, checksum, keyIndex, function(err, result) {
 
@@ -111,25 +130,18 @@ describe('test new blank wallet', function() {
     });
 });
 
-describe('test wallet with balance', function() {
-    var myIdentifier = "nodejs-sdk-" + crypto.randomBytes(24).toString('hex');
+describe('test wallet, do transaction', function() {
     var wallet;
 
-    after(function(cb) {
-        wallet && wallet.deleteWallet(function(err, result) {
-            cb();
-        });
-    });
-
-    it("should be created", function(cb) {
-        createTestWallet(myIdentifier, "password", function(err, _wallet) {
+    it("should exists", function(cb) {
+        client.initWallet("unittest-transaction", "password", function(err, _wallet) {
             assert.ifError(err);
             assert.ok(_wallet);
 
             wallet = _wallet;
 
             assert.equal(wallet.primaryMnemonic, "give pause forget seed dance crawl situate hole keen");
-            assert.equal(wallet.identifier, myIdentifier);
+            assert.equal(wallet.identifier, "unittest-transaction");
             assert.equal(wallet.blocktrailPublicKeys[9999][0], "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
             assert.equal(wallet.getBlocktrailPublicKey("m/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
             assert.equal(wallet.getBlocktrailPublicKey("M/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
@@ -138,40 +150,19 @@ describe('test wallet with balance', function() {
     });
 
     it("should have the expected addresses", function(cb) {
-        async.series([
-            function(cb) {
-                wallet.getNewAddress(function(err, address, path) {
-                    assert.ifError(err);
-                    assert.equal(path, "M/9999'/0/0");
-                    assert.equal(address, "2MzyKviSL6pnWxkbHV7ecFRE3hWKfzmT8WS");
+        assert.equal(wallet.getAddressByPath("M/9999'/0/1"), "2N65RcfKHiKQcPGZAA2QVeqitJvAQ8HroHD");
+        assert.equal(wallet.getAddressByPath("M/9999'/0/6"), "2MynrezSyqCq1x5dMPtRDupTPA4sfVrNBKq");
+        assert.equal(wallet.getAddressByPath("M/9999'/0/44"), "2N5eqrZE7LcfRyCWqpeh1T1YpMdgrq8HWzh");
 
-                    cb();
-                });
-            },
-            function(cb) {
-                wallet.getNewAddress(function(err, address, path) {
-                    assert.ifError(err);
-                    assert.equal(path, "M/9999'/0/1");
-                    assert.equal(address, "2N65RcfKHiKQcPGZAA2QVeqitJvAQ8HroHD");
-
-                    cb();
-                });
-            },
-            function(cb) {
-                assert.equal(wallet.getAddressByPath("M/9999'/0/1"), "2N65RcfKHiKQcPGZAA2QVeqitJvAQ8HroHD");
-                assert.equal(wallet.getAddressByPath("M/9999'/0/6"), "2MynrezSyqCq1x5dMPtRDupTPA4sfVrNBKq");
-                assert.equal(wallet.getAddressByPath("M/9999'/0/44"), "2N5eqrZE7LcfRyCWqpeh1T1YpMdgrq8HWzh");
-
-                cb();
-            },
-        ], cb);
+        cb();
     });
 
-    it("should have a balance after discovery", function(cb) {
+    it("should have a balance", function(cb) {
         this.timeout(0);
 
-        wallet.doDiscovery(function(err, confirmed, unconfirmed) {
+        wallet.getBalance(function(err, confirmed, unconfirmed) {
             assert.ok(confirmed + unconfirmed > 0);
+            assert.ok(confirmed > 0);
 
             cb();
         });
@@ -201,7 +192,7 @@ describe('test wallet with balance', function() {
     });
 });
 
-describe('test wallet upgrade key index', function() {
+describe('test wallet discovery and upgrade key index', function() {
     var myIdentifier = "nodejs-sdk-" + crypto.randomBytes(24).toString('hex');
     var wallet;
 
@@ -212,13 +203,13 @@ describe('test wallet upgrade key index', function() {
     });
 
     it("should be created", function(cb) {
-        createTestWallet(myIdentifier, "password", function(err, _wallet) {
+        createDiscoveryTestWallet(myIdentifier, "password", function(err, _wallet) {
             assert.ifError(err);
             assert.ok(_wallet);
 
             wallet = _wallet;
 
-            assert.equal(wallet.primaryMnemonic, "give pause forget seed dance crawl situate hole keen");
+            assert.equal(wallet.primaryMnemonic, "give pause forget seed dance crawl situate hole kingdom");
             assert.equal(wallet.identifier, myIdentifier);
             assert.equal(wallet.blocktrailPublicKeys[9999][0], "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
             assert.equal(wallet.getBlocktrailPublicKey("m/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
@@ -234,7 +225,7 @@ describe('test wallet upgrade key index', function() {
                 wallet.getNewAddress(function(err, address, path) {
                     assert.ifError(err);
                     assert.equal(path, "M/9999'/0/0");
-                    assert.equal(address, "2MzyKviSL6pnWxkbHV7ecFRE3hWKfzmT8WS");
+                    assert.equal(address, "2Mtfn5S9tVWnnHsBQixCLTsCAPFHvfhu6bM");
 
                     cb();
                 });
@@ -243,15 +234,14 @@ describe('test wallet upgrade key index', function() {
                 wallet.getNewAddress(function(err, address, path) {
                     assert.ifError(err);
                     assert.equal(path, "M/9999'/0/1");
-                    assert.equal(address, "2N65RcfKHiKQcPGZAA2QVeqitJvAQ8HroHD");
+                    assert.equal(address, "2NG49GDkm5qCYvDFi4cxAnkSho8qLbEz6C4");
 
                     cb();
                 });
             },
             function(cb) {
-                assert.equal(wallet.getAddressByPath("M/9999'/0/1"), "2N65RcfKHiKQcPGZAA2QVeqitJvAQ8HroHD");
-                assert.equal(wallet.getAddressByPath("M/9999'/0/6"), "2MynrezSyqCq1x5dMPtRDupTPA4sfVrNBKq");
-                assert.equal(wallet.getAddressByPath("M/9999'/0/44"), "2N5eqrZE7LcfRyCWqpeh1T1YpMdgrq8HWzh");
+                assert.equal(wallet.getAddressByPath("M/9999'/0/1"), "2NG49GDkm5qCYvDFi4cxAnkSho8qLbEz6C4");
+                assert.equal(wallet.getAddressByPath("M/9999'/0/6"), "2N1kM5xeDaCN9Weog3mbyxjpryNZcirnkB7");
 
                 cb();
             },
@@ -261,7 +251,7 @@ describe('test wallet upgrade key index', function() {
     it("should have a balance after discovery", function(cb) {
         this.timeout(0);
 
-        wallet.doDiscovery(function(err, confirmed, unconfirmed) {
+        wallet.doDiscovery(50, function(err, confirmed, unconfirmed) {
             assert.ok(confirmed + unconfirmed > 0);
 
             cb();
@@ -274,12 +264,12 @@ describe('test wallet upgrade key index', function() {
 
             assert.equal(wallet.blocktrailPublicKeys[10000][0], "tpubD9m9hziKhYQExWgzMUNXdYMNUtourv96sjTUS9jJKdo3EDJAnCBJooMPm6vGSmkNTNAmVt988dzNfNY12YYzk9E6PkA7JbxYeZBFy4XAaCp");
 
-            assert.equal(wallet.getAddressByPath("M/10000'/0/0"), "2NDwndDJAdu8RGHB6L9xNBAbbZ6bMjFgErK");
+            assert.equal(wallet.getAddressByPath("M/10000'/0/0"), "2N9ZLKXgs12JQKXvLkngn7u9tsYaQ5kXJmk");
 
             wallet.getNewAddress(function(err, address, path) {
                 assert.ifError(err);
                 assert.equal(path, "M/10000'/0/0");
-                assert.equal(address, "2NDwndDJAdu8RGHB6L9xNBAbbZ6bMjFgErK");
+                assert.equal(address, "2N9ZLKXgs12JQKXvLkngn7u9tsYaQ5kXJmk");
 
                 cb();
             });
@@ -298,13 +288,13 @@ describe('test wallet with bad password', function() {
     });
 
     it("should be created", function(cb) {
-        createTestWallet(myIdentifier, "password2", function(err, _wallet) {
+        createDiscoveryTestWallet(myIdentifier, "badpassword", function(err, _wallet) {
             assert.ifError(err);
             assert.ok(_wallet);
 
             wallet = _wallet;
 
-            assert.equal(wallet.primaryMnemonic, "give pause forget seed dance crawl situate hole keen");
+            assert.equal(wallet.primaryMnemonic, "give pause forget seed dance crawl situate hole kingdom");
             assert.equal(wallet.identifier, myIdentifier);
             assert.equal(wallet.blocktrailPublicKeys[9999][0], "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
             assert.equal(wallet.getBlocktrailPublicKey("m/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
@@ -320,7 +310,7 @@ describe('test wallet with bad password', function() {
                 wallet.getNewAddress(function(err, address, path) {
                     assert.ifError(err);
                     assert.equal(path, "M/9999'/0/0");
-                    assert.equal(address, "2N7UAbCwVcbno9W42Yz6KQAjyLVy2NqYN3Z");
+                    assert.equal(address, "2N9SGrV4NKRjdACYvHLPpy2oiPrxTPd44rg");
 
                     cb();
                 });
@@ -329,7 +319,7 @@ describe('test wallet with bad password', function() {
                 wallet.getNewAddress(function(err, address, path) {
                     assert.ifError(err);
                     assert.equal(path, "M/9999'/0/1");
-                    assert.equal(address, "2N9ZFKNnCamy9sJYZiH9uMrbXaDNw8D8zcb");
+                    assert.equal(address, "2NDq3DRy9E3YgHDA3haPJj3FtUS6V93avkf");
 
                     cb();
                 });
@@ -340,7 +330,7 @@ describe('test wallet with bad password', function() {
     it("shouldn't have a balance after discovery", function(cb) {
         this.timeout(0);
 
-        wallet.doDiscovery(function(err, confirmed, unconfirmed) {
+        wallet.doDiscovery(50, function(err, confirmed, unconfirmed) {
             assert.ok(confirmed + unconfirmed == 0);
 
             cb();
@@ -471,17 +461,10 @@ describe('test wallet webhook', function() {
 });
 
 describe('test wallet list transactions and addresses', function() {
-    var myIdentifier = "nodejs-sdk-" + crypto.randomBytes(24).toString('hex');
     var wallet;
 
-    after(function(cb) {
-        wallet && wallet.deleteWallet(function(err, result) {
-            cb();
-        });
-    });
-
-    it("should be created", function(cb) {
-        createTestWallet(myIdentifier, "password", function(err, _wallet) {
+    it("should exists", function(cb) {
+        client.initWallet("unittest-transaction", "password", function(err, _wallet) {
             assert.ifError(err);
             assert.ok(_wallet);
 
@@ -493,53 +476,13 @@ describe('test wallet list transactions and addresses', function() {
                 assert.ok(wallets['data'].length > 0);
 
                 assert.equal(wallet.primaryMnemonic, "give pause forget seed dance crawl situate hole keen");
-                assert.equal(wallet.identifier, myIdentifier);
+                assert.equal(wallet.identifier, "unittest-transaction");
                 assert.equal(wallet.blocktrailPublicKeys[9999][0], "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
                 assert.equal(wallet.getBlocktrailPublicKey("m/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
                 assert.equal(wallet.getBlocktrailPublicKey("M/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
 
                 cb();
             });
-        });
-    });
-
-    it("should have the expected addresses", function(cb) {
-        async.series([
-            function(cb) {
-                wallet.getNewAddress(function(err, address, path) {
-                    assert.ifError(err);
-                    assert.equal(path, "M/9999'/0/0");
-                    assert.equal(address, "2MzyKviSL6pnWxkbHV7ecFRE3hWKfzmT8WS");
-
-                    cb();
-                });
-            },
-            function(cb) {
-                wallet.getNewAddress(function(err, address, path) {
-                    assert.ifError(err);
-                    assert.equal(path, "M/9999'/0/1");
-                    assert.equal(address, "2N65RcfKHiKQcPGZAA2QVeqitJvAQ8HroHD");
-
-                    cb();
-                });
-            },
-            function(cb) {
-                assert.equal(wallet.getAddressByPath("M/9999'/0/1"), "2N65RcfKHiKQcPGZAA2QVeqitJvAQ8HroHD");
-                assert.equal(wallet.getAddressByPath("M/9999'/0/6"), "2MynrezSyqCq1x5dMPtRDupTPA4sfVrNBKq");
-                assert.equal(wallet.getAddressByPath("M/9999'/0/44"), "2N5eqrZE7LcfRyCWqpeh1T1YpMdgrq8HWzh");
-
-                cb();
-            },
-        ], cb);
-    });
-
-    it("should have a balance after discovery", function(cb) {
-        this.timeout(0);
-
-        wallet.doDiscovery(function(err, confirmed, unconfirmed) {
-            assert.ok(confirmed + unconfirmed > 0);
-
-            cb();
         });
     });
 
