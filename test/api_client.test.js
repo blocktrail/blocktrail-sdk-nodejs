@@ -349,3 +349,25 @@ describe('market api', function() {
         });
     });
 });
+
+describe('verify message', function() {
+    var address = "1F26pNMrywyZJdr22jErtKcjF8R3Ttt55G";
+    var message = address;
+    var signature = "H85WKpqtNZDrajOnYDgUY+abh0KCAcOsAIOQwx2PftAbLEPRA7mzXA/CjXRxzz0MC225pR/hx02Vf2Ag2x33kU4=";
+
+    it('should verify using bitcoinjs-lib', function(done) {
+        client.verifyMessage(message, address, signature, function(err, result) {
+            assert.ifError(err);
+            assert.ok(result);
+            done();
+        });
+    });
+
+    it('should verify using API', function(done) {
+        client.client.post("/verify_message", null, {message: message, address: address, signature: signature}, function(err, result) {
+            assert.ifError(err);
+            assert.ok(result);
+            done();
+        });
+    });
+});
