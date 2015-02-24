@@ -1,3 +1,4 @@
+var _ = require('lodash');
 var blocktrail = require('../');
 var assert = require('assert');
 var crypto = require('crypto');
@@ -407,8 +408,7 @@ describe('test wallet webhook', function() {
 
             client.getWebhookEvents(myWebhookIdentifier, function(err, result) {
                 assert.ifError(err);
-                assert.ok(result['data'].length == 0);
-
+                
                 wallet.getNewAddress(function(err, address1) {
                     assert.ifError(err);
 
@@ -424,17 +424,14 @@ describe('test wallet webhook', function() {
 
                             client.getWebhookEvents(myWebhookIdentifier, function(err, result) {
                                 assert.ifError(err);
-                                assert.ok(result['data'].length == 1);
-                                assert.equal(result['data'][0]['address'], address1);
+                                assert.ok(_.contains(_.map(result['data'], 'address'), address1));
 
                                 wallet.getNewAddress(function(err, address2) {
                                     assert.ifError(err);
 
                                     client.getWebhookEvents(myWebhookIdentifier, function(err, result) {
                                         assert.ifError(err);
-                                        assert.ok(result['data'].length == 2);
-                                        assert.ok([address1, address2].indexOf(result['data'][0]['address']) !== -1);
-                                        assert.ok([address1, address2].indexOf(result['data'][1]['address']) !== -1);
+                                        assert.ok(_.contains(_.map(result['data'], 'address'), address2));
 
                                         wallet.deleteWallet(function(err, result) {
                                             assert.ifError(err);
