@@ -80,7 +80,7 @@ describe('test new blank wallet', function() {
     var wallet;
 
     after(function(cb) {
-        wallet && wallet.deleteWallet(function(err, result) {
+        wallet && wallet.deleteWallet(true, function(err, result) {
             cb();
         });
     });
@@ -197,7 +197,7 @@ describe('test wallet discovery and upgrade key index', function() {
     var wallet;
 
     after(function(cb) {
-        wallet && wallet.deleteWallet(function(err, result) {
+        wallet && wallet.deleteWallet(true, function(err, result) {
             cb();
         });
     });
@@ -282,7 +282,7 @@ describe('test wallet with bad password', function() {
     var wallet;
 
     after(function(cb) {
-        wallet && wallet.deleteWallet(function(err, result) {
+        wallet && wallet.deleteWallet(true, function(err, result) {
             cb();
         });
     });
@@ -345,7 +345,7 @@ describe('test wallet webhook', function() {
     var wallet;
 
     after(function(cb) {
-        wallet && wallet.deleteWallet(function(err, result) {
+        wallet && wallet.deleteWallet(true, function(err, result) {
             cb();
         });
     });
