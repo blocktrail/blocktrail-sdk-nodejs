@@ -21,7 +21,7 @@
         "http-signature": "git://github.com/blocktrail/node-http-signature.git#68f8a51438cb0c49460e9b883b2608a6879ff137",
         "debug": "~0.8.1",
         "crypto": "~0.0.3",
-        "bitcoinjs-lib": "~1.4.3",
+        "bitcoinjs-lib": "1.4.4",
         "bip39": "~2.1.0",
         "async": "~0.9.0",
         "assert-plus": "~0.1.4",
