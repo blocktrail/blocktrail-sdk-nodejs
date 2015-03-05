@@ -266,6 +266,20 @@ describe('webhooks api', function() {
         });
     });
 
+    it('subscribe to transaction event', function(done) {
+        var transaction = "a0a87b1577d606b349cfded85c842bdc53b99bcd49614229a71804b46b1c27cc";
+        client.subscribeTransaction(createdWebhooks[1], transaction, 2, function(err, response) {
+            assert.ifError(err);
+            assert.ok('event_type' in response, "'event_type' key not in response");
+            assert.ok('address' in response, "'address' key not in response");
+            assert.ok('confirmations' in response, "'confirmations' key not in response");
+            assert.equal(response['event_type'], "transaction", "'event_type' does not match expected value");
+            assert.equal(response['transaction'], transaction, "'transaction' does not match expected value");
+            assert.equal(response['confirmations'], 2, "'confirmations' does not match expected value");
+            done();
+        });
+    });
+
     it('subscribe to new block events', function(done) {
         client.subscribeNewBlocks(createdWebhooks[1], function(err, response) {
             assert.ifError(err);
@@ -306,17 +320,11 @@ describe('webhooks api', function() {
             assert.ifError(err);
             assert.ok('data' in response, "'data' key not in response");
             assert.ok('total' in response, "'total' key not in response");
-            assert.equal(parseInt(response['total']), 5, "'total' does not match expected value");
-            assert.equal(response['data'].length, 5, "Count of event subscriptions returned is not equal to 2");
+            assert.equal(parseInt(response['total']), 6, "'total' does not match expected value");
+            assert.equal(response['data'].length, 6, "Count of event subscriptions returned is not equal to 2");
 
             assert.ok('event_type' in response['data'][0], "'event_type' key not in first event subscription of response");
-            assert.ok('event_type' in response['data'][1], "'event_type' key not in second event subscription of response");
-            /*
-            //following are unreliable as order can change
-            assert.equal(response['data'][0]['event_type'], "address-transactions", "First event subscription event type does not match expected value");
-            assert.equal(response['data'][1]['event_type'], "block", "Second event subscription event type does not match expected value");
-            assert.equal(response['data'][2]['address'], "18FA8Tn54Hu8fjn7kkfAygPoGEJLHMbHzo", "Third event subscription address does not match expected value");
-            */
+
             done();
         });
     });
@@ -324,6 +332,15 @@ describe('webhooks api', function() {
     it('unsubscribe from address-transaction events', function(done) {
         var address = "1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp";
         client.unsubscribeAddressTransactions(createdWebhooks[1], address, function(err, response) {
+            assert.ifError(err);
+            assert.ok(response);
+            done();
+        });
+    });
+
+    it('unsubscribe from new transaction events', function(done) {
+        var transaction = "a0a87b1577d606b349cfded85c842bdc53b99bcd49614229a71804b46b1c27cc";
+        client.unsubscribeTransaction(createdWebhooks[1], transaction, function(err, response) {
             assert.ifError(err);
             assert.ok(response);
             done();
