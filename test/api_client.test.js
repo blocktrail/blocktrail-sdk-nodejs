@@ -1,3 +1,4 @@
+/* jshint -W101, -W098 */
 var blocktrail = require('../');
 var assert = require('assert');
 var crypto = require('crypto');
@@ -49,7 +50,7 @@ describe('data api', function() {
             assert.ifError(err);
             assert.ok(address_txs['data']);
             assert.ok(address_txs['total']);
-            assert.ok(address_txs['data'].length == 23);
+            assert.ok(address_txs['data'].length === 23);
 
             cb();
         });
@@ -105,7 +106,7 @@ describe('data api', function() {
             assert.ifError(err);
             assert.ok(block_txs['data']);
             assert.ok(block_txs['total']);
-            assert.ok(block_txs['data'].length == 23);
+            assert.ok(block_txs['data'].length === 23);
 
             cb();
         });
@@ -115,7 +116,7 @@ describe('data api', function() {
             assert.ifError(err);
             assert.ok(blocks['data']);
             assert.ok(blocks['total']);
-            assert.ok(blocks['data'].length == 23);
+            assert.ok(blocks['data'].length === 23);
             assert.equal(blocks['data'][0]['hash'], '000000000cd339982e556dfffa9de94744a4135c53eeef15b7bcc9bdeb9c2182');
             assert.equal(blocks['data'][1]['hash'], '00000000fc051fbbce89a487e811a5d4319d209785ea4f4b27fc83770d1e415f');
 
@@ -164,7 +165,7 @@ describe('webhooks api', function() {
             createdWebhooks.forEach(function(identifier) {
                 client.deleteWebhook(identifier, function(err, response) {
                     createdWebhooks.splice(identifier, 1);
-                    if(createdWebhooks.length==0) {
+                    if(createdWebhooks.length === 0) {
                         done();
                     }
                 });

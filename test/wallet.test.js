@@ -1,3 +1,4 @@
+/* jshint -W101, -W098 */
 var _ = require('lodash');
 var blocktrail = require('../');
 var assert = require('assert');
@@ -18,24 +19,6 @@ var client = blocktrail.BlocktrailSDK({
 var TRANSACTION_TEST_WALLET_PRIMARY_MNEMONIC = "give pause forget seed dance crawl situate hole keen",
     TRANSACTION_TEST_WALLET_BACKUP_MNEMONIC = "give pause forget seed dance crawl situate hole give",
     TRANSACTION_TEST_WALLET_PASSWORD = "password";
-
-var createDiscoveryTestWallet = function(identifier, passphrase, cb) {
-    var primaryMnemonic = "give pause forget seed dance crawl situate hole kingdom";
-    var backupMnemonic = "give pause forget seed dance crawl situate hole course";
-
-    return _createTestWallet(identifier, passphrase, primaryMnemonic, backupMnemonic, cb);
-};
-
-var createTransactionTestWallet = function(identifier, passphrase, cb) {
-    return _createTestWallet(identifier, TRANSACTION_TEST_WALLET_PASSWORD, TRANSACTION_TEST_WALLET_PRIMARY_MNEMONIC, TRANSACTION_TEST_WALLET_BACKUP_MNEMONIC, cb);
-};
-
-var createRecoveryTestWallet = function(identifier, passphrase, cb) {
-    var primaryMnemonic = "give pause forget seed dance crawl situate hole join";
-    var backupMnemonic = "give pause forget seed dance crawl situate hole crater";
-
-    return _createTestWallet(identifier, passphrase, primaryMnemonic, backupMnemonic, cb);
-};
 
 var _createTestWallet = function(identifier, passphrase, primaryMnemonic, backupMnemonic, cb) {
     var keyIndex = 9999;
@@ -76,14 +59,36 @@ var _createTestWallet = function(identifier, passphrase, primaryMnemonic, backup
     });
 };
 
+var createDiscoveryTestWallet = function(identifier, passphrase, cb) {
+    var primaryMnemonic = "give pause forget seed dance crawl situate hole kingdom";
+    var backupMnemonic = "give pause forget seed dance crawl situate hole course";
+
+    return _createTestWallet(identifier, passphrase, primaryMnemonic, backupMnemonic, cb);
+};
+
+var createTransactionTestWallet = function(identifier, passphrase, cb) {
+    return _createTestWallet(identifier, TRANSACTION_TEST_WALLET_PASSWORD, TRANSACTION_TEST_WALLET_PRIMARY_MNEMONIC, TRANSACTION_TEST_WALLET_BACKUP_MNEMONIC, cb);
+};
+
+var createRecoveryTestWallet = function(identifier, passphrase, cb) {
+    var primaryMnemonic = "give pause forget seed dance crawl situate hole join";
+    var backupMnemonic = "give pause forget seed dance crawl situate hole crater";
+
+    return _createTestWallet(identifier, passphrase, primaryMnemonic, backupMnemonic, cb);
+};
+
 describe('test new blank wallet', function() {
     var myIdentifier = "nodejs-sdk-" + crypto.randomBytes(24).toString('hex');
     var wallet;
 
     after(function(cb) {
-        wallet && wallet.deleteWallet(true, function(err, result) {
+        if (wallet) {
+            wallet.deleteWallet(true, function(err, result) {
+                cb();
+            });
+        } else {
             cb();
-        }) || cb();
+        }
     });
 
     it("shouldn't already exist", function(cb) {
@@ -143,9 +148,13 @@ describe('test new blank wallet, old syntax', function() {
     var wallet;
 
     after(function(cb) {
-        wallet && wallet.deleteWallet(true, function(err, result) {
+        if (wallet) {
+            wallet.deleteWallet(true, function(err, result) {
+                cb();
+            });
+        } else {
             cb();
-        }) || cb();
+        }
     });
 
     it("shouldn't already exist", function(cb) {
@@ -202,9 +211,13 @@ describe('test new wallet, without mnemonics', function() {
     var backupPublicKey = backupPrivateKey.neutered();
 
     after(function(cb) {
-        wallet && wallet.deleteWallet(true, function(err, result) {
+        if (wallet) {
+            wallet.deleteWallet(true, function(err, result) {
+                cb();
+            });
+        } else {
             cb();
-        }) || cb();
+        }
     });
 
     it("shouldn't already exist", function(cb) {
@@ -414,9 +427,13 @@ describe('test wallet discovery and upgrade key index', function() {
     var wallet;
 
     after(function(cb) {
-        wallet && wallet.deleteWallet(true, function(err, result) {
+        if (wallet) {
+            wallet.deleteWallet(true, function(err, result) {
+                cb();
+            });
+        } else {
             cb();
-        }) || cb();
+        }
     });
 
     it("should be created", function(cb) {
@@ -499,9 +516,13 @@ describe('test wallet with bad password', function() {
     var wallet;
 
     after(function(cb) {
-        wallet && wallet.deleteWallet(true, function(err, result) {
+        if (wallet) {
+            wallet.deleteWallet(true, function(err, result) {
+                cb();
+            });
+        } else {
             cb();
-        }) || cb();
+        }
     });
 
     it("should be created", function(cb) {
@@ -548,7 +569,7 @@ describe('test wallet with bad password', function() {
         this.timeout(0);
 
         wallet.doDiscovery(50, function(err, confirmed, unconfirmed) {
-            assert.ok(confirmed + unconfirmed == 0);
+            assert.ok(confirmed + unconfirmed === 0);
 
             cb();
         });
@@ -562,9 +583,13 @@ describe('test wallet webhook', function() {
     var wallet;
 
     after(function(cb) {
-        wallet && wallet.deleteWallet(true, function(err, result) {
+        if (wallet) {
+            wallet.deleteWallet(true, function(err, result) {
+                cb();
+            });
+        } else {
             cb();
-        }) || cb();
+        }
     });
 
     it("shouldn't already exist", function(cb) {
@@ -667,8 +692,7 @@ describe('test wallet webhook', function() {
                                                 cb();
                                             });
                                         });
-                                    })
-
+                                    });
                                 });
                             });
                         });
@@ -714,7 +738,7 @@ describe('test wallet list transactions and addresses', function() {
             assert.ifError(err);
             assert.ok(transactions['data']);
             assert.ok(transactions['total']);
-            assert.ok(transactions['data'].length == 23);
+            assert.ok(transactions['data'].length === 23);
             assert.ok(transactions['data'][0]['hash'], "2cb21783635a5f22e9934b8c3262146b42d251dfb14ee961d120936a6c40fe89");
 
             cb();
@@ -726,7 +750,7 @@ describe('test wallet list transactions and addresses', function() {
             assert.ifError(err);
             assert.ok(addresses['data']);
             assert.ok(addresses['total']);
-            assert.ok(addresses['data'].length == 23);
+            assert.ok(addresses['data'].length === 23);
             assert.ok(addresses['data'][0]['address'], "2MzyKviSL6pnWxkbHV7ecFRE3hWKfzmT8WS");
 
             cb();

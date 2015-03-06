@@ -1,3 +1,4 @@
+/* jshint -W101 */
 var blocktrail = require('blocktrail-sdk');
 
 var client = blocktrail.BlocktrailSDK({

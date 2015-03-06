@@ -1,3 +1,4 @@
+/* jshint -W101, -W098 */
 var assert = require('assert');
 var crypto = require('crypto');
 var qs = require('querystring');
@@ -42,4 +43,4 @@ module.exports = {
 
         cb();
     }
-}
+};

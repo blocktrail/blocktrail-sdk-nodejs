@@ -1,3 +1,4 @@
+/* jshint -W101, -W098 */
 var blocktrail = require('../');
 var assert = require('assert');
 
@@ -28,4 +29,4 @@ module.exports = {
             })
             .done();
     }
-}
+};

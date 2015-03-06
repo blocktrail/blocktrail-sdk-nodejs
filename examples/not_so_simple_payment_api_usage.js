@@ -1,6 +1,6 @@
+/* jshint -W101 */
 var blocktrail = require('blocktrail-sdk');
-var bitcoin = require('bitcoinjs-lib'),
-    bip39 = require("bip39");
+var bitcoin = require('bitcoinjs-lib');
 
 var client = blocktrail.BlocktrailSDK({
     apiKey : "YOUR_APIKEY_HERE",
