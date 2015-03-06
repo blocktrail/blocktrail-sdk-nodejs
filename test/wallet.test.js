@@ -15,6 +15,10 @@ var client = blocktrail.BlocktrailSDK({
     testnet : true
 });
 
+var TRANSACTION_TEST_WALLET_PRIMARY_MNEMONIC = "give pause forget seed dance crawl situate hole keen",
+    TRANSACTION_TEST_WALLET_BACKUP_MNEMONIC = "give pause forget seed dance crawl situate hole give",
+    TRANSACTION_TEST_WALLET_PASSWORD = "password";
+
 var createDiscoveryTestWallet = function(identifier, passphrase, cb) {
     var primaryMnemonic = "give pause forget seed dance crawl situate hole kingdom";
     var backupMnemonic = "give pause forget seed dance crawl situate hole course";
@@ -23,10 +27,7 @@ var createDiscoveryTestWallet = function(identifier, passphrase, cb) {
 };
 
 var createTransactionTestWallet = function(identifier, passphrase, cb) {
-    var primaryMnemonic = "give pause forget seed dance crawl situate hole keen";
-    var backupMnemonic = "give pause forget seed dance crawl situate hole give";
-
-    return _createTestWallet(identifier, passphrase, primaryMnemonic, backupMnemonic, cb);
+    return _createTestWallet(identifier, TRANSACTION_TEST_WALLET_PASSWORD, TRANSACTION_TEST_WALLET_PRIMARY_MNEMONIC, TRANSACTION_TEST_WALLET_BACKUP_MNEMONIC, cb);
 };
 
 var createRecoveryTestWallet = function(identifier, passphrase, cb) {
@@ -82,7 +83,69 @@ describe('test new blank wallet', function() {
     after(function(cb) {
         wallet && wallet.deleteWallet(true, function(err, result) {
             cb();
+        }) || cb();
+    });
+
+    it("shouldn't already exist", function(cb) {
+        client.initWallet({
+            identifier: myIdentifier,
+            passphrase: "password"
+        }, function(err, wallet) {
+            assert.ok(err);
+            assert.ok(!wallet, "wallet with random ID [" + myIdentifier + "] already exists...");
+
+            cb();
         });
+    });
+
+    it("should be created", function(cb) {
+        client.createNewWallet({
+            identifier: myIdentifier,
+            passphrase: "password",
+            keyIndex: 9999
+        }, function(err, _wallet) {
+            assert.ifError(err);
+            assert.ok(_wallet);
+
+            wallet = _wallet;
+
+            assert.equal(wallet.identifier, myIdentifier);
+            assert.equal(wallet.blocktrailPublicKeys[9999][0], "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
+            assert.equal(wallet.getBlocktrailPublicKey("m/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
+            assert.equal(wallet.getBlocktrailPublicKey("M/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
+            cb();
+        });
+    });
+
+    it("should have a 0 balance", function(cb) {
+        wallet.getBalance(function(err, confirmed, unconfirmed) {
+            assert.ifError(err);
+            assert.equal(confirmed, 0);
+            assert.equal(unconfirmed, 0);
+
+            cb();
+        });
+    });
+
+    it("shouldn't be able to pay", function(cb) {
+        wallet.pay({
+            "2N6Fg6T74Fcv1JQ8FkPJMs8mYmbm9kitTxy": blocktrail.toSatoshi(0.001)
+        }, function(err, txHash) {
+            assert.ok(!!err);
+
+            cb();
+        });
+    });
+});
+
+describe('test new blank wallet, old syntax', function() {
+    var myIdentifier = "nodejs-sdk-" + crypto.randomBytes(24).toString('hex');
+    var wallet;
+
+    after(function(cb) {
+        wallet && wallet.deleteWallet(true, function(err, result) {
+            cb();
+        }) || cb();
     });
 
     it("shouldn't already exist", function(cb) {
@@ -130,11 +193,97 @@ describe('test new blank wallet', function() {
     });
 });
 
+describe('test new wallet, without mnemonics', function() {
+    var myIdentifier = "nodejs-sdk-" + crypto.randomBytes(24).toString('hex');
+    var wallet;
+
+    var primaryPrivateKey = bitcoin.HDNode.fromSeedBuffer(bip39.mnemonicToSeed(bip39.generateMnemonic(512), "password"), bitcoin.networks.testnet);
+    var backupPrivateKey = bitcoin.HDNode.fromSeedBuffer(bip39.mnemonicToSeed(bip39.generateMnemonic(512), ""), bitcoin.networks.testnet);
+    var backupPublicKey = backupPrivateKey.neutered();
+
+    after(function(cb) {
+        wallet && wallet.deleteWallet(true, function(err, result) {
+            cb();
+        }) || cb();
+    });
+
+    it("shouldn't already exist", function(cb) {
+        client.initWallet({
+            identifier: myIdentifier
+        }, function(err, wallet) {
+            assert.ok(err);
+            assert.ok(!wallet, "wallet with random ID [" + myIdentifier + "] already exists...");
+
+            cb();
+        });
+    });
+
+    it("should be created", function(cb) {
+        client.createNewWallet({
+                identifier: myIdentifier,
+                primaryPrivateKey: primaryPrivateKey,
+                backupPublicKey: backupPublicKey,
+                keyIndex: 9999
+            }, function(err, _wallet) {
+                assert.ifError(err);
+                assert.ok(_wallet);
+
+                wallet = _wallet;
+
+                assert.equal(wallet.identifier, myIdentifier);
+                assert.equal(wallet.blocktrailPublicKeys[9999][0], "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
+                assert.equal(wallet.getBlocktrailPublicKey("m/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
+                assert.equal(wallet.getBlocktrailPublicKey("M/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
+                cb();
+            }
+        );
+    });
+
+    it("should be initializable", function(cb) {
+        client.initWallet({
+                identifier: myIdentifier,
+                primaryPrivateKey: primaryPrivateKey,
+                keyIndex: 9999
+            }, function(err, _wallet) {
+                assert.ifError(err);
+                assert.ok(_wallet);
+
+                wallet = _wallet;
+
+                cb();
+            }
+        );
+    });
+
+    it("should have a 0 balance", function(cb) {
+        wallet.getBalance(function(err, confirmed, unconfirmed) {
+            assert.ifError(err);
+            assert.equal(confirmed, 0);
+            assert.equal(unconfirmed, 0);
+
+            cb();
+        });
+    });
+
+    it("shouldn't be able to pay", function(cb) {
+        wallet.pay({
+            "2N6Fg6T74Fcv1JQ8FkPJMs8mYmbm9kitTxy": blocktrail.toSatoshi(0.001)
+        }, function(err, txHash) {
+            assert.ok(!!err);
+
+            cb();
+        });
+    });
+});
+
 describe('test wallet, do transaction', function() {
     var wallet;
 
     it("should exists", function(cb) {
-        client.initWallet("unittest-transaction", "password", function(err, _wallet) {
+        client.initWallet({
+            identifier: "unittest-transaction",
+            passphrase: TRANSACTION_TEST_WALLET_PASSWORD
+        }, function(err, _wallet) {
             assert.ifError(err);
             assert.ok(_wallet);
 
@@ -192,6 +341,74 @@ describe('test wallet, do transaction', function() {
     });
 });
 
+describe('test wallet, do transaction, without mnemonics', function() {
+    var wallet;
+
+    var primaryPrivateKey = bitcoin.HDNode.fromSeedBuffer(bip39.mnemonicToSeed(TRANSACTION_TEST_WALLET_PRIMARY_MNEMONIC, TRANSACTION_TEST_WALLET_PASSWORD), bitcoin.networks.testnet);
+
+    it("should exists", function(cb) {
+        client.initWallet({
+                identifier: "unittest-transaction",
+                primaryPrivateKey: primaryPrivateKey,
+                primaryMnemonic: false // explicitly set false because we're reusing unittest-transaction which has a mnemonic stored
+            }, function(err, _wallet) {
+                assert.ifError(err);
+                assert.ok(_wallet);
+
+                wallet = _wallet;
+
+                assert.equal(wallet.identifier, "unittest-transaction");
+                assert.equal(wallet.blocktrailPublicKeys[9999][0], "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
+                assert.equal(wallet.getBlocktrailPublicKey("m/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
+                assert.equal(wallet.getBlocktrailPublicKey("M/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
+                cb();
+            }
+        );
+    });
+
+    it("should have the expected addresses", function(cb) {
+        assert.equal(wallet.getAddressByPath("M/9999'/0/1"), "2N65RcfKHiKQcPGZAA2QVeqitJvAQ8HroHD");
+        assert.equal(wallet.getAddressByPath("M/9999'/0/6"), "2MynrezSyqCq1x5dMPtRDupTPA4sfVrNBKq");
+        assert.equal(wallet.getAddressByPath("M/9999'/0/44"), "2N5eqrZE7LcfRyCWqpeh1T1YpMdgrq8HWzh");
+
+        cb();
+    });
+
+    it("should have a balance", function(cb) {
+        this.timeout(0);
+
+        wallet.getBalance(function(err, confirmed, unconfirmed) {
+            assert.ok(confirmed + unconfirmed > 0);
+            assert.ok(confirmed > 0);
+
+            cb();
+        });
+    });
+
+    it("should be able to do a payment", function(cb) {
+        wallet.getNewAddress(function(err, address, path) {
+            assert.ifError(err);
+            assert.ok(path.indexOf("M/9999'/0/") === 0);
+            assert.ok(bitcoin.Address.fromBase58Check(address));
+
+            var pay = {};
+            pay[address] = blocktrail.toSatoshi(0.001);
+
+            wallet.pay(pay, function(err, txHash) {
+                assert.ifError(err);
+                assert.ok(txHash);
+
+                client.transaction(txHash, function(err, tx) {
+                    assert.ifError(err);
+                    assert.ok(tx);
+
+                    cb();
+                });
+            });
+        });
+    });
+});
+
 describe('test wallet discovery and upgrade key index', function() {
     var myIdentifier = "nodejs-sdk-" + crypto.randomBytes(24).toString('hex');
     var wallet;
@@ -199,7 +416,7 @@ describe('test wallet discovery and upgrade key index', function() {
     after(function(cb) {
         wallet && wallet.deleteWallet(true, function(err, result) {
             cb();
-        });
+        }) || cb();
     });
 
     it("should be created", function(cb) {
@@ -284,7 +501,7 @@ describe('test wallet with bad password', function() {
     after(function(cb) {
         wallet && wallet.deleteWallet(true, function(err, result) {
             cb();
-        });
+        }) || cb();
     });
 
     it("should be created", function(cb) {
@@ -347,11 +564,14 @@ describe('test wallet webhook', function() {
     after(function(cb) {
         wallet && wallet.deleteWallet(true, function(err, result) {
             cb();
-        });
+        }) || cb();
     });
 
     it("shouldn't already exist", function(cb) {
-        client.initWallet(myIdentifier, "password", function(err, wallet) {
+        client.initWallet({
+            identifier: myIdentifier,
+            passphrase: "password"
+        }, function(err, wallet) {
             assert.ok(err);
             assert.ok(!wallet, "wallet with random ID [" + myIdentifier + "] already exists...");
 
@@ -360,7 +580,11 @@ describe('test wallet webhook', function() {
     });
 
     it("should be created", function(cb) {
-        client.createNewWallet(myIdentifier, "password", 9999, function(err, _wallet) {
+        client.createNewWallet({
+            identifier: myIdentifier,
+            passphrase: "password",
+            keyIndex: 9999
+        }, function(err, _wallet) {
             assert.ifError(err);
             assert.ok(_wallet);
 
@@ -460,7 +684,10 @@ describe('test wallet list transactions and addresses', function() {
     var wallet;
 
     it("should exists", function(cb) {
-        client.initWallet("unittest-transaction", "password", function(err, _wallet) {
+        client.initWallet({
+            identifier: "unittest-transaction",
+            passphrase: "password"
+        }, function(err, _wallet) {
             assert.ifError(err);
             assert.ok(_wallet);
 

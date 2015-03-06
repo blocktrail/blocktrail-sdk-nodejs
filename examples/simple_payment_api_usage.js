@@ -30,7 +30,11 @@ var sendTransaction = function(wallet) {
 var action = 'default';
 
 if (action === 'create') {
-    client.createNewWallet("example-wallet", "example-strong-password", 9999, function(err, wallet, primaryMnemonic, backupMnemonic, blocktrailPubKeys) {
+    client.createNewWallet({
+        indentifier: "example-wallet",
+        passphrase: "example-strong-password",
+        keyIndex: 9999
+    }, function(err, wallet, primaryMnemonic, backupMnemonic, blocktrailPubKeys) {
         if (err) {
             return console.log("createNewWallet ERR", err);
         }
@@ -51,7 +55,10 @@ if (action === 'create') {
         });
     });
 } else {
-    client.initWallet("example-wallet", "example-strong-password", function(err, wallet) {
+    client.initWallet({
+        identifier: "example-wallet",
+        passphrase: "example-strong-password"
+    }, function(err, wallet) {
         if (err) {
             return console.log('initWallet ERR', err);
         }
