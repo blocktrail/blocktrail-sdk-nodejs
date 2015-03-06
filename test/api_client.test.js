@@ -11,8 +11,8 @@ var client = blocktrail.BlocktrailSDK({
     apiSecret : process.env.BLOCKTRAIL_SDK_APISECRET || "EXAMPLE_BLOCKTRAIL_SDK_NODEJS_APISECRET"
 });
 
-describe('SDK general', function() {
-    it('test Coin Value', function(cb) {
+describe('SDK general', function () {
+    it('test Coin Value', function (cb) {
         assert.equal(blocktrail.toSatoshi(0.00000001), 1);
         assert.equal(blocktrail.toBTC(100000000), 1.0);
 
@@ -21,13 +21,13 @@ describe('SDK general', function() {
 
         cb();
     });
-    it('test auth failure', function(cb) {
+    it('test auth failure', function (cb) {
         var client = blocktrail.BlocktrailSDK({
             apiKey: "TESTKEY-FAIL",
             apiSecret: "TESTSECRET-FAIL"
         });
 
-        client.address("1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp", function(err, address) {
+        client.address("1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp", function (err, address) {
             assert.ok(err);
 
             cb();
@@ -35,9 +35,9 @@ describe('SDK general', function() {
     });
 });
 
-describe('data api', function() {
-    it('test address', function(cb) {
-        client.address("1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp", function(err, address) {
+describe('data api', function () {
+    it('test address', function (cb) {
+        client.address("1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp", function (err, address) {
             assert.ifError(err);
             assert.ok(address['address']);
             assert.equal(address['address'], '1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp');
@@ -45,8 +45,8 @@ describe('data api', function() {
             cb();
         });
     });
-    it('test addressTransactions', function(cb) {
-        client.addressTransactions("1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp", {limit: 23}, function(err, address_txs) {
+    it('test addressTransactions', function (cb) {
+        client.addressTransactions("1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp", {limit: 23}, function (err, address_txs) {
             assert.ifError(err);
             assert.ok(address_txs['data']);
             assert.ok(address_txs['total']);
@@ -55,8 +55,8 @@ describe('data api', function() {
             cb();
         });
     });
-    it('test addressUnconfirmedTransactions', function(cb) {
-        client.addressUnconfirmedTransactions("1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp", {limit: 23}, function(err, address_txs) {
+    it('test addressUnconfirmedTransactions', function (cb) {
+        client.addressUnconfirmedTransactions("1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp", {limit: 23}, function (err, address_txs) {
             assert.ifError(err);
             assert.ok('data' in address_txs);
             assert.ok('total' in address_txs);
@@ -65,8 +65,8 @@ describe('data api', function() {
             cb();
         });
     });
-    it('test addressUnspentOutputs', function(cb) {
-        client.addressUnspentOutputs("1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp", {limit: 23}, function(err, address_utxo) {
+    it('test addressUnspentOutputs', function (cb) {
+        client.addressUnspentOutputs("1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp", {limit: 23}, function (err, address_utxo) {
             assert.ifError(err);
             assert.ok('data' in address_utxo);
             assert.ok('total' in address_utxo);
@@ -75,16 +75,16 @@ describe('data api', function() {
             cb();
         });
     });
-    it('test verifyAddress', function(cb) {
-        client.verifyAddress("16dwJmR4mX5RguGrocMfN9Q9FR2kZcLw2z", "HPMOHRgPSMKdXrU6AqQs/i9S7alOakkHsJiqLGmInt05Cxj6b/WhS7kJxbIQxKmDW08YKzoFnbVZIoTI2qofEzk=", function(err, result) {
+    it('test verifyAddress', function (cb) {
+        client.verifyAddress("16dwJmR4mX5RguGrocMfN9Q9FR2kZcLw2z", "HPMOHRgPSMKdXrU6AqQs/i9S7alOakkHsJiqLGmInt05Cxj6b/WhS7kJxbIQxKmDW08YKzoFnbVZIoTI2qofEzk=", function (err, result) {
             assert.ifError(err);
             assert.ok(result);
 
             cb();
         });
     });
-    it('test block by hash', function(cb) {
-        client.block("000000000000034a7dedef4a161fa058a2d67a173a90155f3a2fe6fc132e0ebf", function(err, block) {
+    it('test block by hash', function (cb) {
+        client.block("000000000000034a7dedef4a161fa058a2d67a173a90155f3a2fe6fc132e0ebf", function (err, block) {
             assert.ifError(err);
             assert.ok(block['hash']);
             assert.equal(block['hash'], '000000000000034a7dedef4a161fa058a2d67a173a90155f3a2fe6fc132e0ebf');
@@ -92,8 +92,8 @@ describe('data api', function() {
             cb();
         });
     });
-    it('test block by height', function(cb) {
-        client.block(200000, function(err, block) {
+    it('test block by height', function (cb) {
+        client.block(200000, function (err, block) {
             assert.ifError(err);
             assert.ok(block['hash']);
             assert.equal(block['hash'], '000000000000034a7dedef4a161fa058a2d67a173a90155f3a2fe6fc132e0ebf');
@@ -101,8 +101,8 @@ describe('data api', function() {
             cb();
         });
     });
-    it('test blockTransactions', function(cb) {
-        client.blockTransactions("000000000000034a7dedef4a161fa058a2d67a173a90155f3a2fe6fc132e0ebf", {limit: 23}, function(err, block_txs) {
+    it('test blockTransactions', function (cb) {
+        client.blockTransactions("000000000000034a7dedef4a161fa058a2d67a173a90155f3a2fe6fc132e0ebf", {limit: 23}, function (err, block_txs) {
             assert.ifError(err);
             assert.ok(block_txs['data']);
             assert.ok(block_txs['total']);
@@ -111,8 +111,8 @@ describe('data api', function() {
             cb();
         });
     });
-    it('test allBlocks', function(cb) {
-        client.allBlocks({page:2, limit: 23, sort_dir: 'asc'}, function(err, blocks) {
+    it('test allBlocks', function (cb) {
+        client.allBlocks({page:2, limit: 23, sort_dir: 'asc'}, function (err, blocks) {
             assert.ifError(err);
             assert.ok(blocks['data']);
             assert.ok(blocks['total']);
@@ -123,16 +123,16 @@ describe('data api', function() {
             cb();
         });
     });
-    it('test blockLatest', function(cb) {
-        client.blockLatest(function(err, block) {
+    it('test blockLatest', function (cb) {
+        client.blockLatest(function (err, block) {
             assert.ifError(err);
             assert.ok(block['hash']);
 
             cb();
         });
     });
-    it('test coinbase transaction', function(cb) {
-        client.transaction("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b", function(err, tx) {
+    it('test coinbase transaction', function (cb) {
+        client.transaction("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b", function (err, tx) {
             assert.ifError(err);
             assert.equal(tx['hash'], "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b");
             assert.equal(tx['enough_fee'], null);
@@ -140,8 +140,8 @@ describe('data api', function() {
             cb();
         });
     });
-    it('test random transaction #1', function(cb) {
-        client.transaction("c791b82ed9af681b73eadb7a05b67294c1c3003e52d01e03775bfb79d4ac58d1", function(err, tx) {
+    it('test random transaction #1', function (cb) {
+        client.transaction("c791b82ed9af681b73eadb7a05b67294c1c3003e52d01e03775bfb79d4ac58d1", function (err, tx) {
             assert.ifError(err);
             assert.equal(tx['hash'], "c791b82ed9af681b73eadb7a05b67294c1c3003e52d01e03775bfb79d4ac58d1");
             assert.ok(tx['confirmations']);
@@ -153,30 +153,30 @@ describe('data api', function() {
     });
 });
 
-describe('webhooks api', function() {
+describe('webhooks api', function () {
     var createdWebhooks = [];
-    var cleanup = function(done) {
-        client.allWebhooks({page:1, limit:500}, function(err, response) {
+    var cleanup = function (done) {
+        client.allWebhooks({page:1, limit:500}, function (err, response) {
             //delete each webhook
             //var allWebhooks = response.data;
-            if(!createdWebhooks.length) {
+            if (!createdWebhooks.length) {
                 done();
             }
-            createdWebhooks.forEach(function(identifier) {
-                client.deleteWebhook(identifier, function(err, response) {
+            createdWebhooks.forEach(function (identifier) {
+                client.deleteWebhook(identifier, function (err, response) {
                     createdWebhooks.splice(identifier, 1);
-                    if(createdWebhooks.length === 0) {
+                    if (createdWebhooks.length === 0) {
                         done();
                     }
                 });
             });
         });
     };
-    before(function(done) {
+    before(function (done) {
         // runs before all tests in this block..cleanup any existing data that could conflict with the tests
         cleanup(done);
     });
-    after(function(done) {
+    after(function (done) {
         //cleanup after all tests
         cleanup(done);
     });
@@ -185,8 +185,8 @@ describe('webhooks api', function() {
     var myIdentifier = crypto.randomBytes(24).toString('hex');
 
     // test cases
-    it('create new webhook with custom identifier', function(done) {
-        client.setupWebhook("https://www.blocktrail.com/webhook-test", myIdentifier, function(err, webhook) {
+    it('create new webhook with custom identifier', function (done) {
+        client.setupWebhook("https://www.blocktrail.com/webhook-test", myIdentifier, function (err, webhook) {
             assert.ifError(err);
             assert.equal(webhook.url, "https://www.blocktrail.com/webhook-test");
             assert.equal(webhook.identifier, myIdentifier);
@@ -195,8 +195,8 @@ describe('webhooks api', function() {
         });
     });
 
-    it('create new webhook with random identifier', function(done) {
-        client.setupWebhook("https://www.blocktrail.com/webhook-test", function(err, webhook) {
+    it('create new webhook with random identifier', function (done) {
+        client.setupWebhook("https://www.blocktrail.com/webhook-test", function (err, webhook) {
             assert.ifError(err);
             assert.equal(webhook.url, "https://www.blocktrail.com/webhook-test");
             assert.ok(webhook.identifier);
@@ -205,8 +205,8 @@ describe('webhooks api', function() {
         });
     });
 
-    it('get all user webhooks', function(done) {
-        client.allWebhooks(null, function(err, response) {
+    it('get all user webhooks', function (done) {
+        client.allWebhooks(null, function (err, response) {
             assert.ifError(err);
             assert.ok('data' in response, "'data' key not in response");
             assert.ok('total' in response, "'total' key not in response");
@@ -219,8 +219,8 @@ describe('webhooks api', function() {
         });
     });
 
-    it('get a single webhook', function(done) {
-        client.getWebhook(createdWebhooks[0], function(err, response) {
+    it('get a single webhook', function (done) {
+        client.getWebhook(createdWebhooks[0], function (err, response) {
             assert.ifError(err);
             assert.ok('url' in response, "'url' key not in response");
             assert.ok('identifier' in response, "'identifier' key not in response");
@@ -230,18 +230,18 @@ describe('webhooks api', function() {
         });
     });
 
-    it('delete a webhook', function(done) {
-        client.deleteWebhook(createdWebhooks[0], function(err, response) {
+    it('delete a webhook', function (done) {
+        client.deleteWebhook(createdWebhooks[0], function (err, response) {
             assert.ifError(err);
             assert.ok(response);
             done();
         });
     });
 
-    it('update a webhook', function(done) {
+    it('update a webhook', function (done) {
         var newIdentifier = crypto.randomBytes(24).toString('hex');
         var newUrl = "https://www.blocktrail.com/new-webhook-url";
-        client.updateWebhook(createdWebhooks[1], {identifier: newIdentifier, url: newUrl}, function(err, response) {
+        client.updateWebhook(createdWebhooks[1], {identifier: newIdentifier, url: newUrl}, function (err, response) {
             assert.ifError(err);
             assert.ok('url' in response, "'url' key not in response");
             assert.ok('identifier' in response, "'identifier' key not in response");
@@ -253,9 +253,9 @@ describe('webhooks api', function() {
         });
     });
 
-    it('subscribe to address-transaction events', function(done) {
+    it('subscribe to address-transaction events', function (done) {
         var address = "1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp";
-        client.subscribeAddressTransactions(createdWebhooks[1], address, 2, function(err, response) {
+        client.subscribeAddressTransactions(createdWebhooks[1], address, 2, function (err, response) {
             assert.ifError(err);
             assert.ok('event_type' in response, "'event_type' key not in response");
             assert.ok('address' in response, "'address' key not in response");
@@ -267,9 +267,9 @@ describe('webhooks api', function() {
         });
     });
 
-    it('subscribe to transaction event', function(done) {
+    it('subscribe to transaction event', function (done) {
         var transaction = "a0a87b1577d606b349cfded85c842bdc53b99bcd49614229a71804b46b1c27cc";
-        client.subscribeTransaction(createdWebhooks[1], transaction, 2, function(err, response) {
+        client.subscribeTransaction(createdWebhooks[1], transaction, 2, function (err, response) {
             assert.ifError(err);
             assert.ok('event_type' in response, "'event_type' key not in response");
             assert.ok('address' in response, "'address' key not in response");
@@ -281,8 +281,8 @@ describe('webhooks api', function() {
         });
     });
 
-    it('subscribe to new block events', function(done) {
-        client.subscribeNewBlocks(createdWebhooks[1], function(err, response) {
+    it('subscribe to new block events', function (done) {
+        client.subscribeNewBlocks(createdWebhooks[1], function (err, response) {
             assert.ifError(err);
             assert.ok('event_type' in response, "'event_type' key not in response");
             assert.ok('address' in response, "'address' key not in response");
@@ -294,7 +294,7 @@ describe('webhooks api', function() {
         });
     });
 
-    it('batch subscribe to address-transaction events', function(done) {
+    it('batch subscribe to address-transaction events', function (done) {
         var batchData = [
             {
                 'event_type': 'address-transactions',
@@ -309,15 +309,15 @@ describe('webhooks api', function() {
                 'address': '1qMBuZnrmGoAc2MWyTnSgoLuWReDHNYyF'
             }
         ];
-        client.batchSubscribeAddressTransactions(createdWebhooks[1], batchData, function(err, response) {
+        client.batchSubscribeAddressTransactions(createdWebhooks[1], batchData, function (err, response) {
             assert.ifError(err);
             assert.ok(response);
             done();
         });
     });
 
-    it('get webhook event subscriptions', function(done) {
-        client.getWebhookEvents(createdWebhooks[1], function(err, response) {
+    it('get webhook event subscriptions', function (done) {
+        client.getWebhookEvents(createdWebhooks[1], function (err, response) {
             assert.ifError(err);
             assert.ok('data' in response, "'data' key not in response");
             assert.ok('total' in response, "'total' key not in response");
@@ -330,26 +330,26 @@ describe('webhooks api', function() {
         });
     });
 
-    it('unsubscribe from address-transaction events', function(done) {
+    it('unsubscribe from address-transaction events', function (done) {
         var address = "1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp";
-        client.unsubscribeAddressTransactions(createdWebhooks[1], address, function(err, response) {
+        client.unsubscribeAddressTransactions(createdWebhooks[1], address, function (err, response) {
             assert.ifError(err);
             assert.ok(response);
             done();
         });
     });
 
-    it('unsubscribe from new transaction events', function(done) {
+    it('unsubscribe from new transaction events', function (done) {
         var transaction = "a0a87b1577d606b349cfded85c842bdc53b99bcd49614229a71804b46b1c27cc";
-        client.unsubscribeTransaction(createdWebhooks[1], transaction, function(err, response) {
+        client.unsubscribeTransaction(createdWebhooks[1], transaction, function (err, response) {
             assert.ifError(err);
             assert.ok(response);
             done();
         });
     });
 
-    it('unsubscribe from new block events', function(done) {
-        client.unsubscribeNewBlocks(createdWebhooks[1], function(err, response) {
+    it('unsubscribe from new block events', function (done) {
+        client.unsubscribeNewBlocks(createdWebhooks[1], function (err, response) {
             assert.ifError(err);
             assert.ok(response);
             done();
@@ -357,9 +357,9 @@ describe('webhooks api', function() {
     });
 });
 
-describe('market api', function() {
-    it('should have a price', function(done) {
-        client.price(function(err, price) {
+describe('market api', function () {
+    it('should have a price', function (done) {
+        client.price(function (err, price) {
             assert.ifError(err);
             assert.ok(price);
             assert.ok(price['USD']);
@@ -368,21 +368,21 @@ describe('market api', function() {
     });
 });
 
-describe('verify message', function() {
+describe('verify message', function () {
     var address = "1F26pNMrywyZJdr22jErtKcjF8R3Ttt55G";
     var message = address;
     var signature = "H85WKpqtNZDrajOnYDgUY+abh0KCAcOsAIOQwx2PftAbLEPRA7mzXA/CjXRxzz0MC225pR/hx02Vf2Ag2x33kU4=";
 
-    it('should verify using bitcoinjs-lib', function(done) {
-        client.verifyMessage(message, address, signature, function(err, result) {
+    it('should verify using bitcoinjs-lib', function (done) {
+        client.verifyMessage(message, address, signature, function (err, result) {
             assert.ifError(err);
             assert.ok(result);
             done();
         });
     });
 
-    it('should verify using API', function(done) {
-        client.client.post("/verify_message", null, {message: message, address: address, signature: signature}, function(err, result) {
+    it('should verify using API', function (done) {
+        client.client.post("/verify_message", null, {message: message, address: address, signature: signature}, function (err, result) {
             assert.ifError(err);
             assert.ok(result);
             done();

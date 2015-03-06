@@ -13,7 +13,7 @@ var client = blocktrail.BlocktrailSDK({
 
 //create a new wallet
 var walletIdentifier = "nodejs-example-" + crypto.randomBytes(24).toString('hex');
-client.createNewWallet(walletIdentifier, "example-strong-password", 9999, function(err, wallet, primaryMnemonic, backupMnemonic, blocktrailPubKeys) {
+client.createNewWallet(walletIdentifier, "example-strong-password", 9999, function (err, wallet, primaryMnemonic, backupMnemonic, blocktrailPubKeys) {
     if (err) {
         return console.log("createNewWallet ERR", err);
     }
@@ -27,11 +27,11 @@ client.createNewWallet(walletIdentifier, "example-strong-password", 9999, functi
 
     //can also be html or an image
     var result = backup.generateHTML();
-     fs.writeFile(LIBPATH + "/examples/my-wallet-backup.html", result, function(err) {
-         if(err) {
-            console.log(err);
+    fs.writeFile(LIBPATH + "/examples/my-wallet-backup.html", result, function (err) {
+         if (err) {
+             console.log(err);
          } else {
-            console.log("The file was saved!");
+             console.log("The file was saved!");
          }
      });
 

@@ -6,7 +6,7 @@ var http = require('http'),
     httpSignature = require('http-signature');
 
 module.exports = {
-    'test content MD5': function(cb) {
+    'test content MD5': function (cb) {
 
         var data = {signature: "HPMOHRgPSMKdXrU6AqQs/i9S7alOakkHsJiqLGmInt05Cxj6b/WhS7kJxbIQxKmDW08YKzoFnbVZIoTI2qofEzk="};
 
@@ -14,7 +14,7 @@ module.exports = {
         assert.equal(crypto.createHash('md5').update(qs.stringify(data)).digest().toString('hex'), "fdfc1a717d2c97649f3b8b2142507129");
         cb();
     },
-    'test HMAC': function(cb) {
+    'test HMAC': function (cb) {
         var req = http.request({
             host: 'example.com',
             method: 'GET',

@@ -11,8 +11,8 @@ var client = blocktrail.BlocktrailSDK({
 });
 
 module.exports = {
-    'test address': function(cb) {
-        client.address("1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp").then(function(address) {
+    'test address': function (cb) {
+        client.address("1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp").then(function (address) {
             assert.ok(address['address']);
             assert.equal(address['address'], '1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp');
 
@@ -20,9 +20,9 @@ module.exports = {
         })
         .done();
     },
-    'test verifyAddress': function(cb) {
+    'test verifyAddress': function (cb) {
         client.verifyAddress("16dwJmR4mX5RguGrocMfN9Q9FR2kZcLw2z", "HPMOHRgPSMKdXrU6AqQs/i9S7alOakkHsJiqLGmInt05Cxj6b/WhS7kJxbIQxKmDW08YKzoFnbVZIoTI2qofEzk=")
-            .then(function(result) {
+            .then(function (result) {
                 assert.ok(result);
 
                 cb();
