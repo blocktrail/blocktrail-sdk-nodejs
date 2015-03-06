@@ -43,7 +43,8 @@
         }
     ],
     "devDependencies": {
-        "mocha": "*"
+        "mocha": "*",
+        "jshint": "*"
     },
     "scripts": {
         "test": "mocha"

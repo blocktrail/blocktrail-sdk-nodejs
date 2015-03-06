@@ -1,0 +1,46 @@
+{
+  "bitwise": false,     // Prohibit bitwise operators (&, |, ^, etc.).
+  "browser": false,     // Standard browser globals e.g. `window`, `document`.
+  "camelcase": false,   // Permit only camelcase for `var` and `object indexes`.
+  "curly": true,        // Require {} for every new block or scope.
+  "devel": false,       // Allow development statements e.g. `console.log();`.
+  "eqeqeq": true,       // Require triple equals i.e. `===`.
+  "esnext": false,      // Allow ES.next specific features such as `const` and `let`.
+  "freeze": true,       // Forbid overwriting prototypes of native objects such as Array, Date and so on.
+  "immed": true,        // Require immediate invocations to be wrapped in parens e.g. `( function(){}() );`
+  "indent": 4,          // Specify indentation spacing
+  "latedef": true,      // Prohibit variable use before definition.
+  "newcap": true,       // Require capitalization of all constructor functions e.g. `new F()`.
+  "noarg": true,        // Prohibit use of `arguments.caller` and `arguments.callee`.
+  "node": true,         // Enable globals available when code is running inside of the NodeJS runtime environment.
+  "noempty": true,      // Prohibit use of empty blocks.
+  "nonew": true,        // Prohibits the use of constructor functions for side-effects
+  //"quotmark": "double", // Define quotes to string values.
+  "regexp": true,       // Prohibit `.` and `[^...]` in regular expressions.
+  "smarttabs": true,    // Supress warnings about mixed tabs and spaces
+  "strict": false,      // Require `use strict` pragma in every file. @TODO maybe?
+  "trailing": true,     // Prohibit trailing whitespaces.
+  "undef": true,        // Require all non-global variables be declared before they are used.
+  "unused": true,       // Warn unused variables.
+  "sub": true,          // Allow ['key']
+
+  "maxparams": 8,       // Maximum number of parameters for a function
+  "maxstatements": 25,  // Maximum number of statements in a function
+  "maxcomplexity": 15,  // Cyclomatic complexity (http://en.wikipedia.org/wiki/Cyclomatic_complexity)
+  "maxdepth": 4,        // Maximum depth of nested control structures
+  "maxlen": 160,        // Maximum number of cols in a line
+  "multistr": true,     // Allow use of multiline EOL escaping
+
+  "predef": [ // Extra globals.
+    "after",
+    "afterEach",
+    "before",
+    "beforeEach",
+    "define",
+    "describe",
+    "exports",
+    "it",
+    "module",
+    "require"
+  ]
+}
