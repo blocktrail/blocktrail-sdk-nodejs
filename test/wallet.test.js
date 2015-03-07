@@ -505,4 +505,15 @@ describe('test wallet list transactions and addresses', function() {
             cb();
         });
     });
+
+    it("should list UTXOs", function (cb) {
+        wallet.utxos({page: 0, limit: 23}, function (err, addresses) {
+            assert.ifError(err);
+            assert.ok(addresses['data']);
+            assert.ok(addresses['total']);
+            assert.ok(addresses['data'].length === 23);
+
+            cb();
+        });
+    });
 });
