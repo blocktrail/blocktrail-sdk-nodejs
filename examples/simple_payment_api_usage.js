@@ -1,8 +1,8 @@
 var blocktrail = require('blocktrail-sdk');
 
 var client = blocktrail.BlocktrailSDK({
-    apiKey : "YOUR_APIKEY_HERE",
-    apiSecret : "YOUR_APISECRET_HERE",
+    apiKey : "MY_APIKEY",
+    apiSecret : "MY_APISECRET",
     testnet : true
 });
 

@@ -17,17 +17,22 @@
     },
     "main": "./main.js",
     "dependencies": {
-        "q": "1.0.1",
-        "http-signature": "git://github.com/blocktrail/node-http-signature.git#68f8a51438cb0c49460e9b883b2608a6879ff137",
-        "debug": "0.8.1",
-        "crypto": "0.0.3",
-        "bitcoinjs-lib": "1.5.0",
-        "bip39": "2.1.0",
-        "async": "0.9.0",
         "assert-plus": "0.1.5",
+        "async": "0.9.0",
+        "bip39": "2.1.0",
+        "bitcoinjs-lib": "1.5.0",
+        "crypto": "0.0.3",
+        "debug": "0.8.1",
+        "html-pdf": "1.0.*",
+        "http-signature": "git://github.com/blocktrail/node-http-signature.git#68f8a51438cb0c49460e9b883b2608a6879ff137",
         "lodash": "3.1.0",
+        "promise": "^6.1.0",
+        "q": "1.0.1",
         "qrcode-js": "0.0.*",
-        "html-pdf": "1.0.*"
+        "superagent": "^0.21.0",
+        "superagent-prefix": "0.0.2",
+        "superagent-promise": "^0.2.0",
+        "webworkify": "^1.0.2"
     },
     "author": {
         "name": "Ruben de Vries <ruben@blocktrail.com>"
