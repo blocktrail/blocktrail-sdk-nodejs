@@ -1,8 +1,8 @@
 {
     "name": "blocktrail-sdk",
     "description": "BlockTrail's Developer Friendly API binding for NodeJS",
-    "keywords": ["bitcoin", "blocktrail"],
-    "version": "1.2.5",
+    "keywords": ["blocktrail", "bitcoin", "sdk", "api", "blockchain", "payment", "bitcoin data", "wallet", "multi-signature", "transaction"],
+    "version": "1.2.6",
     "homepage": "https://www.blocktrail.com/api/docs/lang/nodejs",
     "license": "MIT",
     "repository": {
