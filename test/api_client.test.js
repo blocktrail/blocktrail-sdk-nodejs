@@ -381,6 +381,14 @@ describe('verify message', function () {
         });
     });
 
+    it('should handle errors nicely', function (done) {
+        signature = "rubensayshi";
+        client.verifyMessage(message, address, signature, function (err, result) {
+            assert.ok(err);
+            done();
+        });
+    });
+
     it('should verify using API', function (done) {
         client.client.post("/verify_message", null, {message: message, address: address, signature: signature}, function (err, result) {
             assert.ifError(err);
