@@ -58,6 +58,12 @@ Unit Tests
 ----------
 Unit Tests are created with Mocha and can be ran with `npm test` (or `mocha`)
 
+Browserify
+----------
+```
+browserify -o bundle.js -s blocktrail main.js
+```
+
 Node Modules Symlink
 --------------------
 To make all the examples use `require('blocktrail-sdk')` just like when the module would have been installed with NPM 
