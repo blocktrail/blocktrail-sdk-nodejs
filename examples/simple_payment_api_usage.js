@@ -60,7 +60,8 @@ if (action === 'create') {
         passphrase: "example-strong-password"
     }, function (err, wallet) {
         if (err) {
-            return console.log('initWallet ERR', err);
+            console.log('initWallet ERR', err);
+            throw err;
         }
 
         wallet.getBalance(function (err, confirmed, unconfirmed) {
