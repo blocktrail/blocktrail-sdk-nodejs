@@ -27,36 +27,47 @@ var _createTestWallet = function (identifier, passphrase, primaryMnemonic, backu
         bip39.mnemonicToSeed(primaryMnemonic, passphrase),
         client.testnet ? bitcoin.networks.testnet : bitcoin.networks.bitcoin
     );
-    var primaryPublicKey = primaryPrivateKey.deriveHardened(keyIndex).neutered();
-    primaryPublicKey = [primaryPublicKey.toBase58(), "M/" + keyIndex + "'"];
 
     var backupPrivateKey = bitcoin.HDNode.fromSeedBuffer(
         bip39.mnemonicToSeed(backupMnemonic, ""),
         client.testnet ? bitcoin.networks.testnet : bitcoin.networks.bitcoin
     );
     var backupPublicKey = backupPrivateKey.neutered();
-    backupPublicKey = [backupPublicKey.toBase58(), "M"];
 
-    // @TODO: checksum
     var checksum = primaryPrivateKey.getAddress().toBase58Check();
 
-    client._createNewWallet(identifier, primaryPublicKey, backupPublicKey, primaryMnemonic, checksum, keyIndex, function (err, result) {
+    client._createNewWallet(
+        identifier,
+        [primaryPrivateKey.deriveHardened(keyIndex).neutered().toBase58(), "M/" + keyIndex + "'"],
+        [backupPublicKey.toBase58(), "M"],
+        primaryMnemonic,
+        checksum,
+        keyIndex,
+        function (err, result) {
+            console.log(err, result);
+            if (err) {
+                return cb(err);
+            }
 
-        var blocktrailPubKeys = result.blocktrail_public_keys;
+            var blocktrailPubKeys = result.blocktrail_public_keys;
 
-        var wallet = new blocktrail.Wallet(
-            client,
-            identifier,
-            primaryMnemonic,
-            primaryPrivateKey,
-            backupPublicKey,
-            blocktrailPubKeys,
-            keyIndex,
-            client.testnet
-        );
+            var wallet = new blocktrail.Wallet(
+                client,
+                identifier,
+                primaryMnemonic,
+                backupPublicKey,
+                blocktrailPubKeys,
+                keyIndex,
+                client.testnet
+            );
 
-        cb(null, wallet);
-    });
+            wallet.unlock({
+                passphrase: passphrase
+            });
+
+            cb(null, wallet);
+        }
+    );
 };
 
 var createDiscoveryTestWallet = function (identifier, passphrase, cb) {
