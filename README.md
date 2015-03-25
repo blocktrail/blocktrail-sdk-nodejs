@@ -58,10 +58,18 @@ Unit Tests
 ----------
 Unit Tests are created with Mocha and can be ran with `npm test` (or `mocha`)
 
+We also run jshint and jscs:
+```
+jshint main.js lib/ test/
+```
+```
+jscs main.js lib/ test/
+```
+
 Browserify
 ----------
 ```
-browserify -o bundle.js -s blocktrail main.js
+browserify main.js -o bundle.js -s blocktrailSDK
 ```
 
 Node Modules Symlink

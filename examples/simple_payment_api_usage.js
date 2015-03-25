@@ -31,7 +31,7 @@ var action = 'default';
 
 if (action === 'create') {
     client.createNewWallet({
-        indentifier: "example-wallet",
+        identifier: "example-wallet",
         passphrase: "example-strong-password",
         keyIndex: 9999
     }, function (err, wallet, primaryMnemonic, backupMnemonic, blocktrailPubKeys) {
