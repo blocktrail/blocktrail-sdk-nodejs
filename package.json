@@ -63,9 +63,11 @@
         "jshint": "*",
         "jscs": "*",
         "browserify": "*",
-        "watchify": "*"
+        "watchify": "*",
+        "brfs": "*"
     },
     "scripts": {
-        "test": "mocha"
+        "test": "mocha",
+        "browserify": "browserify main.js -o build/blocktrail-sdk.js -s blocktrailSDK -t brfs -d"
     }
 }
