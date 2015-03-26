@@ -44,7 +44,6 @@ var _createTestWallet = function (identifier, passphrase, primaryMnemonic, backu
         checksum,
         keyIndex,
         function (err, result) {
-            console.log(err, result);
             if (err) {
                 return cb(err);
             }

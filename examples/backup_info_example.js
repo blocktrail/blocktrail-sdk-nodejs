@@ -21,8 +21,8 @@ client.createNewWallet(walletIdentifier, "example-strong-password", 9999, functi
     //generate the backup document
     var backup = new blocktrail.BackupGenerator(primaryMnemonic, backupMnemonic, blocktrailPubKeys);
     //create a pdf
-    backup.generatePDF(LIBPATH + "/examples/my-wallet-backup.pdf", function (result) {
-        console.log(result);
+    backup.generatePDF(LIBPATH + "/examples/my-wallet-backup.pdf", function (err, result) {
+        console.log(err, result);
     });
 
     //can also be html or an image
@@ -36,8 +36,8 @@ client.createNewWallet(walletIdentifier, "example-strong-password", 9999, functi
      });
 
     //image (only png)
-    backup.generateImage(LIBPATH + "/examples/my-wallet-backup.png", function (result) {
-        console.log(result);
+    backup.generateImage(LIBPATH + "/examples/my-wallet-backup.png", function (err, result) {
+        console.log(err, result);
     });
 
 });
