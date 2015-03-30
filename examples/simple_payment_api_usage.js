@@ -57,7 +57,7 @@ if (action === 'create') {
 } else {
     client.initWallet({
         identifier: "example-wallet",
-        passphrase: "example-strong-password"
+        readOnly: true
     }, function (err, wallet) {
         if (err) {
             console.log('initWallet ERR', err);
@@ -72,7 +72,21 @@ if (action === 'create') {
             console.log('confirmed balance', confirmed);
             console.log('unconfirmed balance', unconfirmed);
 
-            sendTransaction(wallet);
+            wallet.getNewAddress(function(err, address) {
+                if (err) {
+                    return console.log("getNewAddress ERR", err);
+                }
+
+                console.log('address', address);
+
+                wallet.unlock({passphrase: "example-strong-password"}, function(err, wallet) {
+                    if (err) {
+                        return console.log("unlock ERR", err);
+                    }
+
+                    sendTransaction(wallet);
+                });
+            });
         });
     });
 }

@@ -22,23 +22,25 @@ var TRANSACTION_TEST_WALLET_PRIMARY_MNEMONIC = "give pause forget seed dance cra
 
 var _createTestWallet = function (identifier, passphrase, primaryMnemonic, backupMnemonic, cb) {
     var keyIndex = 9999;
+    var network = client.testnet ? bitcoin.networks.testnet : bitcoin.networks.bitcoin;
 
     var primaryPrivateKey = bitcoin.HDNode.fromSeedBuffer(
         bip39.mnemonicToSeed(primaryMnemonic, passphrase),
-        client.testnet ? bitcoin.networks.testnet : bitcoin.networks.bitcoin
+        network
     );
 
     var backupPrivateKey = bitcoin.HDNode.fromSeedBuffer(
         bip39.mnemonicToSeed(backupMnemonic, ""),
-        client.testnet ? bitcoin.networks.testnet : bitcoin.networks.bitcoin
+        network
     );
     var backupPublicKey = backupPrivateKey.neutered();
 
     var checksum = primaryPrivateKey.getAddress().toBase58Check();
+    var primaryPublicKey = primaryPrivateKey.deriveHardened(keyIndex).neutered();
 
     client._createNewWallet(
         identifier,
-        [primaryPrivateKey.deriveHardened(keyIndex).neutered().toBase58(), "M/" + keyIndex + "'"],
+        [primaryPublicKey.toBase58(), "M/" + keyIndex + "'"],
         [backupPublicKey.toBase58(), "M"],
         primaryMnemonic,
         checksum,
@@ -48,23 +50,25 @@ var _createTestWallet = function (identifier, passphrase, primaryMnemonic, backu
                 return cb(err);
             }
 
-            var blocktrailPubKeys = result.blocktrail_public_keys;
+            var blocktrailPublicKeys = _.mapValues(result.blocktrail_public_keys, function(blocktrailPublicKey) { return bitcoin.HDNode.fromBase58(blocktrailPublicKey[0], network) });
 
             var wallet = new blocktrail.Wallet(
                 client,
                 identifier,
                 primaryMnemonic,
+                {keyIndex: primaryPublicKey},
                 backupPublicKey,
-                blocktrailPubKeys,
+                blocktrailPublicKeys,
                 keyIndex,
-                client.testnet
+                client.testnet,
+                checksum
             );
 
             wallet.unlock({
                 passphrase: passphrase
+            }, function(err, wallet) {
+                cb(err, wallet);
             });
-
-            cb(null, wallet);
         }
     );
 };
@@ -125,8 +129,6 @@ describe('test new blank wallet', function () {
             wallet = _wallet;
 
             assert.equal(wallet.identifier, myIdentifier);
-            assert.equal(wallet.blocktrailPublicKeys[9999][0], "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
-            assert.equal(wallet.getBlocktrailPublicKey("m/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
             assert.equal(wallet.getBlocktrailPublicKey("M/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
             cb();
         });
@@ -184,8 +186,6 @@ describe('test new blank wallet, old syntax', function () {
             wallet = _wallet;
 
             assert.equal(wallet.identifier, myIdentifier);
-            assert.equal(wallet.blocktrailPublicKeys[9999][0], "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
-            assert.equal(wallet.getBlocktrailPublicKey("m/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
             assert.equal(wallet.getBlocktrailPublicKey("M/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
             cb();
         });
@@ -254,8 +254,6 @@ describe('test new wallet, without mnemonics', function () {
                 wallet = _wallet;
 
                 assert.equal(wallet.identifier, myIdentifier);
-                assert.equal(wallet.blocktrailPublicKeys[9999][0], "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
-                assert.equal(wallet.getBlocktrailPublicKey("m/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
                 assert.equal(wallet.getBlocktrailPublicKey("M/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
                 cb();
             }
@@ -314,8 +312,6 @@ describe('test wallet, do transaction', function () {
 
             assert.equal(wallet.primaryMnemonic, "give pause forget seed dance crawl situate hole keen");
             assert.equal(wallet.identifier, "unittest-transaction");
-            assert.equal(wallet.blocktrailPublicKeys[9999][0], "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
-            assert.equal(wallet.getBlocktrailPublicKey("m/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
             assert.equal(wallet.getBlocktrailPublicKey("M/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
             cb();
         });
@@ -381,8 +377,6 @@ describe('test wallet, do transaction, without mnemonics', function () {
                 wallet = _wallet;
 
                 assert.equal(wallet.identifier, "unittest-transaction");
-                assert.equal(wallet.blocktrailPublicKeys[9999][0], "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
-                assert.equal(wallet.getBlocktrailPublicKey("m/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
                 assert.equal(wallet.getBlocktrailPublicKey("M/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
                 cb();
             }
@@ -455,8 +449,6 @@ describe('test wallet discovery and upgrade key index', function () {
 
             assert.equal(wallet.primaryMnemonic, "give pause forget seed dance crawl situate hole kingdom");
             assert.equal(wallet.identifier, myIdentifier);
-            assert.equal(wallet.blocktrailPublicKeys[9999][0], "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
-            assert.equal(wallet.getBlocktrailPublicKey("m/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
             assert.equal(wallet.getBlocktrailPublicKey("M/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
 
             cb();
@@ -506,7 +498,7 @@ describe('test wallet discovery and upgrade key index', function () {
         wallet.upgradeKeyIndex(10000, function (err) {
             assert.ifError(err);
 
-            assert.equal(wallet.blocktrailPublicKeys[10000][0], "tpubD9m9hziKhYQExWgzMUNXdYMNUtourv96sjTUS9jJKdo3EDJAnCBJooMPm6vGSmkNTNAmVt988dzNfNY12YYzk9E6PkA7JbxYeZBFy4XAaCp");
+            assert.equal(wallet.getBlocktrailPublicKey("M/10000'").toBase58(), "tpubD9m9hziKhYQExWgzMUNXdYMNUtourv96sjTUS9jJKdo3EDJAnCBJooMPm6vGSmkNTNAmVt988dzNfNY12YYzk9E6PkA7JbxYeZBFy4XAaCp");
 
             assert.equal(wallet.getAddressByPath("M/10000'/0/0"), "2N9ZLKXgs12JQKXvLkngn7u9tsYaQ5kXJmk");
 
@@ -544,8 +536,6 @@ describe('test wallet with bad password', function () {
 
             assert.equal(wallet.primaryMnemonic, "give pause forget seed dance crawl situate hole kingdom");
             assert.equal(wallet.identifier, myIdentifier);
-            assert.equal(wallet.blocktrailPublicKeys[9999][0], "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
-            assert.equal(wallet.getBlocktrailPublicKey("m/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
             assert.equal(wallet.getBlocktrailPublicKey("M/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
 
             cb();
@@ -626,8 +616,6 @@ describe('test wallet webhook', function () {
             wallet = _wallet;
 
             assert.equal(wallet.identifier, myIdentifier);
-            assert.equal(wallet.blocktrailPublicKeys[9999][0], "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
-            assert.equal(wallet.getBlocktrailPublicKey("m/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
             assert.equal(wallet.getBlocktrailPublicKey("M/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
             cb();
         });
@@ -734,8 +722,6 @@ describe('test wallet list transactions and addresses', function () {
 
                 assert.equal(wallet.primaryMnemonic, "give pause forget seed dance crawl situate hole keen");
                 assert.equal(wallet.identifier, "unittest-transaction");
-                assert.equal(wallet.blocktrailPublicKeys[9999][0], "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
-                assert.equal(wallet.getBlocktrailPublicKey("m/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
                 assert.equal(wallet.getBlocktrailPublicKey("M/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
 
                 cb();
