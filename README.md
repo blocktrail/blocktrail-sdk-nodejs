@@ -43,6 +43,11 @@ Usage
 -----
 Please visit our official documentation at https://www.blocktrail.com/api/docs/lang/nodejs for the usage.
 
+Promises vs Callbacks
+---------------------
+Personally we prefer good old callbacks over promises,  
+but to make everyone happy the SDK functions accept a callback argument and return a (Q)promise object, so you can use whatever you prefer!
+
 Support and Feedback
 --------------------
 Be sure to visit the BlockTrail API official [documentation website](https://www.blocktrail.com/api/docs/lang/nodejs)

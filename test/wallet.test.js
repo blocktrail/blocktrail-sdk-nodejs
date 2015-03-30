@@ -110,6 +110,7 @@ describe('test new blank wallet', function () {
             identifier: myIdentifier,
             passphrase: "password"
         }, function (err, wallet) {
+            console.log(err, wallet);
             assert.ok(err);
             assert.ok(!wallet, "wallet with random ID [" + myIdentifier + "] already exists...");
 
@@ -123,15 +124,16 @@ describe('test new blank wallet', function () {
             passphrase: "password",
             keyIndex: 9999
         }, function (err, _wallet) {
-            assert.ifError(err);
-            assert.ok(_wallet);
+                assert.ifError(err);
+                assert.ok(_wallet);
 
-            wallet = _wallet;
+                wallet = _wallet;
 
-            assert.equal(wallet.identifier, myIdentifier);
-            assert.equal(wallet.getBlocktrailPublicKey("M/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
-            cb();
-        });
+                assert.equal(wallet.identifier, myIdentifier);
+                assert.equal(wallet.getBlocktrailPublicKey("M/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
+                cb();
+            }
+        );
     });
 
     it("should have a 0 balance", function (cb) {
@@ -764,3 +766,20 @@ describe('test wallet list transactions and addresses', function () {
         });
     });
 });
+
+describe("APIClient", function () {
+    it("resolvePrimaryPrivateKeyFromOptions", function (cb) {
+        client.resolvePrimaryPrivateKeyFromOptions({
+            passphrase: "password",
+            primaryMnemonic: "give pause forget seed dance crawl situate hole keen"
+        }, function(err, primaryMnemonic, primaryPrivateKey) {
+            assert.ifError(err);
+            assert.ok(primaryPrivateKey);
+            assert.ok(primaryPrivateKey instanceof bitcoin.HDNode);
+            assert.equal("tprv8ZgxMBicQKsPeR93md5eVTbLDgQ8kfV4CDNtrVXv5p29KXtx7VHKFQThGkFgC61sYeeeaVH1yFv4thcvxS9cYdFrYwTNmkGhkQEJycSzAhE", primaryPrivateKey.toBase58());
+
+            cb();
+
+        });
+    });
+})
