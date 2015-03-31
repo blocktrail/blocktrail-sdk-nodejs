@@ -50,7 +50,9 @@ var _createTestWallet = function (identifier, passphrase, primaryMnemonic, backu
                 return cb(err);
             }
 
-            var blocktrailPublicKeys = _.mapValues(result.blocktrail_public_keys, function(blocktrailPublicKey) { return bitcoin.HDNode.fromBase58(blocktrailPublicKey[0], network) });
+            var blocktrailPublicKeys = _.mapValues(result.blocktrail_public_keys, function (blocktrailPublicKey) {
+                return bitcoin.HDNode.fromBase58(blocktrailPublicKey[0], network);
+            });
 
             var wallet = new blocktrail.Wallet(
                 client,
@@ -66,7 +68,7 @@ var _createTestWallet = function (identifier, passphrase, primaryMnemonic, backu
 
             wallet.unlock({
                 passphrase: passphrase
-            }, function(err, wallet) {
+            }, function (err, wallet) {
                 cb(err, wallet);
             });
         }
@@ -772,7 +774,7 @@ describe("APIClient", function () {
         client.resolvePrimaryPrivateKeyFromOptions({
             passphrase: "password",
             primaryMnemonic: "give pause forget seed dance crawl situate hole keen"
-        }, function(err, primaryMnemonic, primaryPrivateKey) {
+        }, function (err, primaryMnemonic, primaryPrivateKey) {
             assert.ifError(err);
             assert.ok(primaryPrivateKey);
             assert.ok(primaryPrivateKey instanceof bitcoin.HDNode);
@@ -782,4 +784,4 @@ describe("APIClient", function () {
 
         });
     });
-})
+});
