@@ -1,2 +1,3 @@
 *
 !.gitignore
+!blocktrail-sdk*.js
