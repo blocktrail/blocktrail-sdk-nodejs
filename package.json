@@ -27,6 +27,9 @@
         "node": ">= 0.10.0"
     },
     "main": "./main.js",
+    "browser": {
+        "./lib/qrCode.js": "./lib/qrCode-browser.js"
+    },
     "dependencies": {
         "assert-plus": "0.1.5",
         "async": "0.9.0",
@@ -41,6 +44,7 @@
         "lodash": "3.1.0",
         "promise": "^6.1.0",
         "q": "1.0.1",
+        "qrcode": "*",
         "qrcode-js": "0.0.*",
         "superagent": "^0.21.0",
         "superagent-http-signature": "0.1.1",
@@ -61,6 +65,12 @@
         }
     ],
     "devDependencies": {
+        "grunt": "~0.4.2",
+        "grunt-browserify": "~3.5.1",
+        "grunt-contrib-uglify": "~0.8.1",
+        "grunt-contrib-concat": "~0.5.1",
+        "grunt-contrib-watch": "~0.6.1",
+        "grunt-notify": "~0.2.17",
         "mocha": "*",
         "jshint": "*",
         "jscs": "*",

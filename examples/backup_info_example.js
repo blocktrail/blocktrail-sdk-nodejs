@@ -1,4 +1,4 @@
-var blocktrail = require('blocktrail-sdk');
+var blocktrail = require('../'); // require('blocktrail-sdk') when trying example from in your own project
 var crypto = require('crypto');
 var fs = require('fs');
 var path = require('path');
@@ -6,8 +6,8 @@ var path = require('path');
 var LIBPATH = path.normalize(__dirname + '/..');
 
 var client = blocktrail.BlocktrailSDK({
-    apiKey : "YOUR_APIKEY_HERE",
-    apiSecret : "YOUR_APISECRET_HERE",
+    apiKey : "MY_APIKEY",
+    apiSecret : "MY_APISECRET",
     testnet : true
 });
 

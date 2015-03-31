@@ -1,5 +1,5 @@
 /* jshint -W101 */
-var blocktrail = require('blocktrail-sdk');
+var blocktrail = require('../'); // require('blocktrail-sdk') when trying example from in your own project
 
 var client = blocktrail.BlocktrailSDK({
     apiKey : "YOUR_APIKEY_HERE",
