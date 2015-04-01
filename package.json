@@ -81,6 +81,6 @@
     },
     "scripts": {
         "test": "mocha",
-        "browserify": "browserify main.js -o build/blocktrail-sdk.js -s blocktrailSDK -t brfs"
+        "browserify": "grunt build"
     }
 }

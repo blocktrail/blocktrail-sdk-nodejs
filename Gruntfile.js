@@ -17,17 +17,9 @@ module.exports = function (grunt) {
                 ],
                 dest : 'build/jsPDF.js'
             },
-            qrcode: {
-                src : [
-                'node_modules/qrcode/build/qrcode.js',
-                'node_modules/qrcode/vendors/excanvas/excanvas.js'
-                ],
-                dest : 'build/qrcode.js'
-            },
             deps: {
                 src : [
-                    '<%= concat.jsPDF.dest %>',
-                    '<%= concat.qrcode.dest %>'
+                    '<%= concat.jsPDF.dest %>'
                 ],
                 dest : 'build/blocktrail-sdk-deps.js'
             },
@@ -99,6 +91,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-notify');
 
-    grunt.registerTask('default', ['browserify', 'concat', 'uglify']);
+    grunt.registerTask('build', ['browserify', 'concat', 'uglify']);
+    grunt.registerTask('default', ['build']);
 };
 

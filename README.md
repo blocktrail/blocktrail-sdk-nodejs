@@ -29,15 +29,8 @@ Installation
 ------------
 You can install the package through NPM (https://www.npmjs.org/package/blocktrail-sdk).
 ```
-$ npm install blocktrail-sdk
+npm install blocktrail-sdk
 ```
-
-Dependancies
-------------
-The following dependancies are required:
- - crypto
- - http-signatures
- - q
 
 Usage
 -----
@@ -63,7 +56,7 @@ Unit Tests
 ----------
 Unit Tests are created with Mocha and can be ran with `npm test` (or `mocha`)
 
-We also run jshint and jscs:
+We also run jshint and jscs, these are automatically ran by [travis-ci](https://travis-ci.org/blocktrail/blocktrail-sdk-nodejs) for every commit and pull request.
 ```
 jshint main.js lib/ test/
 ```
@@ -73,15 +66,15 @@ jscs main.js lib/ test/
 
 Browserify
 ----------
-```
-browserify main.js -o bundle.js -s blocktrailSDK
-```
+The BlockTrail NodeJS SDK can be browserified to use it in the browser, which we use ourselves for wallet actions from our webapp.  
+If you want to test or develop on the SDK in the browser you can use `grunt build` (and `grunt watch`) to build the browserify version.
 
-Node Modules Symlink
---------------------
-To make all the examples use `require('blocktrail-sdk')` just like when the module would have been installed with NPM 
-we symlinked `node_modules/blocktrail-sdk` to the root of this directory.
+Files in `./build` are:
 
+ - `blocktrail-sdk.js` (and `blocktrail-sdk.min.js`) the blocktrailSDK browserified  
+ - `jsPDF.js` (and `jsPDF.min.js`) dependancy for generating the backup PDF  
+ - `blocktrail-sdk-full.js` (and `blocktrail-sdk-full.min.js`) the blocktrailSDK browserified + jsPDF bundled  
+     
 License
 -------
 The BlockTrail NodeJS SDK is released under the terms of the MIT license. See LICENCE.md for more information or see http://opensource.org/licenses/MIT.
