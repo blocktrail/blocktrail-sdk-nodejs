@@ -84,7 +84,7 @@ module.exports = function (grunt) {
             },
             browserify : {
                 files : ['main.js', 'lib/*', 'lib/**/*'],
-                tasks : ['browserify', 'uglify']
+                tasks : ['browserify', 'concat']
             },
             deps : {
                 files : ['vendor/**/*.js'],

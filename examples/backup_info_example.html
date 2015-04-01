@@ -1,0 +1,30 @@
+<html>
+<head>
+    <script src="../build/blocktrail-sdk-full.js"></script>
+    <script>
+        function createBackup() {
+            var blocktrailSDK = window.blocktrailSDK;
+
+            blocktrailSDK.debug.enable('*');
+
+            var identifier = "rubensayshi";
+            var primaryMnemonic = "food guitar control grain camp lunar mystery screen fashion wife copper fringe sea bonus sudden real few cannon must replace allow jungle street ribbon";
+            var backupMnemonic = "food guitar control grain camp lunar mystery screen fashion wife copper fringe sea bonus sudden real few cannon must replace allow jungle street ribbon";
+            var blocktrailPublicKeys = {
+                0: blocktrailSDK.bitcoin.HDNode.fromSeedHex("010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101"),
+                1: blocktrailSDK.bitcoin.HDNode.fromSeedHex("020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202"),
+                2: blocktrailSDK.bitcoin.HDNode.fromSeedHex("020202020202020202020203020202020202020202020203020202020202020202020203020202020202020202020203"),
+                3: blocktrailSDK.bitcoin.HDNode.fromSeedHex("040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404")
+            };
+
+            var backup = new blocktrailSDK.BackupGenerator(identifier, primaryMnemonic, backupMnemonic, blocktrailPublicKeys);
+            backup.generatePDF(function(err, pdf) {
+                pdf.save("BlockTrail Wallet Recovery Data Sheet - " + backup.identifier + " .pdf");
+            });
+        }
+    </script>
+</head>
+<body>
+    <button onclick="createBackup()">create backup</button>
+</body>
+</html>
