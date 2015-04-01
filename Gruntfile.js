@@ -17,15 +17,9 @@ module.exports = function (grunt) {
                 ],
                 dest : 'build/jsPDF.js'
             },
-            deps: {
-                src : [
-                    '<%= concat.jsPDF.dest %>'
-                ],
-                dest : 'build/blocktrail-sdk-deps.js'
-            },
             sdkfull: {
                 src : [
-                    '<%= concat.deps.dest %>',
+                    '<%= concat.jsPDF.dest %>',
                     '<%= browserify.sdk.dest %>'
                 ],
                 dest : 'build/blocktrail-sdk-full.js'
@@ -43,7 +37,6 @@ module.exports = function (grunt) {
                 files : {
                     'build/jsPDF.min.js'                : ['<%= concat.jsPDF.dest %>'],
                     'build/blocktrail-sdk.min.js'       : ['<%= browserify.sdk.dest %>'],
-                    'build/blocktrail-sdk-deps.min.js'  : ['<%= concat.deps.dest %>'],
                     'build/blocktrail-sdk-full.min.js'  : ['<%= concat.sdkfull.dest %>']
                 }
             }
