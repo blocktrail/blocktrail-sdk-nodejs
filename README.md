@@ -69,6 +69,9 @@ Browserify
 The BlockTrail NodeJS SDK can be browserified to use it in the browser, which we use ourselves for wallet actions from our webapp.  
 If you want to test or develop on the SDK in the browser you can use `grunt build` (and `grunt watch`) to build the browserify version.
 
+You need to pull the git submodules before you can build the browserify version:  
+`git submodule update --init --recursive`
+
 Files in `./build` are:
 
  - `blocktrail-sdk.js` (and `blocktrail-sdk.min.js`) the blocktrailSDK browserified  
