@@ -340,6 +340,51 @@ describe('test wallet, do transaction', function () {
         });
     });
 
+    it("should return errors when expected", function(cb) {
+        async.parallel([
+            function(cb) {
+                wallet.pay({"": blocktrail.toSatoshi(0.001)}, function(err) {
+                    assert.ok(!!err);
+                    assert.equal(err.message, "Invalid address []");
+
+                    cb();
+                });
+            },
+            function(cb) {
+                wallet.pay({"2N65RcfKHiKQcPGZAA2QVeqitJvAQ8HroHA": blocktrail.toSatoshi(0.001)}, function(err) {
+                    assert.ok(!!err);
+                    assert.equal(err.message, "Invalid address [2N65RcfKHiKQcPGZAA2QVeqitJvAQ8HroHA]");
+
+                    cb();
+                });
+            },
+            function(cb) {
+                wallet.pay({"2N65RcfKHiKQcPGZAA2QVeqitJvAQ8HroHD": 1}, function(err) {
+                    assert.ok(!!err);
+                    assert.equal(err.message, "Values should be more than dust (" + blocktrail.DUST + ")");
+
+                    cb();
+                });
+            },
+            function(cb) {
+                wallet.pay({"2N65RcfKHiKQcPGZAA2QVeqitJvAQ8HroHD": 0}, function(err) {
+                    assert.ok(!!err);
+                    assert.equal(err.message, "Values should be non zero");
+
+                    cb();
+                })
+            },
+            function(cb) {
+                wallet.pay({"2N65RcfKHiKQcPGZAA2QVeqitJvAQ8HroHD": 1.1}, function(err) {
+                    assert.ok(!!err);
+                    assert.equal(err.message, "Values should be in Satoshis");
+
+                    cb();
+                })
+            }
+        ], cb);
+    });
+
     it("should be able to do a payment", function (cb) {
         wallet.getNewAddress(function (err, address, path) {
             assert.ifError(err);
