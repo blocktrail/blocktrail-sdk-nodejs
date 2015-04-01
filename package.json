@@ -82,6 +82,7 @@
     },
     "scripts": {
         "test": "mocha",
-        "browserify": "grunt build"
+        "browserify": "grunt build",
+        "lint": "jshint main.js lib/ test/ && jscs main.js lib/ test/"
     }
 }
