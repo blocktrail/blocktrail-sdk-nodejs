@@ -10,6 +10,7 @@ module.exports = function (grunt) {
                     'vendor/jsPDF/jspdf.js',
                     'vendor/jsPDF/jspdf.plugin.split_text_to_size.js',
                     'vendor/jsPDF/jspdf.plugin.addimage.js',
+                    'vendor/jsPDF/libs/FileSaver.js/FileSaver.js',
                     'vendor/jsPDF/jspdf.plugin.png_support.js',
                     'vendor/jsPDF/libs/png_support/zlib.js',
                     'vendor/jsPDF/libs/png_support/png.js'
