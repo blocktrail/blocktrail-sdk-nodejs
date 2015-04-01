@@ -2257,8 +2257,12 @@ Wallet.prototype.pay = function (pay, changeAddress, allowZeroConf, cb) {
         var value = pay[address];
         var err;
 
-        if (!bitcoin.Address.fromBase58Check(address)) {
-            err = new Error("Invalid address [" + address + "]");
+        try {
+            var addr = bitcoin.Address.fromBase58Check(address);
+        } catch (err) {}
+
+        if (!addr || err) {
+            err = new Error("Invalid address [" + address + "]")
         } else if (parseInt(value, 10).toString() !== value.toString()) {
             err = new Error("Values should be in Satoshis");
         } else if (!(value = parseInt(value, 10))) {
