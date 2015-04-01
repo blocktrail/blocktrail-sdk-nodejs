@@ -1109,7 +1109,7 @@ var async = require('async');
 var _ = require('lodash');
 
 var QRCode = require('./qrCode');
-var pdfWriter = require('./pdf_writer');
+var PdfWriter = require('./pdf_writer');
 
 /**
  * @param identifier            string          identifier
@@ -1149,15 +1149,15 @@ BackupGenerator.prototype.generateHTML = function (cb) {
         pubKeysHtml: ""
     };
 
-    async.forEach(Object.keys(self.blocktrailPublicKeys), function(keyIndex) {
+    async.forEach(Object.keys(self.blocktrailPublicKeys), function (keyIndex) {
         var pubKey = self.blocktrailPublicKeys[keyIndex];
 
         QRCode.toDataURL(pubKey.pubKey.toBase58(), {
             errorCorrectLevel: 'medium'
-        }, function(err, dataURI) {
+        }, function (err, dataURI) {
             pubKey.qr = dataURI;
         });
-    }, function(err) {
+    }, function (err) {
         if (err) {
             return cb(err);
         }
@@ -1170,8 +1170,9 @@ BackupGenerator.prototype.generateHTML = function (cb) {
         });
 
         //load and compile the html
+        var compiledHtml;
         try {
-            var compiledHtml = _.template(fs.readFileSync(LIBPATH + "/resources/backup_info_template.html", {encoding: 'utf8'}));
+            compiledHtml = _.template("\n        <style>\n            html, body {\n                font-size: 100%;\n                background: #FFF;\n                margin: 0;\n                padding: 0;\n            }\n\n            @media screen {\n                html {\n                    padding: 40px 20px 20px 20px;\n                    width: 800px;\n                }\n                header {\n                    display: block !important;\n                }\n            }\n\n            body {\n                font-family: 'Open Sans', Helvetica, sans-serif;\n                font-weight: 100;\n            }\n\n            h1, h2, h3 {\n                font-weight: 100;\n            }\n\n            h3 {\n                color: #333;\n            }\n\n            p {\n                margin: 0.5em 0;\n                line-height: 1em;\n            }\n\n            code {\n                font-family: Consolas, monospace;\n            }\n\n            figure {\n                display: inline-block;\n                margin: 1em;\n            }\n\n            figcaption {\n                font-size: 0.8em;\n                text-align: center;\n            }\n\n            header {\n                display: none;\n                position: fixed;\n                top: 0;\n                left: 20px;\n                width: 100%;\n                background: #FFF;\n                background: rgba(255, 255, 255, 0.85);\n                border-bottom: 1px solid #fff;\n            }\n\n            .logo-blocktrail-square {\n                display: block;\n                width: 200px;\n            }\n\n            .logo-blocktrail-square img {\n                width: 100%;\n                height: auto;\n            }\n\n            .intro h1 {\n                margin: 0;\n                padding: 0;\n            }\n\n            .backup-info {\n                padding-bottom: 1em;\n                margin-bottom: 1em;\n            }\n\n            .backup-info small {\n                display: block;\n                color: #666;\n                font-size: 0.75em;\n            }\n\n            .backup-info figcaption span:first-child {\n                margin-right: 1em;\n            }\n\n            section h2 {\n                padding-bottom: 0.2em;\n                margin-bottom: 0.2em;\n                border-bottom: 1px solid #CCC;\n            }\n        </style>\n\n        <header>\n            <a class='logo-blocktrail-square' href='https://www.blocktrail.com/'>\n                <img src='data:image/png;base64,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'  alt='blocktrail' />\n            </a>\n        </header>\n\n        <section class='intro'>\n            <h1>Wallet Recovery Data Sheet!</h1>\n            <p>\n                This document holds the information and instructions required for you to recover your Blocktrail wallet should anything happen. <br>\n                Print it out and keep it in a safe location; if you lose these details you will never be able to recover your wallet.\n            </p>\n        </section>\n\n        <section class='identifier-info'>\n            <h2>Wallet Identifier</h2>\n            <div class='identifier'><h3><%= identifier %></h3></div>\n\n        </section>\n\n        <section class='backup-info'>\n            <h2>Backup Info</h2>\n            <div class='primary-mnemonic'><h3>Primary Mnemonic</h3><code> <%= primaryMnemonic %> </code></div>\n\n            <div class='backup-mnemonic'><h3>Backup Mnemonic</h3><code> <%= backupMnemonic %> </code></div>\n\n            <div class='blocktrail-pubkeys'><h3>Blocktrail Public Keys <small> <%= totalPubKeys  %> in total</small></h3>\n                <%= pubKeysHtml %>\n            </div>\n        </section>\n\n        <section class='backup-instructions'>\n            <div><h2>Wallet Recovery Instructions</h2><p>For instructions on how to recover your wallet, see the 'wallet_recovery_example.php' script in the examples folder of the Blocktrail SDK.</p></div>\n        </section>\n");
         } catch (e) {
             return cb(e);
         }
@@ -1188,7 +1189,7 @@ BackupGenerator.prototype.generatePDF = function (callback) {
     var self = this;
 
     try {
-        var pdf = new pdfWriter();
+        var pdf = new PdfWriter();
 
         pdf.setFont('helvetica'); // default font
 
@@ -1201,7 +1202,7 @@ BackupGenerator.prototype.generatePDF = function (callback) {
             25
         );
 
-        pdf.FONT_SIZE_HEADER(function() {
+        pdf.FONT_SIZE_HEADER(function () {
             pdf.TEXT("Wallet Recovery Data Sheet");
         });
 
@@ -1210,38 +1211,38 @@ BackupGenerator.prototype.generatePDF = function (callback) {
             "Print it out and keep it in a safe location; if you lose these details you will never be able to recover your wallet."
         );
 
-        pdf.FONT_SIZE_HEADER(function() {
+        pdf.FONT_SIZE_HEADER(function () {
             pdf.TEXT("Wallet Identifier");
             pdf.HR(0, 0);
         });
 
-        pdf.FONT_SIZE_SUBHEADER(function() {
-            pdf.TEXT_COLOR_GREY(function() {
+        pdf.FONT_SIZE_SUBHEADER(function () {
+            pdf.TEXT_COLOR_GREY(function () {
                 pdf.TEXT(self.identifier);
             });
         });
 
-        pdf.FONT_SIZE_HEADER(function() {
+        pdf.FONT_SIZE_HEADER(function () {
             pdf.TEXT("Backup Info");
             pdf.HR(0, 0);
         });
 
-        pdf.FONT_SIZE_SUBHEADER(function() {
-            pdf.TEXT_COLOR_GREY(function() {
+        pdf.FONT_SIZE_SUBHEADER(function () {
+            pdf.TEXT_COLOR_GREY(function () {
                 pdf.TEXT("Primary Mnemonic");
             });
             pdf.YAXIS(5);
-            pdf.FONT_SIZE_NORMAL(function() {
+            pdf.FONT_SIZE_NORMAL(function () {
                 pdf.TEXT(self.primaryMnemonic);
             });
         });
 
-        pdf.FONT_SIZE_SUBHEADER(function() {
-            pdf.TEXT_COLOR_GREY(function() {
+        pdf.FONT_SIZE_SUBHEADER(function () {
+            pdf.TEXT_COLOR_GREY(function () {
                 pdf.TEXT("Backup Mnemonic");
             });
             pdf.YAXIS(5);
-            pdf.FONT_SIZE_NORMAL(function() {
+            pdf.FONT_SIZE_NORMAL(function () {
                 pdf.TEXT(self.backupMnemonic);
             });
         });
@@ -1260,35 +1261,35 @@ BackupGenerator.prototype.generatePDF = function (callback) {
             pdf.YAXIS(10); // need a little extra margin
         }
 
-        pdf.FONT_SIZE_SUBHEADER(function() {
-            pdf.TEXT_COLOR_GREY(function() {
+        pdf.FONT_SIZE_SUBHEADER(function () {
+            pdf.TEXT_COLOR_GREY(function () {
                 pdf.TEXT("BlockTrail Public Keys");
             });
-            pdf.FONT_SIZE_NORMAL(function() {
+            pdf.FONT_SIZE_NORMAL(function () {
                 pdf.TEXT(self.blocktrailPublicKeys.length + " in total");
             });
 
         });
         pdf.YAXIS(20);
 
-        async.forEach(Object.keys(self.blocktrailPublicKeys), function(keyIndex, cb) {
+        async.forEach(Object.keys(self.blocktrailPublicKeys), function (keyIndex, cb) {
             var pubKey = self.blocktrailPublicKeys[keyIndex];
 
             QRCode.toDataURL(pubKey.pubKey.toBase58(), {
                 errorCorrectLevel: 'medium'
-            }, function(err, dataURI) {
+            }, function (err, dataURI) {
                 pubKey.qr = dataURI;
                 cb(err);
             });
-        }, function(err) {
+        }, function (err) {
             if (err) {
-                return cb(err);
+                return callback(err);
             }
 
             var qrSize = 180;
             var qrSubtitleheight = 20;
 
-            Object.keys(self.blocktrailPublicKeys).forEach(function(keyIndex, i) {
+            Object.keys(self.blocktrailPublicKeys).forEach(function (keyIndex, i) {
                 var pubKey = self.blocktrailPublicKeys[i];
 
                 var x = i % 3;
@@ -1301,7 +1302,7 @@ BackupGenerator.prototype.generatePDF = function (callback) {
 
                 pdf.IMAGE(pubKey.qr, 'jpeg', qrSize, qrSize, x * qrSize);
                 pdf.YAXIS(3);
-                pdf.FONT_SIZE_SMALL(function() {
+                pdf.FONT_SIZE_SMALL(function () {
                     pdf.TEXT("KeyIndex: " + pubKey.keyIndex + " Path: " + pubKey.path, (x * qrSize) + 20, false);
                 });
             });
@@ -1317,7 +1318,7 @@ BackupGenerator.prototype.generatePDF = function (callback) {
                 25
             );
 
-            pdf.FONT_SIZE_HEADER(function() {
+            pdf.FONT_SIZE_HEADER(function () {
                 pdf.TEXT("Wallet Recovery Instructions");
                 pdf.HR(0, 0);
             });
@@ -1413,13 +1414,21 @@ blocktrail.patchQ = function (q) {
 module.exports = blocktrail;
 
 },{}],4:[function(require,module,exports){
-var pdfWriter = function(options) {
+/* globals jsPDF */
+var JSPDF = jsPDF;
+
+/**
+ *
+ * @param options
+ * @constructor
+ */
+var PdfWriter = function (options) {
     // we can't require jsPDF yet, so we're trusting on it being there
-    if (typeof jsPDF === "undefined") {
+    if (typeof JSPDF === "undefined") {
         throw new Error("jsPDF not found");
     }
 
-    this.doc = new jsPDF('portrait', 'pt', 'letter');
+    this.doc = new JSPDF('portrait', 'pt', 'letter');
 
     this.docWidth = 612;
     this.margin = typeof options.margin !== "undefined" ? options.margin : 30;
@@ -1440,22 +1449,22 @@ var pdfWriter = function(options) {
     ];
 };
 
-pdfWriter.prototype.setFont = function(font, cb) {
+PdfWriter.prototype.setFont = function (font, cb) {
     this.font.push(font);
-    this.doc.setFont(this.font[this.font.length -1 ]);
+    this.doc.setFont(this.font[this.font.length - 1 ]);
 
     if (cb) {
         cb();
     }
 
     this.font.pop();
-    this.doc.setFont(this.font[this.font.length -1 ]);
+    this.doc.setFont(this.font[this.font.length - 1 ]);
 };
 
-pdfWriter.prototype.setFontSize = function(size, lineMargin, cb) {
+PdfWriter.prototype.setFontSize = function (size, lineMargin, cb) {
     this.fontSize.push(size);
     this.lineMargin.push(lineMargin);
-    this.doc.setFontSize(this.fontSize[this.fontSize.length -1 ]);
+    this.doc.setFontSize(this.fontSize[this.fontSize.length - 1 ]);
 
     if (cb) {
         cb();
@@ -1463,22 +1472,22 @@ pdfWriter.prototype.setFontSize = function(size, lineMargin, cb) {
 
     this.fontSize.pop();
     this.lineMargin.pop();
-    this.doc.setFontSize(this.fontSize[this.fontSize.length -1 ]);
+    this.doc.setFontSize(this.fontSize[this.fontSize.length - 1 ]);
 };
 
-pdfWriter.prototype.setTextColor = function(color, cb) {
+PdfWriter.prototype.setTextColor = function (color, cb) {
     this.textColor.push(color);
-    this.doc.setTextColor.apply(this.doc, this.textColor[this.textColor.length -1 ]);
+    this.doc.setTextColor.apply(this.doc, this.textColor[this.textColor.length - 1 ]);
 
     if (cb) {
         cb();
     }
 
     this.textColor.pop();
-    this.doc.setTextColor.apply(this.doc, this.textColor[this.textColor.length -1 ]);
+    this.doc.setTextColor.apply(this.doc, this.textColor[this.textColor.length - 1 ]);
 };
 
-pdfWriter.prototype.TEXT = function(text, leftOffset, autoY, cb) {
+PdfWriter.prototype.TEXT = function (text, leftOffset, autoY, cb) {
     var self = this;
 
     if (typeof leftOffset === "function") {
@@ -1496,10 +1505,10 @@ pdfWriter.prototype.TEXT = function(text, leftOffset, autoY, cb) {
     var lines = self.doc.splitTextToSize(text, self.bodyWidth * 2);
 
     if (autoY) {
-        var currentSize = self.fontSize[self.fontSize.length -1 ];
-        var currentLineMargin = self.lineMargin[self.lineMargin.length -1 ];
+        var currentSize = self.fontSize[self.fontSize.length - 1 ];
+        var currentLineMargin = self.lineMargin[self.lineMargin.length - 1 ];
 
-        lines.forEach(function(line) {
+        lines.forEach(function (line) {
             self.YAXIS(currentLineMargin[0]);
             self.YAXIS(currentSize);
             self.doc.text(line, self.margin + (leftOffset || 0), self.yPos);
@@ -1514,7 +1523,7 @@ pdfWriter.prototype.TEXT = function(text, leftOffset, autoY, cb) {
     }
 };
 
-pdfWriter.prototype.HR = function(xOffset, yOffset) {
+PdfWriter.prototype.HR = function (xOffset, yOffset) {
     var x1 = (xOffset || 0);
     var x2 = this.docWidth - this.margin - this.margin - (xOffset || 0);
 
@@ -1523,11 +1532,11 @@ pdfWriter.prototype.HR = function(xOffset, yOffset) {
     this.LINE(x1, y, x2, y);
 };
 
-pdfWriter.prototype.LINE = function(x1, y1, x2, y2) {
+PdfWriter.prototype.LINE = function (x1, y1, x2, y2) {
     this.doc.line(x1 + this.margin, y1 + this.yPos, x2 + this.margin, y2 + this.yPos);
 };
 
-pdfWriter.prototype.IMAGE = function(img, format, width, height, x) {
+PdfWriter.prototype.IMAGE = function (img, format, width, height, x) {
     x = (x || 0) + this.margin;
     var y = this.yPos;
     var w = width;
@@ -1537,52 +1546,54 @@ pdfWriter.prototype.IMAGE = function(img, format, width, height, x) {
     this.YAXIS(h);
 };
 
-pdfWriter.prototype.YAXIS = function(y) {
+PdfWriter.prototype.YAXIS = function (y) {
     this.yPos += y || 0;
 };
 
-pdfWriter.prototype.NEXT_PAGE = function() {
+PdfWriter.prototype.NEXT_PAGE = function () {
     this.doc.addPage();
     this.yPos = 0;
 };
 
-pdfWriter.prototype.FONT_SIZE_HEADER = function(cb) { this.setFontSize(24, [12, 8], cb); };
-pdfWriter.prototype.FONT_SIZE_SUBHEADER = function(cb) { this.setFontSize(18, [8, 5], cb); };
-pdfWriter.prototype.FONT_SIZE_NORMAL = function(cb) { this.setFontSize(13, [2, 2], cb); };
-pdfWriter.prototype.FONT_SIZE_SMALL = function(cb) { this.setFontSize(10, [2, 2], cb); };
+PdfWriter.prototype.FONT_SIZE_HEADER = function (cb) { this.setFontSize(24, [12, 8], cb); };
+PdfWriter.prototype.FONT_SIZE_SUBHEADER = function (cb) { this.setFontSize(18, [8, 5], cb); };
+PdfWriter.prototype.FONT_SIZE_NORMAL = function (cb) { this.setFontSize(13, [2, 2], cb); };
+PdfWriter.prototype.FONT_SIZE_SMALL = function (cb) { this.setFontSize(10, [2, 2], cb); };
 
-pdfWriter.prototype.TEXT_COLOR_BLACK = function(cb) { this.setTextColor([0, 0, 0], cb); };
-pdfWriter.prototype.TEXT_COLOR_GREY = function(cb) { this.setTextColor([51, 51, 51], cb); };
-pdfWriter.prototype.TEXT_COLOR_RED = function(cb) { this.setTextColor([255, 0, 0], cb); };
+PdfWriter.prototype.TEXT_COLOR_BLACK = function (cb) { this.setTextColor([0, 0, 0], cb); };
+PdfWriter.prototype.TEXT_COLOR_GREY = function (cb) { this.setTextColor([51, 51, 51], cb); };
+PdfWriter.prototype.TEXT_COLOR_RED = function (cb) { this.setTextColor([255, 0, 0], cb); };
 
-module.export = pdfWriter;
+module.export = PdfWriter;
 
 },{}],5:[function(require,module,exports){
+/* globals document */
+
 /*
  * we're requiring qrcode-draw from the vendor dir to avoid having to npm install it
  *  this is because for using it with node it comes with a big amount of deps and we only need it for the browserify version
  */
 var qrcodelib = require("../vendor/node-qrcode/lib/qrcode-draw");
 
-var QrCode = function() {
+var QrCode = function () {
 };
 
-QrCode.prototype.init = function() {
+QrCode.prototype.init = function () {
     if (this.qrcodedraw) {
         return;
     }
 
     this.qrcodedraw = new qrcodelib.QRCodeDraw();
     this.canvasEl = document.createElement("canvas");
-}
+};
 
-QrCode.prototype.draw = function(text, options, cb) {
+QrCode.prototype.draw = function (text, options, cb) {
     this.init();
     this.qrcodedraw.draw(this.canvasEl, text, options, cb);
 };
 
-QrCode.prototype.toDataURL = function(text, options, cb) {
-    this.draw(text, options, function(err, canvas) {
+QrCode.prototype.toDataURL = function (text, options, cb) {
+    this.draw(text, options, function (err, canvas) {
         if (err) {
             return cb ? cb(err) : null;
         }
@@ -2246,12 +2257,13 @@ Wallet.prototype.pay = function (pay, changeAddress, allowZeroConf, cb) {
         var value = pay[address];
         var err = null;
 
+        var addr;
         try {
-            var addr = bitcoin.Address.fromBase58Check(address);
+            addr = bitcoin.Address.fromBase58Check(address);
         } catch (err) {}
 
         if (!addr || err) {
-            err = new Error("Invalid address [" + address + "]")
+            err = new Error("Invalid address [" + address + "]");
         } else if (parseInt(value, 10).toString() !== value.toString()) {
             err = new Error("Values should be in Satoshis");
         } else if (!(value = parseInt(value, 10))) {
