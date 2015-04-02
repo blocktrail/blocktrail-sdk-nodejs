@@ -5699,7 +5699,7 @@ module.exports = function (options) {
 var async = require('async');
 var _ = require('lodash');
 
-var QRCode = require('./qrCode');
+var QRCode = require('./qrCode-browser');
 var PdfWriter = require('./pdf_writer');
 
 /**
@@ -5859,7 +5859,6 @@ BackupGenerator.prototype.generatePDF = function (callback) {
             pdf.FONT_SIZE_NORMAL(function () {
                 pdf.TEXT(self.blocktrailPublicKeys.length + " in total");
             });
-
         });
         pdf.YAXIS(20);
 
@@ -5928,7 +5927,7 @@ BackupGenerator.prototype.generatePDF = function (callback) {
 
 module.exports = BackupGenerator;
 
-},{"./pdf_writer":4,"./qrCode":5,"async":11,"lodash":229}],3:[function(require,module,exports){
+},{"./pdf_writer":4,"./qrCode-browser":5,"async":11,"lodash":229}],3:[function(require,module,exports){
 var blocktrail = {
     COIN: 100000000,
     PRECISION: 8,
@@ -6018,6 +6017,8 @@ var PdfWriter = function (options) {
     if (typeof JSPDF === "undefined") {
         throw new Error("jsPDF not found");
     }
+
+    options = options || {};
 
     this.doc = new JSPDF('portrait', 'pt', 'letter');
 
@@ -6155,7 +6156,7 @@ PdfWriter.prototype.TEXT_COLOR_BLACK = function (cb) { this.setTextColor([0, 0, 
 PdfWriter.prototype.TEXT_COLOR_GREY = function (cb) { this.setTextColor([51, 51, 51], cb); };
 PdfWriter.prototype.TEXT_COLOR_RED = function (cb) { this.setTextColor([255, 0, 0], cb); };
 
-module.export = PdfWriter;
+module.exports = PdfWriter;
 
 },{}],5:[function(require,module,exports){
 /* globals document */
