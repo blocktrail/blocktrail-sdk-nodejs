@@ -77,7 +77,9 @@ Files in `./build` are:
  - `blocktrail-sdk.js` (and `blocktrail-sdk.min.js`) the blocktrailSDK browserified  
  - `jsPDF.js` (and `jsPDF.min.js`) dependancy for generating the backup PDF  
  - `blocktrail-sdk-full.js` (and `blocktrail-sdk-full.min.js`) the blocktrailSDK browserified + jsPDF bundled  
-     
+
+If you use these browserified versions of our SDK it will be accessible as `window.blocktrailSDK` or plain `blocktrailSDK`.
+
 License
 -------
 The BlockTrail NodeJS SDK is released under the terms of the MIT license. See LICENCE.md for more information or see http://opensource.org/licenses/MIT.
