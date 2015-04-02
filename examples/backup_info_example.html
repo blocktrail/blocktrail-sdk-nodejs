@@ -19,6 +19,7 @@
 
             var backup = new blocktrailSDK.BackupGenerator(identifier, primaryMnemonic, backupMnemonic, blocktrailPublicKeys);
             backup.generatePDF(function(err, pdf) {
+                console.log(err);
                 pdf.save("BlockTrail Wallet Recovery Data Sheet - " + backup.identifier + " .pdf");
             });
         }

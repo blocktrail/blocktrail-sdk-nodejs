@@ -28,7 +28,6 @@
     },
     "main": "./main.js",
     "browser": {
-        "./lib/qrCode.js": "./lib/qrCode-browser.js",
         "./lib/backup_generator.js": "./lib/backup_generator-browser.js"
     },
     "dependencies": {
