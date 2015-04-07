@@ -1,3 +1,4 @@
+var _ = require('lodash');
 var fs = require('fs');
 var exec = require("child_process").exec;
 
@@ -28,8 +29,16 @@ exec("browserify " + __dirname + "/../main.js --list", function(err, stdout, std
             module = "self";
         }
 
-        moduleSizes[module] = (moduleSizes[module] || 0) + fs.statSync(file)['size'];
+        if (!moduleSizes[module]) {
+            moduleSizes[module] = {
+                module: module,
+                size: 0
+            }
+        }
+
+        moduleSizes[module]['size'] += fs.statSync(file)['size'];
     });
 
-    console.log(moduleSizes);
+
+    console.log(_.sortBy(moduleSizes, 'size'));
 });
