@@ -49,7 +49,8 @@
     "superagent": "^0.21.0",
     "superagent-http-signature": "0.1.3",
     "superagent-promise": "^0.2.0",
-    "webworkify": "^1.0.2"
+    "webworkify": "^1.0.2",
+    "qrcode-canvas": "~0.0.1"
   },
   "author": {
     "name": "Ruben de Vries <ruben@blocktrail.com>"
