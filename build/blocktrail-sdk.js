@@ -30,17 +30,18 @@ blocktrail.patchQ(q);
 var APIClient = function (options) {
     var self = this;
 
-    // BLOCKTRAIL_SDK_API_ENDPOINT overwrite for de
+    // BLOCKTRAIL_SDK_API_ENDPOINT overwrite for development
     if (process.env.BLOCKTRAIL_SDK_API_ENDPOINT) {
-        if (process.env.BLOCKTRAIL_SDK_API_ENDPOINT.indexOf("https://") === 0) {
-            options.https = true;
-            options.host = process.env.BLOCKTRAIL_SDK_API_ENDPOINT.substr(8);
-        } else if (process.env.BLOCKTRAIL_SDK_API_ENDPOINT.indexOf("http://") === 0) {
-            options.https = false;
-            options.host = process.env.BLOCKTRAIL_SDK_API_ENDPOINT.substr(7);
-        } else {
-            throw new Error("Invalid value for BLOCKTRAIL_SDK_API_ENDPOINT");
-        }
+        options.host = process.env.BLOCKTRAIL_SDK_API_ENDPOINT;
+    }
+
+    // trim off leading https?://
+    if (options.host.indexOf("https://") === 0) {
+        options.https = true;
+        options.host = options.host.substr(8);
+    } else if (options.host.indexOf("http://") === 0) {
+        options.https = false;
+        options.host = options.host.substr(7);
     }
 
     if (typeof options.https === "undefined") {
@@ -1327,11 +1328,12 @@ BackupGenerator.prototype.generatePDF = function (callback) {
                 "see the 'wallet_recovery_example.php' script in the examples folder of the Blocktrail SDK."
             );
         });
-
-        callback(null, pdf.doc);
     } catch (e) {
         callback(e);
+        return;
     }
+
+    callback(null, pdf.doc);
 };
 
 module.exports = BackupGenerator;
@@ -1414,7 +1416,6 @@ module.exports = blocktrail;
 
 },{}],4:[function(require,module,exports){
 /* globals jsPDF */
-var JSPDF = jsPDF;
 
 /**
  *
@@ -1422,6 +1423,8 @@ var JSPDF = jsPDF;
  * @constructor
  */
 var PdfWriter = function (options) {
+    var JSPDF = jsPDF; // cuz jscs won't let me use a lowercase classname :/
+
     // we can't require jsPDF yet, so we're trusting on it being there
     if (typeof JSPDF === "undefined") {
         throw new Error("jsPDF not found");
