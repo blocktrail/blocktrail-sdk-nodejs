@@ -112,7 +112,6 @@ describe('test new blank wallet', function () {
             identifier: myIdentifier,
             passphrase: "password"
         }, function (err, wallet) {
-            console.log(err, wallet);
             assert.ok(err);
             assert.ok(!wallet, "wallet with random ID [" + myIdentifier + "] already exists...");
 
