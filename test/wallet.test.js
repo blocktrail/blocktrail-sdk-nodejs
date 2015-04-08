@@ -68,7 +68,7 @@ var _createTestWallet = function (identifier, passphrase, primaryMnemonic, backu
 
             wallet.unlock({
                 passphrase: passphrase
-            }, function (err, wallet) {
+            }, function (err) {
                 cb(err, wallet);
             });
         }

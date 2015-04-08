@@ -79,7 +79,7 @@ if (action === 'create') {
 
                 console.log('address', address);
 
-                wallet.unlock({passphrase: "example-strong-password"}, function(err, wallet) {
+                wallet.unlock({passphrase: "example-strong-password"}, function(err, unlocked) {
                     if (err) {
                         return console.log("unlock ERR", err);
                     }
