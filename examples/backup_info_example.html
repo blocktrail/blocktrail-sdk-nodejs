@@ -23,7 +23,7 @@
         var backup = new blocktrail.BackupGenerator(identifier, primaryMnemonic, backupMnemonic, blocktrailPublicKeys);
 
         document.getElementById('userAgent').innerHTML = navigator.userAgent;
-        document.getElementById('saveAsSupported').innerHTML = "Saving as file is " + (backup.saveAsSupported() ? '' : 'not ') + "supported";
+        document.getElementById('saveAsSupported').innerHTML = "Saving as file is " + (blocktrail.BackupGenerator.saveAsSupported() ? '' : 'not ') + "supported";
 
         function createBackupPopup() {
             backup.generateHTML(function(err, html) {
