@@ -550,7 +550,7 @@ describe('test wallet discovery and upgrade key index', function () {
         // unlock should upgrade
         wallet.unlock({
             passphrase: "password"
-        }).then(function() {
+        }).then(function () {
             assert.equal(wallet.getBlocktrailPublicKey("M/10000'").toBase58(), "tpubD9m9hziKhYQExWgzMUNXdYMNUtourv96sjTUS9jJKdo3EDJAnCBJooMPm6vGSmkNTNAmVt988dzNfNY12YYzk9E6PkA7JbxYeZBFy4XAaCp");
 
             assert.equal(wallet.getAddressByPath("M/10000'/0/0"), "2N9ZLKXgs12JQKXvLkngn7u9tsYaQ5kXJmk");
