@@ -1,5 +1,10 @@
 <html>
-<head>
+<body>
+    <span id="userAgent"></span>
+    <span id="saveAsSupported"></span>
+    <button onclick="createBackupPDF()">create backup PDF</button>
+    <button onclick="createBackupPopup()">create backup popup with HTML</button>
+
     <script src="../build/blocktrail-sdk-full.js"></script>
     <script>
         var blocktrail = window.blocktrailSDK;
@@ -17,6 +22,9 @@
 
         var backup = new blocktrail.BackupGenerator(identifier, primaryMnemonic, backupMnemonic, blocktrailPublicKeys);
 
+        document.getElementById('userAgent').innerHTML = navigator.userAgent;
+        document.getElementById('saveAsSupported').innerHTML = "Saving as file is " + (backup.saveAsSupported() ? '' : 'not ') + "supported";
+
         function createBackupPopup() {
             backup.generateHTML(function(err, html) {
                 var popup = window.open();
@@ -25,14 +33,14 @@
         }
 
         function createBackupPDF() {
+            if (!backup.saveAsSupported()) {
+                alert("Saving as file is not supported on your OS / browser");
+            }
+
             backup.generatePDF(function(err, pdf) {
                 pdf.save("BlockTrail Wallet Recovery Data Sheet - " + backup.identifier + " .pdf");
             });
         }
     </script>
-</head>
-<body>
-    <button onclick="createBackupPDF()">create backup PDF</button>
-    <button onclick="createBackupPopup()">create backup popup with HTML</button>
 </body>
 </html>
