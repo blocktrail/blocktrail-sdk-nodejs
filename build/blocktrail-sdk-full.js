@@ -6880,16 +6880,19 @@ Wallet.prototype.pay = function (pay, changeAddress, allowZeroConf, cb) {
 
     var send = {}, address;
     for (address in pay) {
+        address = address.trim();
         var value = pay[address];
         var err = null;
 
         var addr;
         try {
             addr = bitcoin.Address.fromBase58Check(address);
-        } catch (err) {}
+        } catch (_err) {
+            err = _err;
+        }
 
         if (!addr || err) {
-            err = new Error("Invalid address [" + address + "]");
+            err = new Error("Invalid address [" + address + "]" + (err ? " (" + err.message + ")" : ""));
         } else if (parseInt(value, 10).toString() !== value.toString()) {
             err = new Error("Values should be in Satoshis");
         } else if (!(value = parseInt(value, 10))) {
