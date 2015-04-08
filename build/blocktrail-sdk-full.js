@@ -5728,7 +5728,12 @@ var BackupGenerator = function (identifier, primaryMnemonic, backupMnemonic, blo
     });
 };
 
-BackupGenerator.prototype.saveAsSupported = function () {
+/**
+ * determine if current browser supports the saveAs for the PDF backup
+ *
+ * @return {boolean}
+ */
+BackupGenerator.saveAsSupported = function () {
     // a whole bunch of mobile OSs that are unsupported
     if (bowser.browser.ios || bowser.browser.blackberry || bowser.browser.firefoxos || bowser.browser.webos || bowser.browser.bada || bowser.browser.tizen || bowser.browser.sailfish) {
         return false;
