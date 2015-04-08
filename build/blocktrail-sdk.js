@@ -633,7 +633,7 @@ APIClient.prototype.initWallet = function (options, cb) {
         );
 
         if (!readOnly) {
-            return wallet.unlock(options).then(function (wallet) {
+            return wallet.unlock(options).then(function () {
                 return wallet;
             });
         } else {
@@ -751,7 +751,7 @@ APIClient.prototype.createNewWallet = function (options, cb) {
                                 result.upgrade_key_index
                             );
 
-                            return wallet.unlock(options).then(function (wallet) {
+                            return wallet.unlock(options).then(function () {
                                 return [wallet, primaryMnemonic, backupMnemonic, blocktrailPublicKeys];
                             });
                         }
@@ -1995,12 +1995,14 @@ Wallet.prototype.unlock = function (options, cb) {
 
             // if the response suggests we should upgrade to a different blocktrail cosigning key then we should
             if (typeof self.upgradeToKeyIndex !== "undefined" && self.upgradeToKeyIndex !== null) {
-                self.upgradeKeyIndex(self.upgradeToKeyIndex);
+                return self.upgradeKeyIndex(self.upgradeToKeyIndex).then(function() {
+                    return !!self.locked;
+                });
             }
 
             self.locked = false;
 
-            return self;
+            return !!self.locked;
         }
     ).nodeify(cb);
 };
@@ -2136,6 +2138,8 @@ Wallet.prototype.upgradeKeyIndex = function (keyIndex, cb) {
             });
 
             self.primaryPublicKeys[keyIndex] = primaryPublicKey;
+
+            return true;
         })
     );
 
