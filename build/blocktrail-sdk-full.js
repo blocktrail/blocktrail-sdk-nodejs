@@ -6585,7 +6585,7 @@ Wallet.prototype.unlock = function (options, cb) {
             }
 
             // if the response suggests we should upgrade to a different blocktrail cosigning key then we should
-            if (self.upgradeToKeyIndex) {
+            if (typeof self.upgradeToKeyIndex !== "undefined" && self.upgradeToKeyIndex !== null) {
                 self.upgradeKeyIndex(self.upgradeToKeyIndex);
             }
 
