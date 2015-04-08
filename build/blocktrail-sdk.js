@@ -1997,12 +1997,8 @@ Wallet.prototype.unlock = function (options, cb) {
 
             // if the response suggests we should upgrade to a different blocktrail cosigning key then we should
             if (typeof self.upgradeToKeyIndex !== "undefined" && self.upgradeToKeyIndex !== null) {
-                return self.upgradeKeyIndex(self.upgradeToKeyIndex).then(function() {
-                    return !!self.locked;
-                });
+                return self.upgradeKeyIndex(self.upgradeToKeyIndex);
             }
-
-            return !!self.locked;
         }
     ).nodeify(cb);
 };
