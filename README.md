@@ -80,6 +80,11 @@ Files in `./build` are:
 
 If you use these browserified versions of our SDK it will be accessible as `window.blocktrailSDK` or plain `blocktrailSDK`.
 
+Uglify
+------
+If you're planning to uglify/minify the javascript yourself, make sure to exclude the following variable names from being mangled:  
+`['Buffer', 'BitInteger', 'Point', 'Script', 'ECPubKey', 'ECKey']`
+
 License
 -------
 The BlockTrail NodeJS SDK is released under the terms of the MIT license. See LICENCE.md for more information or see http://opensource.org/licenses/MIT.

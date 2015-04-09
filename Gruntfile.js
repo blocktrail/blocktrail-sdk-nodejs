@@ -31,7 +31,9 @@ module.exports = function (grunt) {
          */
         uglify : {
             options: {
-                mangle: false
+                mangle: {
+                    except: ['Buffer', 'BitInteger', 'Point', 'Script', 'ECPubKey', 'ECKey']
+                }
             },
             dist : {
                 files : {

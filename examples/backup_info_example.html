@@ -5,7 +5,7 @@
     <button onclick="createBackupPDF()">create backup PDF</button>
     <button onclick="createBackupPopup()">create backup popup with HTML</button>
 
-    <script src="../build/blocktrail-sdk-full.js"></script>
+    <script src="../build/blocktrail-sdk-full.min.js"></script>
     <script>
         var blocktrail = window.blocktrailSDK;
         blocktrail.debug.enable('*');
@@ -33,8 +33,9 @@
         }
 
         function createBackupPDF() {
-            if (!backup.saveAsSupported()) {
+            if (!blocktrail.BackupGenerator.saveAsSupported()) {
                 alert("Saving as file is not supported on your OS / browser");
+                return;
             }
 
             backup.generatePDF(function(err, pdf) {
