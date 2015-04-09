@@ -110,7 +110,7 @@ describe('test new blank wallet', function () {
     it("shouldn't already exist", function (cb) {
         client.initWallet({
             identifier: myIdentifier,
-            passphrase: "password"
+            readOnly: true
         }, function (err, wallet) {
             assert.ok(err);
             assert.ok(!wallet, "wallet with random ID [" + myIdentifier + "] already exists...");
@@ -137,6 +137,13 @@ describe('test new blank wallet', function () {
         );
     });
 
+    it("should lock", function (cb) {
+        assert(!wallet.locked);
+        wallet.lock();
+        assert(wallet.locked);
+        cb();
+    });
+
     it("should have a 0 balance", function (cb) {
         wallet.getBalance(function (err, confirmed, unconfirmed) {
             assert.ifError(err);
@@ -147,11 +154,46 @@ describe('test new blank wallet', function () {
         });
     });
 
-    it("shouldn't be able to pay", function (cb) {
+    it("shouldn't be able to pay when locked", function (cb) {
         wallet.pay({
             "2N6Fg6T74Fcv1JQ8FkPJMs8mYmbm9kitTxy": blocktrail.toSatoshi(0.001)
         }, function (err, txHash) {
-            assert.ok(!!err);
+            assert.ok(!!err && err.message.match(/unlocked/));
+
+            cb();
+        });
+    });
+
+    it("shouldn't be able to upgrade when locked", function (cb) {
+        wallet.upgradeKeyIndex(10000, function (err) {
+            console.log(err);
+            assert.ok(!!err && err.message.match(/unlocked/));
+
+            cb();
+        });
+    });
+
+    it("should unlock", function (cb) {
+        wallet.unlock({password: "password"}, function (err) {
+            assert.ifError(err);
+
+            cb();
+        });
+    });
+
+    it("shouldn't be able to pay when unlocked (because of no balance)", function (cb) {
+        wallet.pay({
+            "2N6Fg6T74Fcv1JQ8FkPJMs8mYmbm9kitTxy": blocktrail.toSatoshi(0.001)
+        }, function (err, txHash) {
+            assert.ok(!!err && err.message.match(/balance/));
+
+            cb();
+        });
+    });
+
+    it("should be able to upgrade when unlocked", function (cb) {
+        wallet.upgradeKeyIndex(10000, function (err) {
+            assert.ifError(err);
 
             cb();
         });
