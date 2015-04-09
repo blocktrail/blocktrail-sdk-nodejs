@@ -5735,7 +5735,8 @@ var BackupGenerator = function (identifier, primaryMnemonic, backupMnemonic, blo
  */
 BackupGenerator.saveAsSupported = function () {
     // a whole bunch of mobile OSs that are unsupported
-    if (bowser.browser.ios || bowser.browser.blackberry || bowser.browser.firefoxos || bowser.browser.webos || bowser.browser.bada || bowser.browser.tizen || bowser.browser.sailfish) {
+    if (bowser.browser.ios || bowser.browser.blackberry || bowser.browser.firefoxos ||
+        bowser.browser.webos || bowser.browser.bada || bowser.browser.tizen || bowser.browser.sailfish) {
         return false;
     }
 
