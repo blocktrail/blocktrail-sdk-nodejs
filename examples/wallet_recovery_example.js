@@ -42,7 +42,8 @@ var options = {
 var walletSweeper = new blocktrail.WalletSweeper(primaryMnemonic, primaryPassphrase, backupMnemonic, blocktrailKeys, bitcoinDataClient, options);
 console.log('Cool cool cool');
 
-console.log(walletSweeper.createAddress("M/0'/0/0"));
+//console.log(walletSweeper.createAddress("M/0'/0/0"));
+console.log(walletSweeper.createBatchAddresses(0, 10, 0));
 
 //Do wallet fund discovery - can be run separately from sweeping
 //console.log($walletSweeper.discoverWalletFunds());
