@@ -37,7 +37,8 @@ var bitcoinDataClient = new blocktrail.BlocktrailBitcoinService({
 var options = {
     network: 'btc',
     testnet: true,
-    logging: true
+    logging: true,
+    sweepBatchSize: 3
 };
 var walletSweeper = new blocktrail.WalletSweeper(primaryMnemonic, primaryPassphrase, backupMnemonic, blocktrailKeys, bitcoinDataClient, options);
 
@@ -55,7 +56,7 @@ bitcoinDataClient.getUnspentOutputs(address, function(err, result) {
 });
 */
 
-
+/*
 //find utxos for a multiple addresses
 var addresses = [
     "2NEBR7iL1sea6r92Xttk7tNKHsRpFNZBVNm",
@@ -76,17 +77,26 @@ finder.getUTXOs(addresses).done(function(result) {
 }, function(err) {
     console.log("error", err);
 });
+*/
 
 
-
-
-
-
-
+/*
 //Do wallet fund discovery - can be run separately from sweeping
-//console.log($walletSweeper.discoverWalletFunds());
+walletSweeper.discoverWalletFunds(10).done(function(result) {
+    console.log(result);
+}, function(err) {
+    console.log(err);
+});
+*/
+
 
 //Do wallet fund discovery and sweeping - if successful you will be returned a signed transaction ready to submit to the network
+var receivingAddress = "2N2t4sfeh2LHbviT6Cf6PBkAY8u4hmXBza6";
+walletSweeper.sweepWallet(receivingAddress).done(function(result) {
+    console.log(result);
+}, function(err) {
+    console.log(err);
+});
 //$receivingAddress = "2NCcm7hJfJ5wk6GyKvT2ZHCrNsBgjBv2MSF";
 //$result = $walletSweeper.sweepWallet($receivingAddress);
 //console.log($result);
