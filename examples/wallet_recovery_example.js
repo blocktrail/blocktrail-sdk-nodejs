@@ -40,10 +40,48 @@ var options = {
     logging: true
 };
 var walletSweeper = new blocktrail.WalletSweeper(primaryMnemonic, primaryPassphrase, backupMnemonic, blocktrailKeys, bitcoinDataClient, options);
-console.log('Cool cool cool');
 
-//console.log(walletSweeper.createAddress("M/0'/0/0"));
-console.log(walletSweeper.createBatchAddresses(0, 10, 0));
+
+//console.log(walletSweeper.createAddress("M/0'/0/0"));         //create address for path
+//console.log(walletSweeper.createBatchAddresses(0, 100, 0));   //create batch address
+
+//find utxos for a single address
+/*
+var address = "mrj2K6txjo2QBcSmuAzHj4nD1oXSEJE1Qo";
+bitcoinDataClient.getUnspentOutputs(address, function(err, result) {
+    console.log("cb:", result.length);
+}).done(function(result) {
+    console.log("Q:", result);
+});
+*/
+
+
+//find utxos for a multiple addresses
+var addresses = [
+    "2NEBR7iL1sea6r92Xttk7tNKHsRpFNZBVNm",
+    "2Mu56Tt6AM2hLtJ5qbDYq1PS4hS5pAB4QKH",
+    "2N6tNRzGnPE4cfJxjWYcfsL2E9yrTMXsgfy",
+    "2N7QpVd8n5kJXYrKr1okenFr3E9UddRTz3f",
+    "2NDyAgg7ew1cJazEEymXs734J7VMCyZaLsf",
+    "2N1Y2ey7dc985cBxDhPdDNycVegKxfTk4Ld",
+    "2N9h8UtSvj6ikKGHQWvrKq3rFATAnQM66po",
+    "2N3RxDUF7RyyyQqUAeB3befwCGpnEjQE5NU",
+    "2N2t4sfeh2LHbviT6Cf6PBkAY8u4hmXBza6",
+    "2MsvsvmRrHxEQ8V5XGC6U7xHYbZmbcZBtpL"
+];
+var unspentOutputFinder = require("../lib/unspent_output_finder");
+var finder = new unspentOutputFinder(bitcoinDataClient, {logging:true});
+finder.getUTXOs(addresses).done(function(result) {
+    console.log("Utxos:", result);
+}, function(err) {
+    console.log("error", err);
+});
+
+
+
+
+
+
 
 //Do wallet fund discovery - can be run separately from sweeping
 //console.log($walletSweeper.discoverWalletFunds());
