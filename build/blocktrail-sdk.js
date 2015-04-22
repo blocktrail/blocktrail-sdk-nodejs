@@ -1641,6 +1641,7 @@ QrCode.prototype.toDataURL = function (text, options, cb) {
 module.exports = new QrCode();
 
 },{"qrcode-canvas":110}],6:[function(require,module,exports){
+(function (process){
 /* jshint -W100, -W071 */
 var _ = require("lodash"),
     url = require('url'),
@@ -1651,6 +1652,8 @@ var _ = require("lodash"),
     superagentHttpSignature = require('superagent-http-signature/index-hmac-only');
 
 var debug = require('debug')('blocktrail-sdk:request');
+
+var isNodeJS = !process.browser;
 
 var noop = function () {};
 
@@ -1732,7 +1735,9 @@ Request.prototype.request = function (method, resource, params, data, fn) {
         self.headers['Content-Type'] = 'application/json';
     }
 
-    self.headers['Content-Length'] = self.payload ? self.payload.length : 0;
+    if (isNodeJS) {
+        self.headers['Content-Length'] = self.payload ? self.payload.length : 0;
+    }
 
     if (method === 'GET' || method === 'DELETE') {
         self.headers['Content-MD5'] = createHash('md5').update(self.path).digest().toString('hex');
@@ -1828,9 +1833,13 @@ Request.prototype.performRequest = function (options) {
 
 module.exports = Request;
 
-},{"create-hash":91,"debug":106,"lodash":107,"q":108,"querystring":74,"superagent":116,"superagent-http-signature/index-hmac-only":113,"url":88}],7:[function(require,module,exports){
+}).call(this,require('_process'))
+},{"_process":70,"create-hash":91,"debug":106,"lodash":107,"q":108,"querystring":74,"superagent":116,"superagent-http-signature/index-hmac-only":113,"url":88}],7:[function(require,module,exports){
+(function (process){
 var _ = require('lodash');
 var Request = require('./request');
+
+var isNodeJS = !process.browser;
 
 /**
  * Intermediate class to create HTTP requests
@@ -1860,7 +1869,7 @@ var RestClient = function (options) {
     };
 
     self.defaultHeaders = {
-        'User-Agent' : 'blocktrail-sdk-nodejs/1.0.2'
+        'X-SDK-Version': 'blocktrail-sdk-nodejs/1.3.x'
     };
 };
 
@@ -1912,7 +1921,8 @@ module.exports = function (options) {
     return new RestClient(options);
 };
 
-},{"./request":6,"lodash":107}],8:[function(require,module,exports){
+}).call(this,require('_process'))
+},{"./request":6,"_process":70,"lodash":107}],8:[function(require,module,exports){
 var _ = require('lodash');
 var assert = require('assert');
 var q = require('q');
