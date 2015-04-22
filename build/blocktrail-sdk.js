@@ -565,7 +565,7 @@ APIClient.prototype.unsubscribeTransaction = function (identifier, transaction, 
 APIClient.prototype.unsubscribeNewBlocks = function (identifier, cb) {
     var self = this;
 
-    return self.client.delete("/webhook/" + identifier + "/block/", null, null, cb);
+    return self.client.delete("/webhook/" + identifier + "/block", null, null, cb);
 };
 
 /**
