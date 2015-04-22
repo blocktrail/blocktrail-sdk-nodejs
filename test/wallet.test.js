@@ -386,7 +386,7 @@ describe('test wallet, do transaction', function () {
             function (cb) {
                 wallet.pay({"": blocktrail.toSatoshi(0.001)}, function (err) {
                     assert.ok(!!err);
-                    assert.equal(err.message, "Invalid address []");
+                    assert.equal(err.message, "Invalid address [] (Invalid checksum)");
 
                     cb();
                 });
@@ -394,7 +394,7 @@ describe('test wallet, do transaction', function () {
             function (cb) {
                 wallet.pay({"2N65RcfKHiKQcPGZAA2QVeqitJvAQ8HroHA": blocktrail.toSatoshi(0.001)}, function (err) {
                     assert.ok(!!err);
-                    assert.equal(err.message, "Invalid address [2N65RcfKHiKQcPGZAA2QVeqitJvAQ8HroHA]");
+                    assert.equal(err.message, "Invalid address [2N65RcfKHiKQcPGZAA2QVeqitJvAQ8HroHA] (Invalid checksum)");
 
                     cb();
                 });
