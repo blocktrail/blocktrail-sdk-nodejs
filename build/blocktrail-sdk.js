@@ -2277,7 +2277,7 @@ Wallet.prototype.deleteWallet = function (force, cb) {
  * @param [cb]              function    callback(err, txHash)
  * @returns {q.Promise}
  */
-Wallet.prototype.pay = function (pay, changeAddress, allowZeroConf, cb) {
+Wallet.prototype.pay = function (pay, changeAddress, allowZeroConf, randomizeChangeIdx, cb) {
     /* jshint -W071 */
     var self = this;
 
@@ -2285,9 +2285,14 @@ Wallet.prototype.pay = function (pay, changeAddress, allowZeroConf, cb) {
         cb = changeAddress;
         changeAddress = null;
         allowZeroConf = false;
+        randomizeChangeIdx = true;
     } else if (typeof allowZeroConf === "function") {
         cb = allowZeroConf;
         allowZeroConf = false;
+        randomizeChangeIdx = true;
+    } else if (typeof randomizeChangeIdx === "function") {
+        cb = randomizeChangeIdx;
+        randomizeChangeIdx = true;
     }
 
     var deferred = q.defer();
@@ -2339,7 +2344,7 @@ Wallet.prototype.pay = function (pay, changeAddress, allowZeroConf, cb) {
          * @param randomizeChangeIdx
          * @returns {*}
          */
-        .spread(function (utxos, fee, change, randomizeChangeIdx) {
+        .spread(function (utxos, fee, change) {
             var tx, txb;
 
             var deferred = q.defer();
