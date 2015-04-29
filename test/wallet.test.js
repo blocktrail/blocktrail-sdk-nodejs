@@ -426,6 +426,61 @@ describe('test wallet, do transaction', function () {
         ], cb);
     });
 
+    it("change should be randomized when building a transaction", function (cb) {
+        wallet.getNewAddress(function (err, address, path) {
+            assert.ifError(err);
+            assert.ok(path.indexOf("M/9999'/0/") === 0);
+            assert.ok(bitcoin.Address.fromBase58Check(address));
+
+            var pay = {};
+            pay[address] = blocktrail.toSatoshi(0.001);
+
+            var changeIdxs = [];
+            var tryX = 10;
+
+            async.whilst(
+                function() { return tryX-- > 0 && _.unique(changeIdxs).length < 2; },
+                function(cb) {
+                    wallet.buildTransaction(pay, function (err, tx, utxos) {
+                        assert.ifError(err);
+
+                        tx.outs.forEach(function(output, idx) {
+                            var addr = bitcoin.Address.fromOutputScript(output.script, client.testnet ? bitcoin.networks.testnet : bitcoin.networks.bitcoin).toBase58Check();
+
+                            if (addr !== address) {
+                                changeIdxs.push(idx);
+                            }
+                        });
+
+                        cb();
+                    });
+                },
+                function() {
+                    assert(_.unique(changeIdxs).length > 1);
+
+                    cb();
+                }
+            );
+        });
+
+        it("should be able to build a transaction", function (cb) {
+            wallet.getNewAddress(function (err, address, path) {
+                assert.ifError(err);
+                assert.ok(path.indexOf("M/9999'/0/") === 0);
+                assert.ok(bitcoin.Address.fromBase58Check(address));
+
+                var pay = {};
+                pay[address] = blocktrail.toSatoshi(0.001);
+
+                wallet.buildTransaction(pay, function (err, tx, utxos) {
+                    assert.ifError(err);
+                    assert.ok(tx);
+                    assert.ok(tx.toHex());
+                });
+            });
+        });
+    });
+
     it("should be able to do a payment", function (cb) {
         wallet.getNewAddress(function (err, address, path) {
             assert.ifError(err);
@@ -439,12 +494,14 @@ describe('test wallet, do transaction', function () {
                 assert.ifError(err);
                 assert.ok(txHash);
 
-                client.transaction(txHash, function (err, tx) {
-                    assert.ifError(err);
-                    assert.ok(tx);
+                setTimeout(function() {
+                    client.transaction(txHash, function(err, tx) {
+                        assert.ifError(err);
+                        assert.ok(tx);
 
-                    cb();
-                });
+                        cb();
+                    });
+                }, 100);
             });
         });
     });
