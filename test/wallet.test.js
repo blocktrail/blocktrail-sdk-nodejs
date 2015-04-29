@@ -166,7 +166,6 @@ describe('test new blank wallet', function () {
 
     it("shouldn't be able to upgrade when locked", function (cb) {
         wallet.upgradeKeyIndex(10000, function (err) {
-            console.log(err);
             assert.ok(!!err && err.message.match(/unlocked/));
 
             cb();
@@ -490,10 +489,22 @@ describe('test wallet, do transaction', function () {
             var pay = {};
             pay[address] = blocktrail.toSatoshi(0.001);
 
+            var progress = [];
+
             wallet.pay(pay, function (err, txHash) {
                 assert.ifError(err);
                 assert.ok(txHash);
 
+                assert.deepEqual(progress, [
+                    blocktrail.Wallet.PAY_PROGRESS_START,
+                    blocktrail.Wallet.PAY_PROGRESS_COIN_SELECTION,
+                    blocktrail.Wallet.PAY_PROGRESS_CHANGE_ADDRESS,
+                    blocktrail.Wallet.PAY_PROGRESS_SIGN,
+                    blocktrail.Wallet.PAY_PROGRESS_SEND,
+                    blocktrail.Wallet.PAY_PROGRESS_DONE
+                ]);
+
+                // 200ms timeout, for w/e this is neccesary now ... @TODO: figure out why ...
                 setTimeout(function() {
                     client.transaction(txHash, function(err, tx) {
                         assert.ifError(err);
@@ -501,7 +512,9 @@ describe('test wallet, do transaction', function () {
 
                         cb();
                     });
-                }, 100);
+                }, 200);
+            }).progress(function(_progress) {
+                progress.push(_progress);
             });
         });
     });
@@ -562,12 +575,15 @@ describe('test wallet, do transaction, without mnemonics', function () {
                 assert.ifError(err);
                 assert.ok(txHash);
 
-                client.transaction(txHash, function (err, tx) {
-                    assert.ifError(err);
-                    assert.ok(tx);
+                // 200ms timeout, for w/e this is neccesary now ... @TODO: figure out why ...
+                setTimeout(function() {
+                    client.transaction(txHash, function (err, tx) {
+                        assert.ifError(err);
+                        assert.ok(tx);
 
-                    cb();
-                });
+                        cb();
+                    });
+                }, 200);
             });
         });
     });
