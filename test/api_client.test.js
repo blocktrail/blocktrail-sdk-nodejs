@@ -410,10 +410,11 @@ describe('send raw', function () {
 
     var tx = "0100000001bee92b36d3092e492e858d1199e46b942b3bddcc4c98071f0d307acced6f7751000000006b48304502210087831790820bf8218dc8df38758660a6f1f54a54d5d45ab0c3384e5ace9253ad0220650bce47447094148d45ec5b9ce4e3008e00723f4de6edd677110b2ebf0ff3da012102d8aa27d34020a6eb06e424787dbbb60f2cf4250a5a1110ab9e15e68fe710abc5ffffffff0131244c00000000001976a914a8d7a8e6724cf3f8ffb92c376ecb0094c18cbaf588ac00000000";
 
+    // note that -27 (already in blockchain) is only when it's unspent
     it("should report TX is already in blockchain", function (done) {
         client.sendRawTransaction(tx, function (err, result) {
             assert.ok(err);
-            assert.equal(-27, result.code);
+            assert.ok(result.code === -27 || result.code === -25);
 
             done();
         });
