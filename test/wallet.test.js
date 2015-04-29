@@ -438,12 +438,12 @@ describe('test wallet, do transaction', function () {
             var tryX = 10;
 
             async.whilst(
-                function() { return tryX-- > 0 && _.unique(changeIdxs).length < 2; },
-                function(cb) {
+                function () { return tryX-- > 0 && _.unique(changeIdxs).length < 2; },
+                function (cb) {
                     wallet.buildTransaction(pay, function (err, tx, utxos) {
                         assert.ifError(err);
 
-                        tx.outs.forEach(function(output, idx) {
+                        tx.outs.forEach(function (output, idx) {
                             var addr = bitcoin.Address.fromOutputScript(output.script, client.testnet ? bitcoin.networks.testnet : bitcoin.networks.bitcoin).toBase58Check();
 
                             if (addr !== address) {
@@ -454,7 +454,7 @@ describe('test wallet, do transaction', function () {
                         cb();
                     });
                 },
-                function() {
+                function () {
                     assert(_.unique(changeIdxs).length > 1);
 
                     cb();
@@ -505,15 +505,15 @@ describe('test wallet, do transaction', function () {
                 ]);
 
                 // 200ms timeout, for w/e this is neccesary now ... @TODO: figure out why ...
-                setTimeout(function() {
-                    client.transaction(txHash, function(err, tx) {
+                setTimeout(function () {
+                    client.transaction(txHash, function (err, tx) {
                         assert.ifError(err);
                         assert.ok(tx);
 
                         cb();
                     });
                 }, 200);
-            }).progress(function(_progress) {
+            }).progress(function (_progress) {
                 progress.push(_progress);
             });
         });
@@ -576,7 +576,7 @@ describe('test wallet, do transaction, without mnemonics', function () {
                 assert.ok(txHash);
 
                 // 200ms timeout, for w/e this is neccesary now ... @TODO: figure out why ...
-                setTimeout(function() {
+                setTimeout(function () {
                     client.transaction(txHash, function (err, tx) {
                         assert.ifError(err);
                         assert.ok(tx);
