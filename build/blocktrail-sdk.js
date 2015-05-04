@@ -1835,11 +1835,8 @@ module.exports = Request;
 
 }).call(this,require('_process'))
 },{"_process":70,"create-hash":91,"debug":106,"lodash":107,"q":108,"querystring":74,"superagent":116,"superagent-http-signature/index-hmac-only":113,"url":88}],7:[function(require,module,exports){
-(function (process){
 var _ = require('lodash');
 var Request = require('./request');
-
-var isNodeJS = !process.browser;
 
 /**
  * Intermediate class to create HTTP requests
@@ -1921,8 +1918,7 @@ module.exports = function (options) {
     return new RestClient(options);
 };
 
-}).call(this,require('_process'))
-},{"./request":6,"_process":70,"lodash":107}],8:[function(require,module,exports){
+},{"./request":6,"lodash":107}],8:[function(require,module,exports){
 var _ = require('lodash');
 var assert = require('assert');
 var q = require('q');
@@ -2405,7 +2401,7 @@ Wallet.prototype.pay = function (pay, changeAddress, allowZeroConf, randomizeCha
                 },
                 function (cb) {
                     var estimatedFee = Wallet.estimateIncompleteTxFee(tx);
-                    if (estimatedFee !== fee) {
+                    if (Math.abs(estimatedFee - fee) > blocktrail.BASE_FEE) {
                         return cb(new Error("the fee suggested by the coin selection (" + fee + ") seems incorrect (" + estimatedFee + ")"));
                     }
 
@@ -2581,10 +2577,10 @@ Wallet.estimateIncompleteTxFee = function (tx) {
         var scriptSig = bitcoin.Script.fromBuffer(txin.script.buffer),
             scriptType = bitcoin.scripts.classifyInput(scriptSig);
 
-        var multiSig = false;
+        var multiSig = [2, 3]; // tmp hardcoded
 
         // Re-classify if P2SH
-        if (scriptType === 'scripthash') {
+        if (!multiSig && scriptType === 'scripthash') {
             var redeemScript = bitcoin.Script.fromBuffer(scriptSig.chunks.slice(-1)[0]);
             scriptSig = bitcoin.Script.fromChunks(scriptSig.chunks.slice(0, -1));
             scriptType = bitcoin.scripts.classifyInput(scriptSig);
