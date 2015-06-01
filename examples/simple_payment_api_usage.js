@@ -6,8 +6,8 @@ var client = blocktrail.BlocktrailSDK({
     testnet : true
 });
 
-var sendTransaction = function (wallet) {
-    wallet.getNewAddress(function (err, address, path) {
+var sendTransaction = function(wallet) {
+    wallet.getNewAddress(function(err, address, path) {
         if (err) {
             return console.log("getNewAddress ERR", err);
         }
@@ -17,7 +17,7 @@ var sendTransaction = function (wallet) {
         var pay = {};
         pay[address] = blocktrail.toSatoshi(0.001);
 
-        wallet.pay(pay, function (err, result) {
+        wallet.pay(pay, function(err, result) {
             if (err) {
                 return console.log("pay ERR", err);
             }
@@ -34,7 +34,7 @@ if (action === 'create') {
         identifier: "example-wallet",
         passphrase: "example-strong-password",
         keyIndex: 9999
-    }, function (err, wallet, primaryMnemonic, backupMnemonic, blocktrailPubKeys) {
+    }, function(err, wallet, primaryMnemonic, backupMnemonic, blocktrailPubKeys) {
         if (err) {
             return console.log("createNewWallet ERR", err);
         }
@@ -43,7 +43,7 @@ if (action === 'create') {
         console.log('backup mnemonic', backupMnemonic);
         console.log('blocktrail pubkeys', blocktrailPubKeys);
 
-        wallet.doDiscovery(function (err, confirmed, unconfirmed) {
+        wallet.doDiscovery(function(err, confirmed, unconfirmed) {
             if (err) {
                 return console.log("doDiscovery ERR", err);
             }
@@ -58,13 +58,13 @@ if (action === 'create') {
     client.initWallet({
         identifier: "example-wallet",
         readOnly: true
-    }, function (err, wallet) {
+    }, function(err, wallet) {
         if (err) {
             console.log('initWallet ERR', err);
             throw err;
         }
 
-        wallet.getBalance(function (err, confirmed, unconfirmed) {
+        wallet.getBalance(function(err, confirmed, unconfirmed) {
             if (err) {
                 return console.log("getBalance ERR", err);
             }
