@@ -159,6 +159,7 @@ describe('test new blank wallet', function() {
             "2N6Fg6T74Fcv1JQ8FkPJMs8mYmbm9kitTxy": blocktrail.toSatoshi(0.001)
         }, function(err, txHash) {
             assert.ok(!!err && err.message.match(/unlocked/));
+            assert.ok(err instanceof blocktrail.WalletLockedError);
 
             cb();
         });
@@ -166,8 +167,8 @@ describe('test new blank wallet', function() {
 
     it("shouldn't be able to upgrade when locked", function(cb) {
         wallet.upgradeKeyIndex(10000, function(err) {
-            console.log(err);
             assert.ok(!!err && err.message.match(/unlocked/));
+            assert.ok(err instanceof blocktrail.WalletLockedError);
 
             cb();
         });
@@ -387,6 +388,7 @@ describe('test wallet, do transaction', function() {
                 wallet.pay({"": blocktrail.toSatoshi(0.001)}, function(err) {
                     assert.ok(!!err);
                     assert.equal(err.message, "Invalid address [] (Invalid checksum)");
+                    assert.ok(err instanceof blocktrail.InvalidAddressError);
 
                     cb();
                 });
@@ -395,6 +397,7 @@ describe('test wallet, do transaction', function() {
                 wallet.pay({"2N65RcfKHiKQcPGZAA2QVeqitJvAQ8HroHA": blocktrail.toSatoshi(0.001)}, function(err) {
                     assert.ok(!!err);
                     assert.equal(err.message, "Invalid address [2N65RcfKHiKQcPGZAA2QVeqitJvAQ8HroHA] (Invalid checksum)");
+                    assert.ok(err instanceof blocktrail.InvalidAddressError);
 
                     cb();
                 });
@@ -403,6 +406,7 @@ describe('test wallet, do transaction', function() {
                 wallet.pay({"2N65RcfKHiKQcPGZAA2QVeqitJvAQ8HroHD": 1}, function(err) {
                     assert.ok(!!err);
                     assert.equal(err.message, "Values should be more than dust (" + blocktrail.DUST + ")");
+                    assert.ok(err instanceof blocktrail.WalletSendError);
 
                     cb();
                 });
@@ -411,6 +415,7 @@ describe('test wallet, do transaction', function() {
                 wallet.pay({"2N65RcfKHiKQcPGZAA2QVeqitJvAQ8HroHD": 0}, function(err) {
                     assert.ok(!!err);
                     assert.equal(err.message, "Values should be non zero");
+                    assert.ok(err instanceof blocktrail.WalletSendError);
 
                     cb();
                 });
@@ -419,6 +424,7 @@ describe('test wallet, do transaction', function() {
                 wallet.pay({"2N65RcfKHiKQcPGZAA2QVeqitJvAQ8HroHD": 1.1}, function(err) {
                     assert.ok(!!err);
                     assert.equal(err.message, "Values should be in Satoshis");
+                    assert.ok(err instanceof blocktrail.WalletSendError);
 
                     cb();
                 });
