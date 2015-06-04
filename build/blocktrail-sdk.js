@@ -1456,7 +1456,7 @@ blocktrail.patchQ(require('q'));
 Error.extend = function(subTypeName, errorCode /*optional*/) {
     assert(subTypeName, 'subTypeName is required');
     //define new error type
-    var SubType = (function(message) {
+    var SubType = function(message) {
 
         //handle constructor call without 'new'
         if (!(this instanceof SubType)) {
@@ -1470,7 +1470,7 @@ Error.extend = function(subTypeName, errorCode /*optional*/) {
 
         //include stack trace in error object
         Error.captureStackTrace(this, this.constructor);
-    });
+    };
 
     //inherit the base prototype chain
     util.inherits(SubType, this);
@@ -2058,7 +2058,8 @@ Wallet.prototype.unlock = function(options, cb) {
 
             // check if we've used the right passphrase
             if (checksum !== self.checksum) {
-                throw new blocktrail.WalletChecksumError("Generated checksum [" + checksum + "] does not match [" + self.checksum + "], most likely due to incorrect password");
+                throw new blocktrail.WalletChecksumError("Generated checksum [" + checksum + "] does not match " +
+                                                         "[" + self.checksum + "], most likely due to incorrect password");
             }
 
             self.locked = false;
@@ -2413,7 +2414,8 @@ Wallet.prototype.pay = function(pay, changeAddress, allowZeroConf, randomizeChan
                         estimatedChange = inputsTotal - outputsTotal - fee;
 
                     if (inputsTotal - outputsTotal - fee !== change) {
-                        return cb(new blocktrail.WalletFeeError("the amount of change (" + change + ") suggested by the coin selection seems incorrect (" + estimatedChange + ")"));
+                        return cb(new blocktrail.WalletFeeError("the amount of change (" + change + ") " +
+                        "suggested by the coin selection seems incorrect (" + estimatedChange + ")"));
                     }
 
                     cb();
@@ -2468,7 +2470,8 @@ Wallet.prototype.pay = function(pay, changeAddress, allowZeroConf, randomizeChan
                 function(cb) {
                     var estimatedFee = Wallet.estimateIncompleteTxFee(tx);
                     if (Math.abs(estimatedFee - fee) > blocktrail.BASE_FEE) {
-                        return cb(new blocktrail.WalletFeeError("the fee suggested by the coin selection (" + fee + ") seems incorrect (" + estimatedFee + ")"));
+                        return cb(new blocktrail.WalletFeeError("the fee suggested by the coin selection (" + fee + ") " +
+                                    "seems incorrect (" + estimatedFee + ")"));
                     }
 
                     cb();
