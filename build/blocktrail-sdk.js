@@ -28,6 +28,11 @@ var isNodeJS = !process.browser;
 var APIClient = function(options) {
     var self = this;
 
+    // handle constructor call without 'new'
+    if (!(this instanceof APIClient)) {
+        return new APIClient(options);
+    }
+
     // BLOCKTRAIL_SDK_API_ENDPOINT overwrite for development
     if (process.env.BLOCKTRAIL_SDK_API_ENDPOINT) {
         options.host = process.env.BLOCKTRAIL_SDK_API_ENDPOINT;
@@ -1098,9 +1103,7 @@ APIClient.prototype.price = function(cb) {
     return self.client.get("/price", null, false, cb);
 };
 
-module.exports = function(options) {
-    return new APIClient(options);
-};
+module.exports = APIClient;
 
 }).call(this,require('_process'))
 },{"./blocktrail":3,"./rest_client":7,"./wallet":8,"./webworker":9,"_process":70,"bip39":12,"bitcoinjs-lib":38,"lodash":107,"q":108,"webworkify":119}],2:[function(require,module,exports){
