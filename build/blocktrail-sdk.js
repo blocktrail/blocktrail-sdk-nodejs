@@ -12,8 +12,6 @@ var workify = require('webworkify');
 
 var isNodeJS = !process.browser;
 
-// apply patch to Q to add spreadNodeify
-blocktrail.patchQ(q);
 
 /**
  * Bindings to consume the BlockTrail API
@@ -27,7 +25,7 @@ blocktrail.patchQ(q);
  *                      }
  * @constructor
  */
-var APIClient = function (options) {
+var APIClient = function(options) {
     var self = this;
 
     // BLOCKTRAIL_SDK_API_ENDPOINT overwrite for development
@@ -73,7 +71,7 @@ var APIClient = function (options) {
     self.client = new RestClient(options);
 };
 
-APIClient.prototype.mnemonicToPrivateKey = function (mnemonic, passphrase, cb) {
+APIClient.prototype.mnemonicToPrivateKey = function(mnemonic, passphrase, cb) {
     var self = this;
 
     var deferred = q.defer();
@@ -86,12 +84,12 @@ APIClient.prototype.mnemonicToPrivateKey = function (mnemonic, passphrase, cb) {
     } else {
         var worker = workify(require('./webworker'));
 
-        worker.addEventListener('message', function (e) {
+        worker.addEventListener('message', function(e) {
             deferred.resolve(bitcoin.HDNode.fromSeedHex(e.data.seed, network));
         }, false);
 
-        worker.addEventListener('error', function (e) {
-            return deferred.reject(new Error(e.message.replace("Uncaught Error: ", '')));
+        worker.addEventListener('error', function(e) {
+            return deferred.reject(new blocktrail.Error(e.message.replace("Uncaught Error: ", '')));
         });
 
         worker.postMessage({method: 'mnemonicToSeedHex', mnemonic: mnemonic, passphrase: passphrase});
@@ -100,7 +98,7 @@ APIClient.prototype.mnemonicToPrivateKey = function (mnemonic, passphrase, cb) {
     return deferred.promise;
 };
 
-APIClient.prototype.resolvePrimaryPrivateKeyFromOptions = function (options, cb) {
+APIClient.prototype.resolvePrimaryPrivateKeyFromOptions = function(options, cb) {
     var self = this;
 
     var deferred = q.defer();
@@ -114,15 +112,15 @@ APIClient.prototype.resolvePrimaryPrivateKeyFromOptions = function (options, cb)
         var primaryPrivateKey = options.primaryPrivateKey;
 
         if (primaryMnemonic && primaryPrivateKey) {
-            throw new Error("Can't specify Primary Mnemonic and Primary PrivateKey");
+            throw new blocktrail.WalletInitError("Can't specify Primary Mnemonic and Primary PrivateKey");
         }
 
         if (!primaryMnemonic && !primaryPrivateKey) {
-            throw new Error("Can't init wallet with Primary Mnemonic or Primary PrivateKey");
+            throw new blocktrail.WalletInitError("Can't init wallet with Primary Mnemonic or Primary PrivateKey");
         }
 
         if (primaryMnemonic && !passphrase) {
-            throw new Error("Can't init wallet with Primary Mnemonic without a passphrase");
+            throw new blocktrail.WalletInitError("Can't init wallet with Primary Mnemonic without a passphrase");
         }
 
         if (primaryPrivateKey && !(primaryPrivateKey instanceof bitcoin.HDNode)) {
@@ -132,7 +130,7 @@ APIClient.prototype.resolvePrimaryPrivateKeyFromOptions = function (options, cb)
         if (primaryPrivateKey) {
             deferred.resolve([primaryMnemonic, primaryPrivateKey]);
         } else {
-            deferred.resolve(self.mnemonicToPrivateKey(primaryMnemonic, passphrase).then(function (primaryPrivateKey) {
+            deferred.resolve(self.mnemonicToPrivateKey(primaryMnemonic, passphrase).then(function(primaryPrivateKey) {
                 return [primaryMnemonic, primaryPrivateKey];
             }));
         }
@@ -143,7 +141,7 @@ APIClient.prototype.resolvePrimaryPrivateKeyFromOptions = function (options, cb)
     return deferred.promise;
 };
 
-APIClient.prototype.resolveBackupPublicKeyFromOptions = function (options, cb) {
+APIClient.prototype.resolveBackupPublicKeyFromOptions = function(options, cb) {
     var self = this;
 
     var deferred = q.defer();
@@ -156,7 +154,7 @@ APIClient.prototype.resolveBackupPublicKeyFromOptions = function (options, cb) {
         var backupPublicKey = options.backupPublicKey;
 
         if (backupMnemonic && backupPublicKey) {
-            throw new Error("Can't specify Backup Mnemonic and Backup PrivateKey");
+            throw new blocktrail.WalletInitError("Can't specify Backup Mnemonic and Backup PrivateKey");
         }
 
         if (!backupMnemonic && !backupPublicKey) {
@@ -170,7 +168,7 @@ APIClient.prototype.resolveBackupPublicKeyFromOptions = function (options, cb) {
         if (backupPublicKey) {
             deferred.resolve([null, backupPublicKey]);
         } else {
-            deferred.resolve(self.mnemonicToPrivateKey(backupMnemonic, "").then(function (backupPrivateKey) {
+            deferred.resolve(self.mnemonicToPrivateKey(backupMnemonic, "").then(function(backupPrivateKey) {
                 backupPublicKey = backupPrivateKey.neutered();
                 return [backupMnemonic, backupPublicKey];
             }));
@@ -183,7 +181,7 @@ APIClient.prototype.resolveBackupPublicKeyFromOptions = function (options, cb) {
 };
 
 
-APIClient.prototype.debugAuth = function (cb) {
+APIClient.prototype.debugAuth = function(cb) {
     var self = this;
 
     return self.client.get("/debug/http-signature", null, true, cb);
@@ -196,7 +194,7 @@ APIClient.prototype.debugAuth = function (cb) {
  * @param [cb]          function    callback function to call when request is complete
  * @return q.Promise
  */
-APIClient.prototype.address = function (address, cb) {
+APIClient.prototype.address = function(address, cb) {
     var self = this;
 
     return self.client.get("/address/" + address, null, cb);
@@ -210,7 +208,7 @@ APIClient.prototype.address = function (address, cb) {
  * @param [cb]          function    callback function to call when request is complete
  * @return q.Promise
  */
-APIClient.prototype.addressTransactions = function (address, params, cb) {
+APIClient.prototype.addressTransactions = function(address, params, cb) {
     var self = this;
 
     if (typeof params === "function" && typeof cb === "undefined") {
@@ -230,7 +228,7 @@ APIClient.prototype.addressTransactions = function (address, params, cb) {
  * @param [cb]          function    callback function to call when request is complete
  * @return q.Promise
  */
-APIClient.prototype.addressUnconfirmedTransactions = function (address, params, cb) {
+APIClient.prototype.addressUnconfirmedTransactions = function(address, params, cb) {
     var self = this;
 
     if (typeof params === "function" && typeof cb === "undefined") {
@@ -250,7 +248,7 @@ APIClient.prototype.addressUnconfirmedTransactions = function (address, params, 
  * @param [cb]          function    callback function to call when request is complete
  * @return q.Promise
  */
-APIClient.prototype.addressUnspentOutputs = function (address, params, cb) {
+APIClient.prototype.addressUnspentOutputs = function(address, params, cb) {
     var self = this;
 
     if (typeof params === "function" && typeof cb === "undefined") {
@@ -270,7 +268,7 @@ APIClient.prototype.addressUnspentOutputs = function (address, params, cb) {
  * @param [cb]          function    callback function to call when request is complete
  * @return q.Promise
  */
-APIClient.prototype.verifyAddress = function (address, signature, cb) {
+APIClient.prototype.verifyAddress = function(address, signature, cb) {
     var self = this;
 
     return self.client.post("/address/" + address + "/verify", null, {signature: signature}, cb);
@@ -283,7 +281,7 @@ APIClient.prototype.verifyAddress = function (address, signature, cb) {
  * @param [cb]          function    callback function to call when request is complete
  * @return q.Promise
  */
-APIClient.prototype.allBlocks = function (params, cb) {
+APIClient.prototype.allBlocks = function(params, cb) {
     var self = this;
 
     if (typeof params === "function" && typeof cb === "undefined") {
@@ -302,7 +300,7 @@ APIClient.prototype.allBlocks = function (params, cb) {
  * @param [cb]          function    callback function to call when request is complete
  * @return q.Promise
  */
-APIClient.prototype.block = function (block, cb) {
+APIClient.prototype.block = function(block, cb) {
     var self = this;
 
     return self.client.get("/block/" + block, null, cb);
@@ -314,7 +312,7 @@ APIClient.prototype.block = function (block, cb) {
  * @param [cb]          function    callback function to call when request is complete
  * @return q.Promise
  */
-APIClient.prototype.blockLatest = function (cb) {
+APIClient.prototype.blockLatest = function(cb) {
     var self = this;
 
     return self.client.get("/block/latest", null, cb);
@@ -328,7 +326,7 @@ APIClient.prototype.blockLatest = function (cb) {
  * @param [cb]          function    callback function to call when request is complete
  * @return q.Promise
  */
-APIClient.prototype.blockTransactions = function (block, params, cb) {
+APIClient.prototype.blockTransactions = function(block, params, cb) {
     var self = this;
 
     if (typeof params === "function" && typeof cb === "undefined") {
@@ -347,7 +345,7 @@ APIClient.prototype.blockTransactions = function (block, params, cb) {
  * @param [cb]          function    callback function to call when request is complete
  * @return q.Promise
  */
-APIClient.prototype.transaction = function (tx, cb) {
+APIClient.prototype.transaction = function(tx, cb) {
     var self = this;
 
     return self.client.get("/transaction/" + tx, null, cb);
@@ -360,7 +358,7 @@ APIClient.prototype.transaction = function (tx, cb) {
  * @param [cb]          function    callback function to call when request is complete
  * @return q.Promise
  */
-APIClient.prototype.allWebhooks = function (params, cb) {
+APIClient.prototype.allWebhooks = function(params, cb) {
     var self = this;
 
     if (typeof params === "function" && typeof cb === "undefined") {
@@ -380,7 +378,7 @@ APIClient.prototype.allWebhooks = function (params, cb) {
  * @param [cb]          function    callback function to call when request is complete
  * @return q.Promise
  */
-APIClient.prototype.setupWebhook = function (url, identifier, cb) {
+APIClient.prototype.setupWebhook = function(url, identifier, cb) {
     var self = this;
 
     if (typeof identifier === "function" && typeof cb === "undefined") {
@@ -399,7 +397,7 @@ APIClient.prototype.setupWebhook = function (url, identifier, cb) {
  * @param [cb]          function    callback function to call when request is complete
  * @return q.Promise
  */
-APIClient.prototype.getWebhook = function (identifier, cb) {
+APIClient.prototype.getWebhook = function(identifier, cb) {
     var self = this;
 
     return self.client.get("/webhook/" + identifier, null, cb);
@@ -413,7 +411,7 @@ APIClient.prototype.getWebhook = function (identifier, cb) {
  * @param [cb]          function    callback function to call when request is complete
  * @return q.Promise
  */
-APIClient.prototype.updateWebhook = function (identifier, webhookData, cb) {
+APIClient.prototype.updateWebhook = function(identifier, webhookData, cb) {
     var self = this;
 
     return self.client.put("/webhook/" + identifier, null, webhookData, cb);
@@ -426,7 +424,7 @@ APIClient.prototype.updateWebhook = function (identifier, webhookData, cb) {
  * @param [cb]          function    callback function to call when request is complete
  * @return q.Promise
  */
-APIClient.prototype.deleteWebhook = function (identifier, cb) {
+APIClient.prototype.deleteWebhook = function(identifier, cb) {
     var self = this;
 
     return self.client.delete("/webhook/" + identifier, null, null, cb);
@@ -440,7 +438,7 @@ APIClient.prototype.deleteWebhook = function (identifier, cb) {
  * @param [cb]          function    callback function to call when request is complete
  * @return q.Promise
  */
-APIClient.prototype.getWebhookEvents = function (identifier, params, cb) {
+APIClient.prototype.getWebhookEvents = function(identifier, params, cb) {
     var self = this;
 
     if (typeof params === "function" && typeof cb === "undefined") {
@@ -461,7 +459,7 @@ APIClient.prototype.getWebhookEvents = function (identifier, params, cb) {
  * @param [cb]          function    callback function to call when request is complete
  * @return q.Promise
  */
-APIClient.prototype.subscribeTransaction = function (identifier, transaction, confirmations, cb) {
+APIClient.prototype.subscribeTransaction = function(identifier, transaction, confirmations, cb) {
     var self = this;
     var postData = {
         'event_type': 'transaction',
@@ -481,7 +479,7 @@ APIClient.prototype.subscribeTransaction = function (identifier, transaction, co
  * @param [cb]          function    callback function to call when request is complete
  * @return q.Promise
  */
-APIClient.prototype.subscribeAddressTransactions = function (identifier, address, confirmations, cb) {
+APIClient.prototype.subscribeAddressTransactions = function(identifier, address, confirmations, cb) {
     var self = this;
     var postData = {
         'event_type': 'address-transactions',
@@ -502,9 +500,9 @@ APIClient.prototype.subscribeAddressTransactions = function (identifier, address
  * @param [cb]          function    callback function to call when request is complete
  * @return q.Promise
  */
-APIClient.prototype.batchSubscribeAddressTransactions = function (identifier, batchData, cb) {
+APIClient.prototype.batchSubscribeAddressTransactions = function(identifier, batchData, cb) {
     var self = this;
-    batchData.forEach(function (record) {
+    batchData.forEach(function(record) {
         record.event_type = 'address-transactions';
     });
 
@@ -518,7 +516,7 @@ APIClient.prototype.batchSubscribeAddressTransactions = function (identifier, ba
  * @param [cb]          function    callback function to call when request is complete
  * @return q.Promise
  */
-APIClient.prototype.subscribeNewBlocks = function (identifier, cb) {
+APIClient.prototype.subscribeNewBlocks = function(identifier, cb) {
     var self = this;
     var postData = {
         'event_type': 'block'
@@ -535,7 +533,7 @@ APIClient.prototype.subscribeNewBlocks = function (identifier, cb) {
  * @param [cb]          function    callback function to call when request is complete
  * @return q.Promise
  */
-APIClient.prototype.unsubscribeAddressTransactions = function (identifier, address, cb) {
+APIClient.prototype.unsubscribeAddressTransactions = function(identifier, address, cb) {
     var self = this;
 
     return self.client.delete("/webhook/" + identifier + "/address-transactions/" + address, null, null, cb);
@@ -549,7 +547,7 @@ APIClient.prototype.unsubscribeAddressTransactions = function (identifier, addre
  * @param [cb]          function    callback function to call when request is complete
  * @return q.Promise
  */
-APIClient.prototype.unsubscribeTransaction = function (identifier, transaction, cb) {
+APIClient.prototype.unsubscribeTransaction = function(identifier, transaction, cb) {
     var self = this;
 
     return self.client.delete("/webhook/" + identifier + "/transaction/" + transaction, null, null, cb);
@@ -562,7 +560,7 @@ APIClient.prototype.unsubscribeTransaction = function (identifier, transaction, 
  * @param [cb]          function    callback function to call when request is complete
  * @return q.Promise
  */
-APIClient.prototype.unsubscribeNewBlocks = function (identifier, cb) {
+APIClient.prototype.unsubscribeNewBlocks = function(identifier, cb) {
     var self = this;
 
     return self.client.delete("/webhook/" + identifier + "/block", null, null, cb);
@@ -582,7 +580,7 @@ APIClient.prototype.unsubscribeNewBlocks = function (identifier, cb) {
  *
  * @returns {q.Promise}
  */
-APIClient.prototype.initWallet = function (options, cb) {
+APIClient.prototype.initWallet = function(options, cb) {
     var self = this;
 
     if (typeof options !== "object") {
@@ -603,18 +601,18 @@ APIClient.prototype.initWallet = function (options, cb) {
     var identifier = options.identifier;
 
     if (!identifier) {
-        return deferred.reject(new Error("Identifier is required"));
+        return deferred.reject(new blocktrail.WalletInitError("Identifier is required"));
     }
 
-    deferred.resolve(self.client.get("/wallet/" + identifier, null, true).then(function (result) {
+    deferred.resolve(self.client.get("/wallet/" + identifier, null, true).then(function(result) {
         var keyIndex = options.keyIndex || result.key_index;
         var readOnly = options.readOnly;
 
         var backupPublicKey = bitcoin.HDNode.fromBase58(result.backup_public_key[0], network);
-        var blocktrailPublicKeys = _.mapValues(result.blocktrail_public_keys, function (blocktrailPublicKey) {
+        var blocktrailPublicKeys = _.mapValues(result.blocktrail_public_keys, function(blocktrailPublicKey) {
             return bitcoin.HDNode.fromBase58(blocktrailPublicKey[0], self.network);
         });
-        var primaryPublicKeys = _.mapValues(result.primary_public_keys, function (primaryPublicKey) {
+        var primaryPublicKeys = _.mapValues(result.primary_public_keys, function(primaryPublicKey) {
             return bitcoin.HDNode.fromBase58(primaryPublicKey[0], self.network);
         });
 
@@ -633,7 +631,7 @@ APIClient.prototype.initWallet = function (options, cb) {
         );
 
         if (!readOnly) {
-            return wallet.unlock(options).then(function () {
+            return wallet.unlock(options).then(function() {
                 return wallet;
             });
         } else {
@@ -660,7 +658,7 @@ APIClient.prototype.initWallet = function (options, cb) {
  * @param [cb]          function    callback(err, wallet, primaryMnemonic, backupMnemonic, blocktrailPubKeys)
  * @returns {q.Promise}
  */
-APIClient.prototype.createNewWallet = function (options, cb) {
+APIClient.prototype.createNewWallet = function(options, cb) {
     /* jshint -W071, -W074 */
 
     var self = this;
@@ -692,12 +690,12 @@ APIClient.prototype.createNewWallet = function (options, cb) {
     options.passphrase = options.passphrase || options.password;
 
     if (!options.identifier) {
-        return deferred.reject(new Error("Identifier is required"));
+        return deferred.reject(new blocktrail.WalletCreateError("Identifier is required"));
     }
 
     if (!options.primaryMnemonic && !options.primaryPrivateKey) {
         if (!options.passphrase) {
-            return deferred.reject(new Error("Can't generate Primary Mnemonic without a passphrase"));
+            return deferred.reject(new blocktrail.WalletCreateError("Can't generate Primary Mnemonic without a passphrase"));
         } else {
             options.primaryMnemonic = bip39.generateMnemonic(512);
             if (options.storePrimaryMnemonic !== false) {
@@ -712,10 +710,10 @@ APIClient.prototype.createNewWallet = function (options, cb) {
 
     // @TODO: we can async this
     deferred.resolve(self.resolvePrimaryPrivateKeyFromOptions(options).spread(
-        function (primaryMnemonic, primaryPrivateKey) {
+        function(primaryMnemonic, primaryPrivateKey) {
 
             return self.resolveBackupPublicKeyFromOptions(options).spread(
-                function (backupMnemonic, backupPublicKey) {
+                function(backupMnemonic, backupPublicKey) {
                     // create a checksum of our private key which we'll later use to verify we used the right password
                     var checksum = primaryPrivateKey.getAddress().toBase58Check();
                     var keyIndex = options.keyIndex;
@@ -733,8 +731,8 @@ APIClient.prototype.createNewWallet = function (options, cb) {
                         keyIndex
                     )
                     .then(
-                        function (result) {
-                            var blocktrailPublicKeys = _.mapValues(result.blocktrail_public_keys, function (blocktrailPublicKey) {
+                        function(result) {
+                            var blocktrailPublicKeys = _.mapValues(result.blocktrail_public_keys, function(blocktrailPublicKey) {
                                 return bitcoin.HDNode.fromBase58(blocktrailPublicKey[0], self.network);
                             });
 
@@ -751,7 +749,7 @@ APIClient.prototype.createNewWallet = function (options, cb) {
                                 result.upgrade_key_index
                             );
 
-                            return wallet.unlock(options).then(function () {
+                            return wallet.unlock(options).then(function() {
                                 return [wallet, primaryMnemonic, backupMnemonic, blocktrailPublicKeys];
                             });
                         }
@@ -776,7 +774,7 @@ APIClient.prototype.createNewWallet = function (options, cb) {
  * @param [cb]                  function    callback(err, result)
  * @returns {q.Promise}
  */
-APIClient.prototype._createNewWallet = function (identifier, primaryPublicKey, backupPublicKey, primaryMnemonic, checksum, keyIndex, cb) {
+APIClient.prototype._createNewWallet = function(identifier, primaryPublicKey, backupPublicKey, primaryMnemonic, checksum, keyIndex, cb) {
     var self = this;
 
     var postData = {
@@ -801,7 +799,7 @@ APIClient.prototype._createNewWallet = function (identifier, primaryPublicKey, b
  * @param [cb]                  function    callback(err, result)
  * @returns {q.Promise}
  */
-APIClient.prototype.upgradeKeyIndex = function (identifier, keyIndex, primaryPublicKey, cb) {
+APIClient.prototype.upgradeKeyIndex = function(identifier, keyIndex, primaryPublicKey, cb) {
     var self = this;
 
     return self.client.post("/wallet/" + identifier + "/upgrade", null, {
@@ -817,7 +815,7 @@ APIClient.prototype.upgradeKeyIndex = function (identifier, keyIndex, primaryPub
  * @param [cb]                  function    callback(err, result)
  * @returns {q.Promise}
  */
-APIClient.prototype.getWalletBalance = function (identifier, cb) {
+APIClient.prototype.getWalletBalance = function(identifier, cb) {
     var self = this;
 
     return self.client.get("/wallet/" + identifier + "/balance", null, true, cb);
@@ -830,7 +828,7 @@ APIClient.prototype.getWalletBalance = function (identifier, cb) {
  * @param [cb]                  function    callback(err, result)
  * @returns {q.Promise}
  */
-APIClient.prototype.doWalletDiscovery = function (identifier, gap, cb) {
+APIClient.prototype.doWalletDiscovery = function(identifier, gap, cb) {
     var self = this;
 
     return self.client.get("/wallet/" + identifier + "/discovery", {gap: gap}, true, cb);
@@ -847,7 +845,7 @@ APIClient.prototype.doWalletDiscovery = function (identifier, gap, cb) {
  * @param [cb]                  function    callback(err, result)
  * @returns {q.Promise}
  */
-APIClient.prototype.getNewDerivation = function (identifier, path, cb) {
+APIClient.prototype.getNewDerivation = function(identifier, path, cb) {
     var self = this;
 
     return self.client.post("/wallet/" + identifier + "/path", null, {path: path}, cb);
@@ -866,7 +864,7 @@ APIClient.prototype.getNewDerivation = function (identifier, path, cb) {
  * @param [cb]                  function    callback(err, result)
  * @returns {q.Promise}
  */
-APIClient.prototype.deleteWallet = function (identifier, checksumAddress, checksumSignature, force, cb) {
+APIClient.prototype.deleteWallet = function(identifier, checksumAddress, checksumSignature, force, cb) {
     var self = this;
 
     if (typeof force === "function") {
@@ -907,7 +905,7 @@ APIClient.prototype.deleteWallet = function (identifier, checksumAddress, checks
  * @param [cb]              function    callback(err, utxos, fee, change)
  * @returns {q.Promise}
  */
-APIClient.prototype.coinSelection = function (identifier, pay, lockUTXO, allowZeroConf, cb) {
+APIClient.prototype.coinSelection = function(identifier, pay, lockUTXO, allowZeroConf, cb) {
     var self = this;
 
     var deferred = q.defer();
@@ -915,7 +913,7 @@ APIClient.prototype.coinSelection = function (identifier, pay, lockUTXO, allowZe
 
     deferred.resolve(
         self.client.post("/wallet/" + identifier + "/coin-selection", {lock: lockUTXO, zeroconf: allowZeroConf ? 1 : 0}, pay)
-        .then(function (result) {
+        .then(function(result) {
             return [result.utxos, result.fee, result.change];
         })
     );
@@ -933,7 +931,7 @@ APIClient.prototype.coinSelection = function (identifier, pay, lockUTXO, allowZe
  * @param [cb]          function    callback(err, txHash)
  * @returns {q.Promise}
  */
-APIClient.prototype.sendTransaction = function (identifier, txHex, paths, checkFee, cb) {
+APIClient.prototype.sendTransaction = function(identifier, txHex, paths, checkFee, cb) {
     var self = this;
 
     return self.client.post("/wallet/" + identifier + "/send", {check_fee: checkFee ? 1 : 0}, {raw_transaction: txHex, paths: paths}, cb);
@@ -948,7 +946,7 @@ APIClient.prototype.sendTransaction = function (identifier, txHex, paths, checkF
  * @param [cb]              function    callback(err, webhook)
  * @returns {q.Promise}
  */
-APIClient.prototype.setupWalletWebhook = function (identifier, webhookIdentifier, url, cb) {
+APIClient.prototype.setupWalletWebhook = function(identifier, webhookIdentifier, url, cb) {
     var self = this;
 
     return self.client.post("/wallet/" + identifier + "/webhook", null, {url: url, identifier: webhookIdentifier}, cb);
@@ -962,7 +960,7 @@ APIClient.prototype.setupWalletWebhook = function (identifier, webhookIdentifier
  * @param [cb]              function    callback(err, success)
  * @returns {q.Promise}
  */
-APIClient.prototype.deleteWalletWebhook = function (identifier, webhookIdentifier, cb) {
+APIClient.prototype.deleteWalletWebhook = function(identifier, webhookIdentifier, cb) {
     var self = this;
 
     return self.client.delete("/wallet/" + identifier + "/webhook/" + webhookIdentifier, null, null, cb);
@@ -976,7 +974,7 @@ APIClient.prototype.deleteWalletWebhook = function (identifier, webhookIdentifie
  * @param [cb]          function    callback function to call when request is complete
  * @return q.Promise
  */
-APIClient.prototype.walletTransactions = function (identifier, params, cb) {
+APIClient.prototype.walletTransactions = function(identifier, params, cb) {
     var self = this;
 
     if (typeof params === "function" && typeof cb === "undefined") {
@@ -996,7 +994,7 @@ APIClient.prototype.walletTransactions = function (identifier, params, cb) {
  * @param [cb]          function    callback function to call when request is complete
  * @return q.Promise
  */
-APIClient.prototype.walletAddresses = function (identifier, params, cb) {
+APIClient.prototype.walletAddresses = function(identifier, params, cb) {
     var self = this;
 
     if (typeof params === "function" && typeof cb === "undefined") {
@@ -1016,7 +1014,7 @@ APIClient.prototype.walletAddresses = function (identifier, params, cb) {
  * @param [cb]          function    callback function to call when request is complete
  * @return q.Promise
  */
-APIClient.prototype.walletUTXOs = function (identifier, params, cb) {
+APIClient.prototype.walletUTXOs = function(identifier, params, cb) {
     var self = this;
 
     if (typeof params === "function" && typeof cb === "undefined") {
@@ -1035,7 +1033,7 @@ APIClient.prototype.walletUTXOs = function (identifier, params, cb) {
  * @param [cb]          function    callback function to call when request is complete
  * @return q.Promise
  */
-APIClient.prototype.allWallets = function (params, cb) {
+APIClient.prototype.allWallets = function(params, cb) {
     var self = this;
 
     if (typeof params === "function" && typeof cb === "undefined") {
@@ -1056,7 +1054,7 @@ APIClient.prototype.allWallets = function (params, cb) {
  * @param [cb]          function    callback function to call when request is complete
  * @return q.Promise
  */
-APIClient.prototype.verifyMessage = function (message, address, signature, cb) {
+APIClient.prototype.verifyMessage = function(message, address, signature, cb) {
     var self = this;
 
     // we could also use the API instead of the using bitcoinjs-lib to verify
@@ -1082,7 +1080,7 @@ APIClient.prototype.verifyMessage = function (message, address, signature, cb) {
  * @param [cb]              function    callback function to call when request is complete
  * @return q.Promise
  */
-APIClient.prototype.sendRawTransaction = function (rawTransaction, cb) {
+APIClient.prototype.sendRawTransaction = function(rawTransaction, cb) {
     var self = this;
 
     return self.client.post("/send-raw-tx", null, rawTransaction, cb);
@@ -1094,13 +1092,13 @@ APIClient.prototype.sendRawTransaction = function (rawTransaction, cb) {
  * @param [cb]          function    callback({'USD': 287.30})
  * @return q.Promise
  */
-APIClient.prototype.price = function (cb) {
+APIClient.prototype.price = function(cb) {
     var self = this;
 
     return self.client.get("/price", null, false, cb);
 };
 
-module.exports = function (options) {
+module.exports = function(options) {
     return new APIClient(options);
 };
 
@@ -1120,7 +1118,7 @@ var bowser = require('bowser');
  * @param blocktrailPublicKeys  array           list of blocktrail pubKeys indexed by keyIndex
  * @constructor
  */
-var BackupGenerator = function (identifier, primaryMnemonic, backupMnemonic, blocktrailPublicKeys) {
+var BackupGenerator = function(identifier, primaryMnemonic, backupMnemonic, blocktrailPublicKeys) {
     var self = this;
 
     self.identifier = identifier;
@@ -1128,7 +1126,7 @@ var BackupGenerator = function (identifier, primaryMnemonic, backupMnemonic, blo
     self.backupMnemonic = backupMnemonic;
     self.blocktrailPublicKeys = [];
 
-    _.each(blocktrailPublicKeys, function (pubKey, keyIndex) {
+    _.each(blocktrailPublicKeys, function(pubKey, keyIndex) {
         self.blocktrailPublicKeys.push({
             keyIndex: keyIndex,
             pubKey:   pubKey,
@@ -1142,7 +1140,7 @@ var BackupGenerator = function (identifier, primaryMnemonic, backupMnemonic, blo
  *
  * @return {boolean}
  */
-BackupGenerator.saveAsSupported = function () {
+BackupGenerator.saveAsSupported = function() {
     // a whole bunch of mobile OSs that are unsupported
     if (bowser.browser.ios || bowser.browser.blackberry || bowser.browser.firefoxos ||
         bowser.browser.webos || bowser.browser.bada || bowser.browser.tizen || bowser.browser.sailfish) {
@@ -1171,7 +1169,7 @@ BackupGenerator.saveAsSupported = function () {
  * create an HTML version of the backup document
  *
  */
-BackupGenerator.prototype.generateHTML = function (cb) {
+BackupGenerator.prototype.generateHTML = function(cb) {
     var self = this;
     var data = {
         identifier: self.identifier,
@@ -1181,21 +1179,21 @@ BackupGenerator.prototype.generateHTML = function (cb) {
         pubKeysHtml: ""
     };
 
-    async.forEach(Object.keys(self.blocktrailPublicKeys), function (keyIndex, cb) {
+    async.forEach(Object.keys(self.blocktrailPublicKeys), function(keyIndex, cb) {
         var pubKey = self.blocktrailPublicKeys[keyIndex];
 
         QRCode.toDataURL(pubKey.pubKey.toBase58(), {
             errorCorrectLevel: 'medium'
-        }, function (err, dataURI) {
+        }, function(err, dataURI) {
             pubKey.qr = dataURI;
             cb(err);
         });
-    }, function (err) {
+    }, function(err) {
         if (err) {
             return cb(err);
         }
 
-        _.each(self.blocktrailPublicKeys, function (pubKey) {
+        _.each(self.blocktrailPublicKeys, function(pubKey) {
             data.pubKeysHtml += "<figure><img src='" + pubKey.qr + "' /><figcaption>";
             data.pubKeysHtml += "<span>KeyIndex: " + pubKey.keyIndex + " </span> ";
             data.pubKeysHtml += "<span>Path: " + pubKey.path + "</span>";
@@ -1217,7 +1215,7 @@ BackupGenerator.prototype.generateHTML = function (cb) {
 /**
  * create a PDF version of the backup document
  */
-BackupGenerator.prototype.generatePDF = function (callback) {
+BackupGenerator.prototype.generatePDF = function(callback) {
     /* jshint -W101 */
     var self = this;
 
@@ -1235,7 +1233,7 @@ BackupGenerator.prototype.generatePDF = function (callback) {
             25
         );
 
-        pdf.FONT_SIZE_HEADER(function () {
+        pdf.FONT_SIZE_HEADER(function() {
             pdf.TEXT("Wallet Recovery Data Sheet");
         });
 
@@ -1244,38 +1242,38 @@ BackupGenerator.prototype.generatePDF = function (callback) {
             "Print it out and keep it in a safe location; if you lose these details you will never be able to recover your wallet."
         );
 
-        pdf.FONT_SIZE_HEADER(function () {
+        pdf.FONT_SIZE_HEADER(function() {
             pdf.TEXT("Wallet Identifier");
             pdf.HR(0, 0);
         });
 
-        pdf.FONT_SIZE_SUBHEADER(function () {
-            pdf.TEXT_COLOR_GREY(function () {
+        pdf.FONT_SIZE_SUBHEADER(function() {
+            pdf.TEXT_COLOR_GREY(function() {
                 pdf.TEXT(self.identifier);
             });
         });
 
-        pdf.FONT_SIZE_HEADER(function () {
+        pdf.FONT_SIZE_HEADER(function() {
             pdf.TEXT("Backup Info");
             pdf.HR(0, 0);
         });
 
-        pdf.FONT_SIZE_SUBHEADER(function () {
-            pdf.TEXT_COLOR_GREY(function () {
+        pdf.FONT_SIZE_SUBHEADER(function() {
+            pdf.TEXT_COLOR_GREY(function() {
                 pdf.TEXT("Primary Mnemonic");
             });
             pdf.YAXIS(5);
-            pdf.FONT_SIZE_NORMAL(function () {
+            pdf.FONT_SIZE_NORMAL(function() {
                 pdf.TEXT(self.primaryMnemonic);
             });
         });
 
-        pdf.FONT_SIZE_SUBHEADER(function () {
-            pdf.TEXT_COLOR_GREY(function () {
+        pdf.FONT_SIZE_SUBHEADER(function() {
+            pdf.TEXT_COLOR_GREY(function() {
                 pdf.TEXT("Backup Mnemonic");
             });
             pdf.YAXIS(5);
-            pdf.FONT_SIZE_NORMAL(function () {
+            pdf.FONT_SIZE_NORMAL(function() {
                 pdf.TEXT(self.backupMnemonic);
             });
         });
@@ -1294,26 +1292,26 @@ BackupGenerator.prototype.generatePDF = function (callback) {
             pdf.YAXIS(10); // need a little extra margin
         }
 
-        pdf.FONT_SIZE_SUBHEADER(function () {
-            pdf.TEXT_COLOR_GREY(function () {
+        pdf.FONT_SIZE_SUBHEADER(function() {
+            pdf.TEXT_COLOR_GREY(function() {
                 pdf.TEXT("BlockTrail Public Keys");
             });
-            pdf.FONT_SIZE_NORMAL(function () {
+            pdf.FONT_SIZE_NORMAL(function() {
                 pdf.TEXT(self.blocktrailPublicKeys.length + " in total");
             });
         });
         pdf.YAXIS(20);
 
-        async.forEach(Object.keys(self.blocktrailPublicKeys), function (keyIndex, cb) {
+        async.forEach(Object.keys(self.blocktrailPublicKeys), function(keyIndex, cb) {
             var pubKey = self.blocktrailPublicKeys[keyIndex];
 
             QRCode.toDataURL(pubKey.pubKey.toBase58(), {
                 errorCorrectLevel: 'medium'
-            }, function (err, dataURI) {
+            }, function(err, dataURI) {
                 pubKey.qr = dataURI;
                 cb(err);
             });
-        }, function (err) {
+        }, function(err) {
             if (err) {
                 return callback(err);
             }
@@ -1321,7 +1319,7 @@ BackupGenerator.prototype.generatePDF = function (callback) {
             var qrSize = 180;
             var qrSubtitleheight = 20;
 
-            Object.keys(self.blocktrailPublicKeys).forEach(function (keyIndex, i) {
+            Object.keys(self.blocktrailPublicKeys).forEach(function(keyIndex, i) {
                 var pubKey = self.blocktrailPublicKeys[i];
 
                 var x = i % 3;
@@ -1334,7 +1332,7 @@ BackupGenerator.prototype.generatePDF = function (callback) {
 
                 pdf.IMAGE(pubKey.qr, 'jpeg', qrSize, qrSize, x * qrSize);
                 pdf.YAXIS(3);
-                pdf.FONT_SIZE_SMALL(function () {
+                pdf.FONT_SIZE_SMALL(function() {
                     pdf.TEXT("KeyIndex: " + pubKey.keyIndex + " Path: " + pubKey.path, (x * qrSize) + 20, false);
                 });
             });
@@ -1350,7 +1348,7 @@ BackupGenerator.prototype.generatePDF = function (callback) {
                 25
             );
 
-            pdf.FONT_SIZE_HEADER(function () {
+            pdf.FONT_SIZE_HEADER(function() {
                 pdf.TEXT("Wallet Recovery Instructions");
                 pdf.HR(0, 0);
             });
@@ -1371,6 +1369,9 @@ BackupGenerator.prototype.generatePDF = function (callback) {
 module.exports = BackupGenerator;
 
 },{"./pdf_writer":4,"./qrCode-browser":5,"async":11,"bowser":60,"lodash":107}],3:[function(require,module,exports){
+var util = require('util');
+var assert = require('assert');
+
 var blocktrail = {
     COIN: 100000000,
     PRECISION: 8,
@@ -1384,7 +1385,7 @@ var blocktrail = {
  * @param btc   float       BTC value
  * @returns int             Satoshi value (int)
  */
-blocktrail.toSatoshi = function (btc) {
+blocktrail.toSatoshi = function(btc) {
     return parseInt((btc * blocktrail.COIN).toFixed(0), 10);
 };
 
@@ -1394,7 +1395,7 @@ blocktrail.toSatoshi = function (btc) {
  * @param satoshi   int     Satoshi value
  * @returns {string}        BTC value (float)
  */
-blocktrail.toBTC = function (satoshi) {
+blocktrail.toBTC = function(satoshi) {
     return (satoshi / blocktrail.COIN).toFixed(blocktrail.PRECISION);
 };
 
@@ -1404,7 +1405,7 @@ blocktrail.toBTC = function (satoshi) {
  *
  * @param q
  */
-blocktrail.patchQ = function (q) {
+blocktrail.patchQ = function(q) {
     /* jshint -W003 */
 
     if (q.spreadNodeify && q.spreadDone) {
@@ -1416,8 +1417,8 @@ blocktrail.patchQ = function (q) {
         return q(value).spreadDone(fulfilled, rejected);
     }
 
-    q.makePromise.prototype.spreadDone = function (fulfilled, rejected) {
-        return this.all().done(function (array) {
+    q.makePromise.prototype.spreadDone = function(fulfilled, rejected) {
+        return this.all().done(function(array) {
             return fulfilled.apply(void 0, array);
         }, rejected);
     };
@@ -1427,14 +1428,14 @@ blocktrail.patchQ = function (q) {
         return q(object).spreadNodeify(nodeback);
     }
 
-    q.makePromise.prototype.spreadNodeify = function (nodeback) {
+    q.makePromise.prototype.spreadNodeify = function(nodeback) {
         if (nodeback) {
-            this.then(function (value) {
-                q.nextTick(function () {
+            this.then(function(value) {
+                q.nextTick(function() {
                     nodeback.apply(void 0, [null].concat(value));
                 });
-            }, function (error) {
-                q.nextTick(function () {
+            }, function(error) {
+                q.nextTick(function() {
                     nodeback(error);
                 });
             });
@@ -1444,9 +1445,76 @@ blocktrail.patchQ = function (q) {
     };
 };
 
+
+/**
+ * Add extend() method to Error type
+ *
+ * @param subTypeName
+ * @param errorCode [optional]
+ * @returns {SubType}
+ */
+Error.extend = function(subTypeName, errorCode /*optional*/) {
+    assert(subTypeName, 'subTypeName is required');
+    //define new error type
+    var SubType = function(message) {
+
+        //handle constructor call without 'new'
+        if (!(this instanceof SubType)) {
+            return new SubType(message);
+        }
+
+        //populate error details
+        this.name = subTypeName;
+        this.code = errorCode;
+        this.message = message || '';
+
+        //include stack trace in error object
+        Error.captureStackTrace(this, this.constructor);
+    };
+
+    //inherit the base prototype chain
+    util.inherits(SubType, this);
+
+    //override the toString method to error type name and inspected message (to expand objects)
+    SubType.prototype.toString = function() {
+        return this.name + ': ' + util.inspect(this.message);
+    };
+
+    //attach extend() to the SubType to make it extendable further
+    SubType.extend = this.extend;
+    return SubType;
+};
+
+
+
+//Wallet Errors
+blocktrail.WalletInitError = Error.extend("WalletInitError", 400);
+blocktrail.WalletCreateError = Error.extend("WalletCreateError", 400);
+blocktrail.WalletUpgradeError = Error.extend("WalletUpgradeError", 400);
+blocktrail.WalletChecksumError = Error.extend("WalletChecksumError", 400);
+blocktrail.WalletDeleteError = Error.extend("WalletDeleteError", 400);
+blocktrail.WalletAddressError = Error.extend("WalletAddressError", 500);
+blocktrail.WalletSendError = Error.extend("WalletSendError", 400);
+blocktrail.WalletLockedError = Error.extend("WalletLockedError", 500);
+blocktrail.WalletFeeError = Error.extend("WalletFeeError", 500);
+blocktrail.TransactionSignError = Error.extend("TransactionSignError", 500);
+blocktrail.TransactionInputError = Error.extend("TransactionInputError", 400);
+blocktrail.TransactionOutputError = Error.extend("TransactionOutputError", 400);
+
+blocktrail.KeyPathError = Error.extend("KeyPathError", 400);
+
+blocktrail.InvalidAddressError = Error.extend("InvalidAddressError", 400);
+
+//Other Errors
+blocktrail.Error = Error.extend("Error", 500);
+
+
+// apply patch to Q to add spreadNodeify for all dependants of this module
+blocktrail.patchQ(require('q'));
+
 module.exports = blocktrail;
 
-},{}],4:[function(require,module,exports){
+},{"assert":61,"q":108,"util":90}],4:[function(require,module,exports){
 /* globals jsPDF */
 
 /**
@@ -1454,7 +1522,7 @@ module.exports = blocktrail;
  * @param options
  * @constructor
  */
-var PdfWriter = function (options) {
+var PdfWriter = function(options) {
     var JSPDF = jsPDF; // cuz jscs won't let me use a lowercase classname :/
 
     // we can't require jsPDF yet, so we're trusting on it being there
@@ -1485,7 +1553,7 @@ var PdfWriter = function (options) {
     ];
 };
 
-PdfWriter.prototype.setFont = function (font, cb) {
+PdfWriter.prototype.setFont = function(font, cb) {
     this.font.push(font);
     this.doc.setFont(this.font[this.font.length - 1 ]);
 
@@ -1497,7 +1565,7 @@ PdfWriter.prototype.setFont = function (font, cb) {
     this.doc.setFont(this.font[this.font.length - 1 ]);
 };
 
-PdfWriter.prototype.setFontSize = function (size, lineMargin, cb) {
+PdfWriter.prototype.setFontSize = function(size, lineMargin, cb) {
     this.fontSize.push(size);
     this.lineMargin.push(lineMargin);
     this.doc.setFontSize(this.fontSize[this.fontSize.length - 1 ]);
@@ -1511,7 +1579,7 @@ PdfWriter.prototype.setFontSize = function (size, lineMargin, cb) {
     this.doc.setFontSize(this.fontSize[this.fontSize.length - 1 ]);
 };
 
-PdfWriter.prototype.setTextColor = function (color, cb) {
+PdfWriter.prototype.setTextColor = function(color, cb) {
     this.textColor.push(color);
     this.doc.setTextColor.apply(this.doc, this.textColor[this.textColor.length - 1 ]);
 
@@ -1523,7 +1591,7 @@ PdfWriter.prototype.setTextColor = function (color, cb) {
     this.doc.setTextColor.apply(this.doc, this.textColor[this.textColor.length - 1 ]);
 };
 
-PdfWriter.prototype.TEXT = function (text, leftOffset, autoY, cb) {
+PdfWriter.prototype.TEXT = function(text, leftOffset, autoY, cb) {
     var self = this;
 
     if (typeof leftOffset === "function") {
@@ -1544,7 +1612,7 @@ PdfWriter.prototype.TEXT = function (text, leftOffset, autoY, cb) {
         var currentSize = self.fontSize[self.fontSize.length - 1 ];
         var currentLineMargin = self.lineMargin[self.lineMargin.length - 1 ];
 
-        lines.forEach(function (line) {
+        lines.forEach(function(line) {
             self.YAXIS(currentLineMargin[0]);
             self.YAXIS(currentSize);
             self.doc.text(line, self.margin + (leftOffset || 0), self.yPos);
@@ -1559,7 +1627,7 @@ PdfWriter.prototype.TEXT = function (text, leftOffset, autoY, cb) {
     }
 };
 
-PdfWriter.prototype.HR = function (xOffset, yOffset) {
+PdfWriter.prototype.HR = function(xOffset, yOffset) {
     var x1 = (xOffset || 0);
     var x2 = this.docWidth - this.margin - this.margin - (xOffset || 0);
 
@@ -1568,11 +1636,11 @@ PdfWriter.prototype.HR = function (xOffset, yOffset) {
     this.LINE(x1, y, x2, y);
 };
 
-PdfWriter.prototype.LINE = function (x1, y1, x2, y2) {
+PdfWriter.prototype.LINE = function(x1, y1, x2, y2) {
     this.doc.line(x1 + this.margin, y1 + this.yPos, x2 + this.margin, y2 + this.yPos);
 };
 
-PdfWriter.prototype.IMAGE = function (img, format, width, height, x) {
+PdfWriter.prototype.IMAGE = function(img, format, width, height, x) {
     x = (x || 0) + this.margin;
     var y = this.yPos;
     var w = width;
@@ -1582,23 +1650,23 @@ PdfWriter.prototype.IMAGE = function (img, format, width, height, x) {
     this.YAXIS(h);
 };
 
-PdfWriter.prototype.YAXIS = function (y) {
+PdfWriter.prototype.YAXIS = function(y) {
     this.yPos += y || 0;
 };
 
-PdfWriter.prototype.NEXT_PAGE = function () {
+PdfWriter.prototype.NEXT_PAGE = function() {
     this.doc.addPage();
     this.yPos = 0;
 };
 
-PdfWriter.prototype.FONT_SIZE_HEADER = function (cb) { this.setFontSize(24, [12, 8], cb); };
-PdfWriter.prototype.FONT_SIZE_SUBHEADER = function (cb) { this.setFontSize(18, [8, 5], cb); };
-PdfWriter.prototype.FONT_SIZE_NORMAL = function (cb) { this.setFontSize(13, [2, 2], cb); };
-PdfWriter.prototype.FONT_SIZE_SMALL = function (cb) { this.setFontSize(10, [2, 2], cb); };
+PdfWriter.prototype.FONT_SIZE_HEADER = function(cb) { this.setFontSize(24, [12, 8], cb); };
+PdfWriter.prototype.FONT_SIZE_SUBHEADER = function(cb) { this.setFontSize(18, [8, 5], cb); };
+PdfWriter.prototype.FONT_SIZE_NORMAL = function(cb) { this.setFontSize(13, [2, 2], cb); };
+PdfWriter.prototype.FONT_SIZE_SMALL = function(cb) { this.setFontSize(10, [2, 2], cb); };
 
-PdfWriter.prototype.TEXT_COLOR_BLACK = function (cb) { this.setTextColor([0, 0, 0], cb); };
-PdfWriter.prototype.TEXT_COLOR_GREY = function (cb) { this.setTextColor([51, 51, 51], cb); };
-PdfWriter.prototype.TEXT_COLOR_RED = function (cb) { this.setTextColor([255, 0, 0], cb); };
+PdfWriter.prototype.TEXT_COLOR_BLACK = function(cb) { this.setTextColor([0, 0, 0], cb); };
+PdfWriter.prototype.TEXT_COLOR_GREY = function(cb) { this.setTextColor([51, 51, 51], cb); };
+PdfWriter.prototype.TEXT_COLOR_RED = function(cb) { this.setTextColor([255, 0, 0], cb); };
 
 module.exports = PdfWriter;
 
@@ -1611,10 +1679,10 @@ module.exports = PdfWriter;
  */
 var qrcodelib = require("qrcode-canvas");
 
-var QrCode = function () {
+var QrCode = function() {
 };
 
-QrCode.prototype.init = function () {
+QrCode.prototype.init = function() {
     if (this.qrcodedraw) {
         return;
     }
@@ -1623,13 +1691,13 @@ QrCode.prototype.init = function () {
     this.canvasEl = document.createElement("canvas");
 };
 
-QrCode.prototype.draw = function (text, options, cb) {
+QrCode.prototype.draw = function(text, options, cb) {
     this.init();
     this.qrcodedraw.draw(this.canvasEl, text, options, cb);
 };
 
-QrCode.prototype.toDataURL = function (text, options, cb) {
-    this.draw(text, options, function (err, canvas) {
+QrCode.prototype.toDataURL = function(text, options, cb) {
+    this.draw(text, options, function(err, canvas) {
         if (err) {
             return cb ? cb(err) : null;
         }
@@ -1655,7 +1723,7 @@ var debug = require('debug')('blocktrail-sdk:request');
 
 var isNodeJS = !process.browser;
 
-var noop = function () {};
+var noop = function() {};
 
 /**
  * Helper for doing HTTP requests
@@ -1692,12 +1760,12 @@ function Request(options) {
  * @param params
  * @returns {string}
  */
-Request.qs = function (params) {
+Request.qs = function(params) {
     var query = [];
     var qsKeys = Object.keys(params);
 
     qsKeys.sort();
-    qsKeys.forEach(function (qsKey) {
+    qsKeys.forEach(function(qsKey) {
         var qsChunk = {};
         qsChunk[qsKey] = params[qsKey];
         query.push(qs.stringify(qsChunk));
@@ -1716,7 +1784,7 @@ Request.qs = function (params) {
  * @param fn
  * @returns q.Promise
  */
-Request.prototype.request = function (method, resource, params, data, fn) {
+Request.prototype.request = function(method, resource, params, data, fn) {
     var self = this;
     self.deferred = q.defer();
 
@@ -1763,7 +1831,7 @@ Request.prototype.request = function (method, resource, params, data, fn) {
     return self.deferred.promise;
 };
 
-Request.prototype.performRequest = function (options) {
+Request.prototype.performRequest = function(options) {
     var self = this;
     var method = options.method;
     var signHMAC = false;
@@ -1781,7 +1849,7 @@ Request.prototype.performRequest = function (options) {
         request.send(self.payload);
     }
 
-    _.forEach(options.headers, function (value, header) {
+    _.forEach(options.headers, function(value, header) {
         request.set(header, value);
     });
 
@@ -1794,7 +1862,7 @@ Request.prototype.performRequest = function (options) {
         }));
     }
 
-    request.end(function (error, res) {
+    request.end(function(error, res) {
         var body;
 
         if (error) {
@@ -1835,11 +1903,8 @@ module.exports = Request;
 
 }).call(this,require('_process'))
 },{"_process":70,"create-hash":91,"debug":106,"lodash":107,"q":108,"querystring":74,"superagent":116,"superagent-http-signature/index-hmac-only":113,"url":88}],7:[function(require,module,exports){
-(function (process){
 var _ = require('lodash');
 var Request = require('./request');
-
-var isNodeJS = !process.browser;
 
 /**
  * Intermediate class to create HTTP requests
@@ -1854,7 +1919,7 @@ var isNodeJS = !process.browser;
  * @constructor
  * @constructor
  */
-var RestClient = function (options) {
+var RestClient = function(options) {
     var self = this;
 
     self.apiKey = options.apiKey;
@@ -1873,7 +1938,7 @@ var RestClient = function (options) {
     };
 };
 
-RestClient.prototype.create_request = function (options) {
+RestClient.prototype.create_request = function(options) {
     var self = this;
 
     options = _.defaults({}, options, {
@@ -1890,15 +1955,15 @@ RestClient.prototype.create_request = function (options) {
     return new Request(options);
 };
 
-RestClient.prototype.post = function (path, params, data, fn) {
+RestClient.prototype.post = function(path, params, data, fn) {
     return this.create_request({auth: 'http-signature'}).request('POST', path, params, data, fn);
 };
 
-RestClient.prototype.put = function (path, params, data, fn) {
+RestClient.prototype.put = function(path, params, data, fn) {
     return this.create_request({auth: 'http-signature'}).request('PUT', path, params, data, fn);
 };
 
-RestClient.prototype.get = function (path, params, doHttpSignature, fn) {
+RestClient.prototype.get = function(path, params, doHttpSignature, fn) {
     if (typeof doHttpSignature === "function") {
         fn = doHttpSignature;
         doHttpSignature = false;
@@ -1913,16 +1978,15 @@ RestClient.prototype.get = function (path, params, doHttpSignature, fn) {
     return this.create_request(options).request('GET', path, params, null, fn);
 };
 
-RestClient.prototype.delete = function (path, params, data, fn) {
+RestClient.prototype.delete = function(path, params, data, fn) {
     return this.create_request({auth: 'http-signature'}).request('DELETE', path, params, data, fn);
 };
 
-module.exports = function (options) {
+module.exports = function(options) {
     return new RestClient(options);
 };
 
-}).call(this,require('_process'))
-},{"./request":6,"_process":70,"lodash":107}],8:[function(require,module,exports){
+},{"./request":6,"lodash":107}],8:[function(require,module,exports){
 var _ = require('lodash');
 var assert = require('assert');
 var q = require('q');
@@ -1930,8 +1994,6 @@ var async = require('async');
 var bitcoin = require('bitcoinjs-lib');
 var blocktrail = require('./blocktrail');
 
-// apply patch to Q to add spreadNodeify
-blocktrail.patchQ(q);
 
 /**
  *
@@ -1948,7 +2010,7 @@ blocktrail.patchQ(q);
  * @constructor
  * @internal
  */
-var Wallet = function (
+var Wallet = function(
     sdk,
     identifier,
     primaryMnemonic,
@@ -1974,8 +2036,8 @@ var Wallet = function (
     }
 
     assert(backupPublicKey instanceof bitcoin.HDNode);
-    assert(_.all(primaryPublicKeys, function (primaryPublicKey) { return primaryPublicKey instanceof bitcoin.HDNode; }));
-    assert(_.all(blocktrailPublicKeys, function (blocktrailPublicKey) { return blocktrailPublicKey instanceof bitcoin.HDNode; }));
+    assert(_.all(primaryPublicKeys, function(primaryPublicKey) { return primaryPublicKey instanceof bitcoin.HDNode; }));
+    assert(_.all(blocktrailPublicKeys, function(blocktrailPublicKey) { return blocktrailPublicKey instanceof bitcoin.HDNode; }));
 
     self.primaryMnemonic = primaryMnemonic;
     self.backupPublicKey = backupPublicKey;
@@ -1986,13 +2048,20 @@ var Wallet = function (
     self.upgradeToKeyIndex = upgradeToKeyIndex;
 };
 
-Wallet.prototype.unlock = function (options, cb) {
+Wallet.PAY_PROGRESS_START = 0;
+Wallet.PAY_PROGRESS_COIN_SELECTION = 10;
+Wallet.PAY_PROGRESS_CHANGE_ADDRESS = 20;
+Wallet.PAY_PROGRESS_SIGN = 30;
+Wallet.PAY_PROGRESS_SEND = 40;
+Wallet.PAY_PROGRESS_DONE = 100;
+
+Wallet.prototype.unlock = function(options, cb) {
     var self = this;
 
     options.primaryMnemonic = typeof options.primaryMnemonic !== "undefined" ? options.primaryMnemonic : self.primaryMnemonic;
 
     return self.sdk.resolvePrimaryPrivateKeyFromOptions(options).spread(
-        function (primaryMnemonic, primaryPrivateKey) {
+        function(primaryMnemonic, primaryPrivateKey) {
             self.primaryMnemonic = primaryMnemonic;
             self.primaryPrivateKey = primaryPrivateKey;
 
@@ -2001,7 +2070,8 @@ Wallet.prototype.unlock = function (options, cb) {
 
             // check if we've used the right passphrase
             if (checksum !== self.checksum) {
-                throw new Error("Generated checksum [" + checksum + "] does not match [" + self.checksum + "], most likely due to incorrect password");
+                throw new blocktrail.WalletChecksumError("Generated checksum [" + checksum + "] does not match " +
+                                                         "[" + self.checksum + "], most likely due to incorrect password");
             }
 
             self.locked = false;
@@ -2014,7 +2084,7 @@ Wallet.prototype.unlock = function (options, cb) {
     ).nodeify(cb);
 };
 
-Wallet.prototype.lock = function () {
+Wallet.prototype.lock = function() {
     var self = this;
 
     self.primaryPrivateKey = "";
@@ -2028,7 +2098,7 @@ Wallet.prototype.lock = function () {
  * @param path
  * @returns string
  */
-Wallet.prototype.getAddressByPath = function (path) {
+Wallet.prototype.getAddressByPath = function(path) {
     var self = this;
 
     var redeemScript = self.getRedeemScriptByPath(path);
@@ -2045,7 +2115,7 @@ Wallet.prototype.getAddressByPath = function (path) {
  * @param path
  * @returns {bitcoin.Script}
  */
-Wallet.prototype.getRedeemScriptByPath = function (path) {
+Wallet.prototype.getRedeemScriptByPath = function(path) {
     var self = this;
 
     // get derived primary key
@@ -2073,7 +2143,7 @@ Wallet.prototype.getRedeemScriptByPath = function (path) {
  * @param path  string
  * @returns {bitcoin.HDNode}
  */
-Wallet.prototype.getPrimaryPublicKey = function (path) {
+Wallet.prototype.getPrimaryPublicKey = function(path) {
     var self = this;
 
     path = path.replace("m", "M");
@@ -2084,7 +2154,7 @@ Wallet.prototype.getPrimaryPublicKey = function (path) {
         if (self.primaryPrivateKey) {
             self.primaryPublicKeys[keyIndex] = Wallet.deriveByPath(self.primaryPrivateKey, "M/" + keyIndex + "'", "m");
         } else {
-            throw new Error("Wallet.getPrimaryPublicKey keyIndex (" + keyIndex + ") is unknown to us");
+            throw new blocktrail.KeyPathError("Wallet.getPrimaryPublicKey keyIndex (" + keyIndex + ") is unknown to us");
         }
     }
 
@@ -2100,7 +2170,7 @@ Wallet.prototype.getPrimaryPublicKey = function (path) {
  * @param path  string
  * @returns {bitcoin.HDNode}
  */
-Wallet.prototype.getBlocktrailPublicKey = function (path) {
+Wallet.prototype.getBlocktrailPublicKey = function(path) {
     var self = this;
 
     path = path.replace("m", "M");
@@ -2108,7 +2178,7 @@ Wallet.prototype.getBlocktrailPublicKey = function (path) {
     var keyIndex = path.split("/")[1].replace("'", "");
 
     if (!self.blocktrailPublicKeys[keyIndex]) {
-        throw new Error("Wallet.getBlocktrailPublicKey keyIndex (" + keyIndex + ") is unknown to us");
+        throw new blocktrail.KeyPathError("Wallet.getBlocktrailPublicKey keyIndex (" + keyIndex + ") is unknown to us");
     }
 
     var blocktrailPublicKey = self.blocktrailPublicKeys[keyIndex];
@@ -2123,14 +2193,14 @@ Wallet.prototype.getBlocktrailPublicKey = function (path) {
  * @param [cb]      function
  * @returns {q.Promise}
  */
-Wallet.prototype.upgradeKeyIndex = function (keyIndex, cb) {
+Wallet.prototype.upgradeKeyIndex = function(keyIndex, cb) {
     var self = this;
 
     var deferred = q.defer();
     deferred.promise.nodeify(cb);
 
     if (self.locked) {
-        deferred.reject(new Error("Wallet needs to be unlocked to upgrade key index"));
+        deferred.reject(new blocktrail.WalletLockedError("Wallet needs to be unlocked to upgrade key index"));
         return deferred.promise;
     }
 
@@ -2138,16 +2208,16 @@ Wallet.prototype.upgradeKeyIndex = function (keyIndex, cb) {
 
     deferred.resolve(
         self.sdk.upgradeKeyIndex(self.identifier, keyIndex, [primaryPublicKey.toBase58(), "M/" + keyIndex + "'"])
-        .then(function (result) {
-            self.keyIndex = keyIndex;
-            _.forEach(result.blocktrail_public_keys, function (publicKey, keyIndex) {
-                self.blocktrailPublicKeys[keyIndex] = bitcoin.HDNode.fromBase58(publicKey[0], self.network);
-            });
+            .then(function(result) {
+                self.keyIndex = keyIndex;
+                _.forEach(result.blocktrail_public_keys, function(publicKey, keyIndex) {
+                    self.blocktrailPublicKeys[keyIndex] = bitcoin.HDNode.fromBase58(publicKey[0], self.network);
+                });
 
-            self.primaryPublicKeys[keyIndex] = primaryPublicKey;
+                self.primaryPublicKeys[keyIndex] = primaryPublicKey;
 
-            return true;
-        })
+                return true;
+            })
     );
 
     return deferred.promise;
@@ -2159,7 +2229,7 @@ Wallet.prototype.upgradeKeyIndex = function (keyIndex, cb) {
  * @param [cb]  function        callback(err, address)
  * @returns {q.Promise}
  */
-Wallet.prototype.getNewAddress = function (cb) {
+Wallet.prototype.getNewAddress = function(cb) {
     var self = this;
 
     var deferred = q.defer();
@@ -2167,17 +2237,17 @@ Wallet.prototype.getNewAddress = function (cb) {
 
     deferred.resolve(
         self.sdk.getNewDerivation(self.identifier, "M/" + self.keyIndex + "'/0")
-        .then(function (newDerivation) {
-            var path = newDerivation.path;
-            var address = self.getAddressByPath(newDerivation.path);
+            .then(function(newDerivation) {
+                var path = newDerivation.path;
+                var address = self.getAddressByPath(newDerivation.path);
 
-            // debug check
-            if (address !== newDerivation.address) {
-                throw new Error("Failed to verify address [" + newDerivation.address + "] !== [" + address + "]");
-            }
+                // debug check
+                if (address !== newDerivation.address) {
+                    throw new blocktrail.WalletAddressError("Failed to verify address [" + newDerivation.address + "] !== [" + address + "]");
+                }
 
-            return [address, path];
-        })
+                return [address, path];
+            })
     );
 
     return deferred.promise;
@@ -2189,7 +2259,7 @@ Wallet.prototype.getNewAddress = function (cb) {
  * @param [cb]  function        callback(err, confirmed, unconfirmed)
  * @returns {q.Promise}
  */
-Wallet.prototype.getBalance = function (cb) {
+Wallet.prototype.getBalance = function(cb) {
     var self = this;
 
     var deferred = q.defer();
@@ -2197,9 +2267,9 @@ Wallet.prototype.getBalance = function (cb) {
 
     deferred.resolve(
         self.sdk.getWalletBalance(self.identifier)
-        .then(function (result) {
-            return [result.confirmed, result.unconfirmed];
-        })
+            .then(function(result) {
+                return [result.confirmed, result.unconfirmed];
+            })
     );
 
     return deferred.promise;
@@ -2212,7 +2282,7 @@ Wallet.prototype.getBalance = function (cb) {
  * @param [cb]  function        callback(err, confirmed, unconfirmed)
  * @returns {q.Promise}
  */
-Wallet.prototype.doDiscovery = function (gap, cb) {
+Wallet.prototype.doDiscovery = function(gap, cb) {
     var self = this;
 
     if (typeof gap === "function") {
@@ -2225,9 +2295,9 @@ Wallet.prototype.doDiscovery = function (gap, cb) {
 
     deferred.resolve(
         self.sdk.doWalletDiscovery(self.identifier, gap)
-        .then(function (result) {
-            return [result.confirmed, result.unconfirmed];
-        })
+            .then(function(result) {
+                return [result.confirmed, result.unconfirmed];
+            })
     );
 
     return deferred.promise;
@@ -2239,7 +2309,7 @@ Wallet.prototype.doDiscovery = function (gap, cb) {
  * @param [cb]      function        callback(err, success)
  * @returns {q.Promise}
  */
-Wallet.prototype.deleteWallet = function (force, cb) {
+Wallet.prototype.deleteWallet = function(force, cb) {
     var self = this;
 
     if (typeof force === "function") {
@@ -2251,7 +2321,7 @@ Wallet.prototype.deleteWallet = function (force, cb) {
     deferred.promise.nodeify(cb);
 
     if (self.locked) {
-        deferred.reject(new Error("Wallet needs to be unlocked to delete wallet"));
+        deferred.reject(new blocktrail.WalletDeleteError("Wallet needs to be unlocked to delete wallet"));
         return deferred.promise;
     }
 
@@ -2260,9 +2330,9 @@ Wallet.prototype.deleteWallet = function (force, cb) {
 
     deferred.resolve(
         self.sdk.deleteWallet(self.identifier, checksum, signature, force)
-        .then(function (result) {
-            return result.deleted;
-        })
+            .then(function(result) {
+                return result.deleted;
+            })
     );
 
     return deferred.promise;
@@ -2271,13 +2341,14 @@ Wallet.prototype.deleteWallet = function (force, cb) {
 /**
  * create, sign and send a transaction
  *
- * @param pay               array       {'address': (int)value}     coins to send
- * @param [changeAddress]   bool        change address to use (auto generated if NULL)
- * @param [allowZeroConf]   bool        allow zero confirmation unspent outputs to be used in coin selection
- * @param [cb]              function    callback(err, txHash)
+ * @param pay                   array       {'address': (int)value}     coins to send
+ * @param [changeAddress]       bool        change address to use (auto generated if NULL)
+ * @param [allowZeroConf]       bool        allow zero confirmation unspent outputs to be used in coin selection
+ * @param [randomizeChangeIdx]  bool        randomize the index of the change output (default TRUE, only disable if you have a good reason to)
+ * @param [cb]                  function    callback(err, txHash)
  * @returns {q.Promise}
  */
-Wallet.prototype.pay = function (pay, changeAddress, allowZeroConf, cb) {
+Wallet.prototype.pay = function(pay, changeAddress, allowZeroConf, randomizeChangeIdx, cb) {
     /* jshint -W071 */
     var self = this;
 
@@ -2285,146 +2356,305 @@ Wallet.prototype.pay = function (pay, changeAddress, allowZeroConf, cb) {
         cb = changeAddress;
         changeAddress = null;
         allowZeroConf = false;
+        randomizeChangeIdx = true;
     } else if (typeof allowZeroConf === "function") {
         cb = allowZeroConf;
         allowZeroConf = false;
+        randomizeChangeIdx = true;
+    } else if (typeof randomizeChangeIdx === "function") {
+        cb = randomizeChangeIdx;
+        randomizeChangeIdx = true;
     }
 
     var deferred = q.defer();
     deferred.promise.nodeify(cb);
 
     if (self.locked) {
-        deferred.reject(new Error("Wallet needs to be unlocked to send coins"));
+        deferred.reject(new blocktrail.WalletLockedError("Wallet needs to be unlocked to send coins"));
         return deferred.promise;
     }
 
-    var send = {}, address;
-    for (address in pay) {
-        address = address.trim();
-        var value = pay[address];
-        var err = null;
+    q.nextTick(function() {
+        deferred.notify(Wallet.PAY_PROGRESS_START);
 
-        var addr;
-        try {
-            addr = bitcoin.Address.fromBase58Check(address);
-        } catch (_err) {
-            err = _err;
-        }
+        self.buildTransaction(pay, changeAddress, allowZeroConf, randomizeChangeIdx)
+            .then(
+                function(r) { return r; },
+                function(e) { deferred.reject(e); },
+                function(progress) {
+                    deferred.notify(progress);
+                }
+            )
+            .spread(
+                function(tx, utxos) {
+                    deferred.notify(Wallet.PAY_PROGRESS_SEND);
 
-        if (!addr || err) {
-            err = new Error("Invalid address [" + address + "]" + (err ? " (" + err.message + ")" : ""));
-        } else if (parseInt(value, 10).toString() !== value.toString()) {
-            err = new Error("Values should be in Satoshis");
-        } else if (!(value = parseInt(value, 10))) {
-            err = new Error("Values should be non zero");
-        } else if (value <= blocktrail.DUST) {
-            err = new Error("Values should be more than dust (" + blocktrail.DUST + ")");
-        }
+                    return self.sendTransaction(tx.toHex(), utxos.map(function(utxo) { return utxo['path']; }), true)
+                        .then(function(result) {
+                            deferred.notify(Wallet.PAY_PROGRESS_DONE);
 
-        if (err) {
-            deferred.reject(err);
-            return deferred.promise;
-        }
+                            if (!result || !result['complete'] || result['complete'] === 'false') {
+                                return deferred.reject(new blocktrail.TransactionSignError("Failed to completely sign transaction"));
+                            } else {
+                                return result['txid'];
+                            }
+                        });
+                },
+                function(e) {
+                    throw e;
+                }
+            )
+            .then(
+                function(r) { deferred.resolve(r); },
+                function(e) { deferred.reject(e); }
+            )
+        ;
+    });
 
-        send[address] = value;
+    return deferred.promise;
+};
+
+Wallet.prototype.buildTransaction = function(pay, changeAddress, allowZeroConf, randomizeChangeIdx, cb) {
+    /* jshint -W071 */
+    var self = this;
+
+    if (typeof changeAddress === "function") {
+        cb = changeAddress;
+        changeAddress = null;
+        allowZeroConf = false;
+        randomizeChangeIdx = true;
+    } else if (typeof allowZeroConf === "function") {
+        cb = allowZeroConf;
+        allowZeroConf = false;
+        randomizeChangeIdx = true;
+    } else if (typeof randomizeChangeIdx === "function") {
+        cb = randomizeChangeIdx;
+        randomizeChangeIdx = true;
     }
 
-    deferred.resolve(
-        self.coinSelection(pay, true, allowZeroConf)
-        /**
-         *
-         * @param {Object[]} utxos
-         * @param fee
-         * @param change
-         * @param randomizeChangeIdx
-         * @returns {*}
-         */
-        .spread(function (utxos, fee, change, randomizeChangeIdx) {
-            var tx, txb;
+    var deferred = q.defer();
+    deferred.promise.spreadNodeify(cb);
 
-            var deferred = q.defer();
+    q.nextTick(function() {
+        var send = {};
 
-            async.waterfall([
-                function (cb) {
-                    var inputsTotal = utxos.map(function (utxo) { return utxo['value']; }).reduce(function (a, b) { return a + b; }),
-                        outputsTotal = Object.keys(send).map(function (address) { return send[address]; }).reduce(function (a, b) { return a + b; }),
-                        estimatedChange = inputsTotal - outputsTotal - fee;
+        Object.keys(pay).forEach(function(address) {
+            address = address.trim();
+            var value = pay[address];
+            var err = null;
 
-                    if (inputsTotal - outputsTotal - fee !== change) {
-                        return cb(new Error("the amount of change (" + change + ") suggested by the coin selection seems incorrect (" + estimatedChange + ")"));
-                    }
+            var addr;
+            try {
+                addr = bitcoin.Address.fromBase58Check(address);
+            } catch (_err) {
+                err = _err;
+            }
 
-                    cb();
-                },
-                function (cb) {
-                    if (change > 0) {
-                        if (!changeAddress) {
-                            return self.getNewAddress(function (err, address) {
-                                if (err) {
-                                    return cb(err);
-                                }
+            if (!addr || err) {
+                err = new blocktrail.InvalidAddressError("Invalid address [" + address + "]" + (err ? " (" + err.message + ")" : ""));
+            } else if (parseInt(value, 10).toString() !== value.toString()) {
+                err = new blocktrail.WalletSendError("Values should be in Satoshis");
+            } else if (!(value = parseInt(value, 10))) {
+                err = new blocktrail.WalletSendError("Values should be non zero");
+            } else if (value <= blocktrail.DUST) {
+                err = new blocktrail.WalletSendError("Values should be more than dust (" + blocktrail.DUST + ")");
+            }
 
-                                changeAddress = address;
-                                send[changeAddress] = change;
-                                return cb();
+            if (err) {
+                deferred.reject(err);
+                return deferred.promise;
+            }
+
+            send[address] = value;
+        });
+
+        deferred.notify(Wallet.PAY_PROGRESS_COIN_SELECTION);
+
+        deferred.resolve(
+            self.coinSelection(pay, true, allowZeroConf)
+            /**
+             *
+             * @param {Object[]} utxos
+             * @param fee
+             * @param change
+             * @param randomizeChangeIdx
+             * @returns {*}
+             */
+                .spread(function(utxos, fee, change) {
+                    var tx, txb, outputs = [];
+
+                    var deferred = q.defer();
+
+                    async.waterfall([
+                        /**
+                         * prepare
+                         *
+                         * @param cb
+                         */
+                            function(cb) {
+                            var inputsTotal = utxos.map(function(utxo) {
+                                    return utxo['value'];
+                                }).reduce(function(a, b) {
+                                    return a + b;
+                                }),
+                                outputsTotal = Object.keys(send).map(function(address) {
+                                    return send[address];
+                                }).reduce(function(a, b) {
+                                    return a + b;
+                                }),
+                                estimatedChange = inputsTotal - outputsTotal - fee;
+
+                            if (inputsTotal - outputsTotal - fee !== change) {
+                                return cb(new blocktrail.WalletFeeError("the amount of change (" + change + ") " +
+                                "suggested by the coin selection seems incorrect (" + estimatedChange + ")"));
+                            }
+
+                            cb();
+                        },
+                        /**
+                         * init transaction builder
+                         *
+                         * @param cb
+                         */
+                        function(cb) {
+                            txb = new bitcoin.TransactionBuilder();
+
+                            cb();
+                        },
+                        /**
+                         * add UTXOs as inputs
+                         *
+                         * @param cb
+                         */
+                        function(cb) {
+                            var i;
+
+                            for (i = 0; i < utxos.length; i++) {
+                                txb.addInput(utxos[i]['hash'], utxos[i]['idx']);
+                            }
+
+                            cb();
+
+                        },
+                        /**
+                         * build desired outputs
+                         *
+                         * @param cb
+                         */
+                        function(cb) {
+                            Object.keys(send).forEach(function(address) {
+                                outputs.push({address: address, value: parseInt(send[address], 10)});
                             });
+
+                            cb();
+                        },
+                        /**
+                         * get change address if required
+                         *
+                         * @param cb
+                         */
+                        function(cb) {
+                            if (change > 0) {
+                                if (change <= blocktrail.DUST) {
+                                    change = 0; // don't do a change output if it would be a dust output
+
+                                } else {
+                                    if (!changeAddress) {
+                                        deferred.notify(Wallet.PAY_PROGRESS_CHANGE_ADDRESS);
+
+                                        return self.getNewAddress(function(err, address) {
+                                            if (err) {
+                                                return cb(err);
+                                            }
+
+                                            changeAddress = address;
+                                            cb();
+                                        });
+                                    }
+                                }
+                            }
+
+                            cb();
+                        },
+                        /**
+                         * add change to outputs
+                         *
+                         * @param cb
+                         */
+                        function(cb) {
+                            if (change > 0) {
+                                if (randomizeChangeIdx) {
+                                    outputs.splice(_.random(0, outputs.length), 0, {
+                                        address: changeAddress,
+                                        value: change
+                                    });
+                                } else {
+                                    outputs.push({address: changeAddress, value: change});
+                                }
+                            }
+
+                            cb();
+                        },
+                        /**
+                         * add outputs to txb
+                         *
+                         * @param cb
+                         */
+                        function(cb) {
+                            outputs.forEach(function(outputInfo) {
+                                txb.addOutput(outputInfo.address, outputInfo.value);
+                            });
+
+                            cb();
+                        },
+                        /**
+                         * sign
+                         *
+                         * @param cb
+                         */
+                        function(cb) {
+                            var i;
+
+                            deferred.notify(Wallet.PAY_PROGRESS_SIGN);
+
+                            for (i = 0; i < utxos.length; i++) {
+                                var privKey = Wallet.deriveByPath(self.primaryPrivateKey, utxos[i]['path'].replace("M", "m"), "m").privKey;
+                                var redeemScript = bitcoin.Script.fromHex(utxos[i]['redeem_script']);
+
+                                txb.sign(i, privKey, redeemScript);
+                            }
+
+                            tx = txb.buildIncomplete();
+
+                            cb();
+                        },
+                        /**
+                         * estimate fee
+                         *
+                         * @param cb
+                         */
+                        function(cb) {
+                            var estimatedFee = Wallet.estimateIncompleteTxFee(tx);
+                            if (Math.abs(estimatedFee - fee) > blocktrail.BASE_FEE) {
+                                return cb(new blocktrail.WalletFeeError("the fee suggested by the coin selection (" + fee + ") " +
+                                                                        "seems incorrect (" + estimatedFee + ")"));
+                            }
+
+                            cb();
                         }
-                    }
+                    ], function(err) {
+                        if (err) {
+                            return deferred.reject(new blocktrail.WalletSendError(err));
+                        }
 
-                    cb();
-                },
-                function (cb) {
-                    var i;
-
-                    txb = new bitcoin.TransactionBuilder();
-
-                    for (i = 0; i < utxos.length; i++) {
-                        txb.addInput(utxos[i]['hash'], utxos[i]['idx']);
-                    }
-
-                    var addresses = randomizeChangeIdx ? _.shuffle(Object.keys(send)) : Object.keys(send);
-                    _.each(addresses, function (address) {
-                        txb.addOutput(address, parseInt(send[address], 10));
+                        return deferred.resolve([tx, utxos]);
                     });
 
-                    for (i = 0; i < utxos.length; i++) {
-                        var privKey = Wallet.deriveByPath(self.primaryPrivateKey, utxos[i]['path'].replace("M", "m"), "m").privKey;
-                        var redeemScript = bitcoin.Script.fromHex(utxos[i]['redeem_script']);
-
-                        txb.sign(i, privKey, redeemScript);
-                    }
-
-                    tx = txb.buildIncomplete();
-
-                    cb();
-                },
-                function (cb) {
-                    var estimatedFee = Wallet.estimateIncompleteTxFee(tx);
-                    if (estimatedFee !== fee) {
-                        return cb(new Error("the fee suggested by the coin selection (" + fee + ") seems incorrect (" + estimatedFee + ")"));
-                    }
-
-                    cb();
-                },
-                function (cb) {
-                    self.sendTransaction(tx.toHex(), utxos.map(function (utxo) { return utxo['path']; }), true, cb);
+                    return deferred.promise;
                 }
-            ], function (err, result) {
-                if (err) {
-                    return deferred.reject(err);
-                }
-
-                if (!result || !result['complete'] || result['complete'] === 'false') {
-                    err = new Error("Failed to completely sign transaction");
-                    return deferred.reject(err);
-                }
-
-                return deferred.resolve(result.txid);
-            });
-
-            return deferred.promise;
-        })
-    );
+            )
+        );
+    });
 
     return deferred.promise;
 };
@@ -2438,7 +2668,7 @@ Wallet.prototype.pay = function (pay, changeAddress, allowZeroConf, cb) {
  * @param [cb]              function    callback(err, utxos, fee, change)
  * @returns {q.Promise}
  */
-Wallet.prototype.coinSelection = function (pay, lockUTXO, allowZeroConf, cb) {
+Wallet.prototype.coinSelection = function(pay, lockUTXO, allowZeroConf, cb) {
     var self = this;
 
     return self.sdk.coinSelection(self.identifier, pay, lockUTXO, allowZeroConf, cb);
@@ -2453,7 +2683,7 @@ Wallet.prototype.coinSelection = function (pay, lockUTXO, allowZeroConf, cb) {
  * @param [cb]      function    callback(err, txHash)
  * @returns {q.Promise}
  */
-Wallet.prototype.sendTransaction = function (txHex, paths, checkFee, cb) {
+Wallet.prototype.sendTransaction = function(txHex, paths, checkFee, cb) {
     var self = this;
 
     return self.sdk.sendTransaction(self.identifier, txHex, paths, checkFee, cb);
@@ -2467,7 +2697,7 @@ Wallet.prototype.sendTransaction = function (txHex, paths, checkFee, cb) {
  * @param [cb]          function    callback(err, webhook)
  * @returns {q.Promise}
  */
-Wallet.prototype.setupWebhook = function (url, identifier, cb) {
+Wallet.prototype.setupWebhook = function(url, identifier, cb) {
     var self = this;
 
     if (typeof identifier === "function") {
@@ -2489,7 +2719,7 @@ Wallet.prototype.setupWebhook = function (url, identifier, cb) {
  * @param [cb]          function    callback(err, success)
  * @returns {q.Promise}
  */
-Wallet.prototype.deleteWebhook = function (identifier, cb) {
+Wallet.prototype.deleteWebhook = function(identifier, cb) {
     var self = this;
 
     if (typeof identifier === "function") {
@@ -2511,7 +2741,7 @@ Wallet.prototype.deleteWebhook = function (identifier, cb) {
  * @param [cb]      function    callback(err, transactions)
  * @returns {q.Promise}
  */
-Wallet.prototype.transactions = function (params, cb) {
+Wallet.prototype.transactions = function(params, cb) {
     var self = this;
 
     return self.sdk.walletTransactions(self.identifier, params, cb);
@@ -2524,7 +2754,7 @@ Wallet.prototype.transactions = function (params, cb) {
  * @param [cb]      function    callback(err, addresses)
  * @returns {q.Promise}
  */
-Wallet.prototype.addresses = function (params, cb) {
+Wallet.prototype.addresses = function(params, cb) {
     var self = this;
 
     return self.sdk.walletAddresses(self.identifier, params, cb);
@@ -2537,7 +2767,7 @@ Wallet.prototype.addresses = function (params, cb) {
  * @param [cb]      function    callback(err, addresses)
  * @returns {q.Promise}
  */
-Wallet.prototype.utxos = function (params, cb) {
+Wallet.prototype.utxos = function(params, cb) {
     var self = this;
 
     return self.sdk.walletUTXOs(self.identifier, params, cb);
@@ -2552,8 +2782,8 @@ Wallet.prototype.unspentOutputs = Wallet.prototype.utxos;
  * @param pubKeys   {bitcoin.HDNode[]}
  * @returns string[]
  */
-Wallet.sortMultiSigKeys = function (pubKeys) {
-    pubKeys.sort(function (key1, key2) {
+Wallet.sortMultiSigKeys = function(pubKeys) {
+    pubKeys.sort(function(key1, key2) {
         return key1.toHex().localeCompare(key2.toHex());
     });
 
@@ -2567,43 +2797,43 @@ Wallet.sortMultiSigKeys = function (pubKeys) {
  * @param {bitcoin.Transaction} tx
  * @returns {number}
  */
-Wallet.estimateIncompleteTxFee = function (tx) {
+Wallet.estimateIncompleteTxFee = function(tx) {
     var size = 4 + 4;
 
     size += tx.outs.length * 34;
 
-    tx.ins.forEach(function (txin) {
+    tx.ins.forEach(function(txin) {
         var scriptSig = bitcoin.Script.fromBuffer(txin.script.buffer),
             scriptType = bitcoin.scripts.classifyInput(scriptSig);
 
-        var multiSig = false;
+        var multiSig = [2, 3]; // tmp hardcoded
 
         // Re-classify if P2SH
-        if (scriptType === 'scripthash') {
+        if (!multiSig && scriptType === 'scripthash') {
             var redeemScript = bitcoin.Script.fromBuffer(scriptSig.chunks.slice(-1)[0]);
             scriptSig = bitcoin.Script.fromChunks(scriptSig.chunks.slice(0, -1));
             scriptType = bitcoin.scripts.classifyInput(scriptSig);
 
             if (bitcoin.scripts.classifyOutput(redeemScript) !== scriptType) {
-                throw new Error('Non-matching scriptSig and scriptPubKey in input');
+                throw new blocktrail.TransactionInputError('Non-matching scriptSig and scriptPubKey in input');
             }
 
             // figure out M of N for multisig (code from internal usage of bitcoinjs)
             if (scriptType === 'multisig') {
                 var mOp = redeemScript.chunks[0];
                 if (mOp === bitcoin.opcodes.OP_0 || mOp < bitcoin.opcodes.OP_1 || mOp > bitcoin.opcodes.OP_16) {
-                    throw new Error("Invalid multisig redeemScript");
+                    throw new blocktrail.TransactionInputError("Invalid multisig redeemScript");
                 }
 
                 var nOp = redeemScript.chunks[redeemScript.chunks.length - 2];
                 if (mOp === bitcoin.opcodes.OP_0 || mOp < bitcoin.opcodes.OP_1 || mOp > bitcoin.opcodes.OP_16) {
-                    throw new Error("Invalid multisig redeemScript");
+                    throw new blocktrail.TransactionInputError("Invalid multisig redeemScript");
                 }
 
                 var m = mOp - (bitcoin.opcodes.OP_1 - 1);
                 var n = nOp - (bitcoin.opcodes.OP_1 - 1);
                 if (n < m) {
-                    throw new Error("Invalid multisig redeemScript");
+                    throw new blocktrail.TransactionInputError("Invalid multisig redeemScript");
                 }
 
                 multiSig = [m, n];
@@ -2641,15 +2871,15 @@ Wallet.estimateIncompleteTxFee = function (tx) {
  * @param keyPath   string
  * @returns {bitcoin.HDNode}
  */
-Wallet.deriveByPath = function (hdKey, path, keyPath) {
+Wallet.deriveByPath = function(hdKey, path, keyPath) {
     keyPath = keyPath || (!!hdKey.privKey ? "m" : "M");
 
     if (path[0].toLowerCase() !== "m" || keyPath[0].toLowerCase() !== "m") {
-        throw new Error("Wallet.deriveByPath only works with absolute paths. (" + path + ", " + keyPath + ")");
+        throw new blocktrail.KeyPathError("Wallet.deriveByPath only works with absolute paths. (" + path + ", " + keyPath + ")");
     }
 
     if (path[0] === "m" && keyPath[0] === "M") {
-        throw new Error("Wallet.deriveByPath can't derive private path from public parent. (" + path + ", " + keyPath + ")");
+        throw new blocktrail.KeyPathError("Wallet.deriveByPath can't derive private path from public parent. (" + path + ", " + keyPath + ")");
     }
 
     // if the desired path is public while the input is private
@@ -2661,7 +2891,7 @@ Wallet.deriveByPath = function (hdKey, path, keyPath) {
 
     // keyPath should be the parent parent of path
     if (path.toLowerCase().indexOf(keyPath.toLowerCase()) !== 0) {
-        throw new Error("Wallet.derivePath requires path (" + path + ") to be a child of keyPath (" + keyPath + ")");
+        throw new blocktrail.KeyPathError("Wallet.derivePath requires path (" + path + ") to be a child of keyPath (" + keyPath + ")");
     }
 
     // remove the part of the path we already have
@@ -2669,7 +2899,7 @@ Wallet.deriveByPath = function (hdKey, path, keyPath) {
 
     // iterate over the chunks and derive
     var newKey = hdKey;
-    path.replace(/^\//, "").split("/").forEach(function (chunk) {
+    path.replace(/^\//, "").split("/").forEach(function(chunk) {
         if (!chunk) {
             return;
         }
@@ -2693,13 +2923,13 @@ module.exports = Wallet;
 },{"./blocktrail":3,"assert":61,"async":11,"bitcoinjs-lib":38,"lodash":107,"q":108}],9:[function(require,module,exports){
 var bip39 = require("bip39");
 
-module.exports = function (self) {
-    self.addEventListener('message', function (e) {
+module.exports = function(self) {
+    self.addEventListener('message', function(e) {
         var data = e.data || {};
 
         switch (data.method) {
             case 'mnemonicToSeedHex':
-                (function () {
+                (function() {
                     var mnemonic = data.mnemonic;
                     var passphrase = data.passphrase;
 
@@ -2722,7 +2952,7 @@ module.exports = function (self) {
 var APIClient = require('./lib/api_client');
 var blocktrail = require('./lib/blocktrail');
 
-Object.keys(blocktrail).forEach(function (key) {
+Object.keys(blocktrail).forEach(function(key) {
     APIClient[key] = blocktrail[key];
 });
 
