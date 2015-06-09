@@ -9,12 +9,12 @@ var client = blocktrail.BlocktrailSDK({
 client.initWallet({
     identifier: "example-wallet",
     readOnly: true
-}, function (err, wallet) {
+}, function(err, wallet) {
     if (err) {
         return console.log('initWallet ERR', err);
     }
 
-    wallet.getBalance(function (err, confirmed, unconfirmed) {
+    wallet.getBalance(function(err, confirmed, unconfirmed) {
         if (err) {
             return console.log("getBalance ERR", err);
         }

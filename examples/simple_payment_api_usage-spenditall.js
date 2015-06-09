@@ -11,8 +11,23 @@ client.initWallet({
     identifier: "example-wallet",
     readOnly: true
 }, function(err, wallet) {
+    if (err) {
+        console.log(err);
+        return;
+    }
+
     wallet.getNewAddress(function(err, selfAddress) {
+        if (err) {
+            console.log(err);
+            return;
+        }
+
         wallet.unlock({passphrase: "example-strong-password"}, function(err) {
+            if (err) {
+                console.log(err);
+                return;
+            }
+
             // get all UTXOs
             wallet.utxos({limit: 200}, function(err, utxos) {
                 // init a bitcoinjs-lib TransactionBuilder
@@ -43,7 +58,12 @@ client.initWallet({
                 console.log(total, estimatedFee, pay);
 
                 wallet.pay(pay, function(err, txHash) {
-                    console.log(err, txHash);
+                    if (err) {
+                        console.log(err);
+                        return;
+                    }
+
+                    console.log(txHash);
                 });
             });
         });

@@ -5,8 +5,8 @@ var qs = require('querystring');
 var superagent = require('superagent'),
     superagentHttpSignature = require('superagent-http-signature/index-hmac-only');
 
-describe("content-MD5", function () {
-    it("should be set properly", function (cb) {
+describe("content-MD5", function() {
+    it("should be set properly", function(cb) {
         var data = {signature: "HPMOHRgPSMKdXrU6AqQs/i9S7alOakkHsJiqLGmInt05Cxj6b/WhS7kJxbIQxKmDW08YKzoFnbVZIoTI2qofEzk="};
 
         assert.equal(qs.stringify(data), "signature=HPMOHRgPSMKdXrU6AqQs%2Fi9S7alOakkHsJiqLGmInt05Cxj6b%2FWhS7kJxbIQxKmDW08YKzoFnbVZIoTI2qofEzk%3D");
@@ -15,8 +15,8 @@ describe("content-MD5", function () {
     });
 });
 
-describe("HMAC signature", function () {
-    it("should be correct", function (cb) {
+describe("HMAC signature", function() {
+    it("should be correct", function(cb) {
         var request = superagent('GET', 'http://example.com/path?query=123');
 
         request.set('Date', 'today');
