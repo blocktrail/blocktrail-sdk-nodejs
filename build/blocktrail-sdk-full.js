@@ -1472,8 +1472,10 @@ Error.extend = function(subTypeName, errorCode /*optional*/) {
         this.code = errorCode;
         this.message = message || '';
 
-        //include stack trace in error object
-        Error.captureStackTrace(this, this.constructor);
+        //include stack trace in error object (only supported in v8 browsers)
+        if (Error.captureStackTrace) {
+            Error.captureStackTrace(this, this.constructor);
+        }
     };
 
     //inherit the base prototype chain
