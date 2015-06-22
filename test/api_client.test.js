@@ -151,6 +151,28 @@ describe('data api', function() {
             cb();
         });
     });
+    it('test batch transactions', function(cb) {
+        client.transactions([
+            "c791b82ed9af681b73eadb7a05b67294c1c3003e52d01e03775bfb79d4ac58d1",
+            "0e3e2357e806b6cdb1f70b54c3a3a17b6714ee1f0e68bebb44a74b1efd512098"
+        ], function(err, txs) {
+            assert.ifError(err);
+
+            assert.ok(Object.keys(txs['data']).length === 2);
+
+            var tx1 = txs['data']["c791b82ed9af681b73eadb7a05b67294c1c3003e52d01e03775bfb79d4ac58d1"];
+            assert.equal(tx1['hash'], "c791b82ed9af681b73eadb7a05b67294c1c3003e52d01e03775bfb79d4ac58d1");
+            assert.ok(tx1['confirmations']);
+            assert.equal(tx1['enough_fee'], true);
+            assert.equal(tx1['high_priority'], false);
+
+            var tx2 = txs['data']["0e3e2357e806b6cdb1f70b54c3a3a17b6714ee1f0e68bebb44a74b1efd512098"];
+            assert.equal(tx2['hash'], "0e3e2357e806b6cdb1f70b54c3a3a17b6714ee1f0e68bebb44a74b1efd512098");
+            assert.equal(tx2['enough_fee'], null);
+
+            cb();
+        });
+    });
 });
 
 describe('webhooks api', function() {
