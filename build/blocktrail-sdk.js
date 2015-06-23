@@ -363,7 +363,7 @@ APIClient.prototype.transaction = function(tx, cb) {
 APIClient.prototype.transactions = function(txs, cb) {
     var self = this;
 
-    return self.client.post("/transactions", null, txs, cb);
+    return self.client.post("/transactions", null, txs, cb, false);
 };
 
 /**
@@ -1799,6 +1799,12 @@ Request.prototype.performRequest = function(options) {
     });
 
     if (signHMAC) {
+        if (!self.apiSecret) {
+            var error = new Error("Missing apiSecret! required to sign POST requests!");
+            self.deferred.reject(error);
+            return self.callback(error);
+        }
+
         request.use(superagentHttpSignature({
             headers: ['(request-target)', 'content-md5'],
             algorithm: 'hmac-sha256',
@@ -1900,12 +1906,26 @@ RestClient.prototype.create_request = function(options) {
     return new Request(options);
 };
 
-RestClient.prototype.post = function(path, params, data, fn) {
-    return this.create_request({auth: 'http-signature'}).request('POST', path, params, data, fn);
+RestClient.prototype.post = function(path, params, data, fn, requireAuth) {
+    requireAuth = typeof requireAuth === "undefined" ? true : requireAuth;
+
+    var options = {};
+    if (requireAuth) {
+        options['auth'] = 'http-signature';
+    }
+
+    return this.create_request(options).request('POST', path, params, data, fn);
 };
 
-RestClient.prototype.put = function(path, params, data, fn) {
-    return this.create_request({auth: 'http-signature'}).request('PUT', path, params, data, fn);
+RestClient.prototype.put = function(path, params, data, fn, requireAuth) {
+    requireAuth = typeof requireAuth === "undefined" ? true : requireAuth;
+
+    var options = {};
+    if (requireAuth) {
+        options['auth'] = 'http-signature';
+    }
+
+    return this.create_request(options).request('PUT', path, params, data, fn);
 };
 
 RestClient.prototype.get = function(path, params, doHttpSignature, fn) {
@@ -1923,8 +1943,15 @@ RestClient.prototype.get = function(path, params, doHttpSignature, fn) {
     return this.create_request(options).request('GET', path, params, null, fn);
 };
 
-RestClient.prototype.delete = function(path, params, data, fn) {
-    return this.create_request({auth: 'http-signature'}).request('DELETE', path, params, data, fn);
+RestClient.prototype.delete = function(path, params, data, fn, requireAuth) {
+    requireAuth = typeof requireAuth === "undefined" ? true : requireAuth;
+
+    var options = {};
+    if (requireAuth) {
+        options['auth'] = 'http-signature';
+    }
+
+    return this.create_request(options).request('DELETE', path, params, data, fn);
 };
 
 module.exports = function(options) {
