@@ -160,11 +160,12 @@ describe('data api', function() {
             "356210d6b8143e23d0cf4d0dae0ac686015a13fe3b2b46b1cc43a71a36c73355",
             "a40d1eee0cec3d963d8df2870bd642bd3fd07163e864aeb90fa5efe9ea91c998",
             "1c7e3c9823baa9bb70b09ed666e8a6b3120b07f84429ed41f05d5504bd58f188",
-            "1f0a168f0fceb6e48208b23ffb1ad528acfc11c30ab302d447743f2a0fc5fe80"
+            "1f0a168f0fceb6e48208b23ffb1ad528acfc11c30ab302d447743f2a0fc5fe80",
+            "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" // not found
         ], function(err, txs) {
             assert.ifError(err);
 
-            assert.ok(Object.keys(txs['data']).length === 8);
+            assert.equal(Object.keys(txs['data']).length, 8);
 
             var tx1 = txs['data']["c791b82ed9af681b73eadb7a05b67294c1c3003e52d01e03775bfb79d4ac58d1"];
             assert.equal(tx1['hash'], "c791b82ed9af681b73eadb7a05b67294c1c3003e52d01e03775bfb79d4ac58d1");
@@ -178,6 +179,8 @@ describe('data api', function() {
 
             var tx8 = txs['data']["1f0a168f0fceb6e48208b23ffb1ad528acfc11c30ab302d447743f2a0fc5fe80"];
             assert.equal(tx8['hash'], "1f0a168f0fceb6e48208b23ffb1ad528acfc11c30ab302d447743f2a0fc5fe80");
+
+            assert.ok(!txs['data']['ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff']);
 
             cb();
         });
