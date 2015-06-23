@@ -154,11 +154,17 @@ describe('data api', function() {
     it('test batch transactions', function(cb) {
         client.transactions([
             "c791b82ed9af681b73eadb7a05b67294c1c3003e52d01e03775bfb79d4ac58d1",
-            "0e3e2357e806b6cdb1f70b54c3a3a17b6714ee1f0e68bebb44a74b1efd512098"
+            "0e3e2357e806b6cdb1f70b54c3a3a17b6714ee1f0e68bebb44a74b1efd512098",
+            "4bbe6feeb50e47e2de5ef6a9d7378363823611dd07d4a5ea1799da9ae6a21665",
+            "6c0d3156621051a86b8af3f23dfe211e8a17a01bffe3c2b24cbee65139873c6a",
+            "356210d6b8143e23d0cf4d0dae0ac686015a13fe3b2b46b1cc43a71a36c73355",
+            "a40d1eee0cec3d963d8df2870bd642bd3fd07163e864aeb90fa5efe9ea91c998",
+            "1c7e3c9823baa9bb70b09ed666e8a6b3120b07f84429ed41f05d5504bd58f188",
+            "1f0a168f0fceb6e48208b23ffb1ad528acfc11c30ab302d447743f2a0fc5fe80"
         ], function(err, txs) {
             assert.ifError(err);
 
-            assert.ok(Object.keys(txs['data']).length === 2);
+            assert.ok(Object.keys(txs['data']).length === 8);
 
             var tx1 = txs['data']["c791b82ed9af681b73eadb7a05b67294c1c3003e52d01e03775bfb79d4ac58d1"];
             assert.equal(tx1['hash'], "c791b82ed9af681b73eadb7a05b67294c1c3003e52d01e03775bfb79d4ac58d1");
@@ -169,6 +175,9 @@ describe('data api', function() {
             var tx2 = txs['data']["0e3e2357e806b6cdb1f70b54c3a3a17b6714ee1f0e68bebb44a74b1efd512098"];
             assert.equal(tx2['hash'], "0e3e2357e806b6cdb1f70b54c3a3a17b6714ee1f0e68bebb44a74b1efd512098");
             assert.equal(tx2['enough_fee'], null);
+
+            var tx8 = txs['data']["1f0a168f0fceb6e48208b23ffb1ad528acfc11c30ab302d447743f2a0fc5fe80"];
+            assert.equal(tx8['hash'], "1f0a168f0fceb6e48208b23ffb1ad528acfc11c30ab302d447743f2a0fc5fe80");
 
             cb();
         });
