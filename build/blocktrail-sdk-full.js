@@ -4682,7 +4682,7 @@ APIClient.prototype.mnemonicToPrivateKey = function(mnemonic, passphrase, cb) {
         }, false);
 
         worker.addEventListener('error', function(e) {
-            return deferred.reject(new Error(e.message.replace("Uncaught Error: ", '')));
+            deferred.reject(new Error(e.message.replace("Uncaught Error: ", '')));
         });
 
         worker.postMessage({method: 'mnemonicToSeedHex', mnemonic: mnemonic, passphrase: passphrase});
@@ -6824,9 +6824,28 @@ Wallet.prototype.getBalance = function(cb) {
 
     deferred.resolve(
         self.sdk.getWalletBalance(self.identifier)
-        .then(function(result) {
-            return [result.confirmed, result.unconfirmed];
-        })
+            .then(function(result) {
+                return [result.confirmed, result.unconfirmed];
+            })
+    );
+
+    return deferred.promise;
+};
+
+/**
+ * get the balance for the wallet
+ *
+ * @param [cb]  function        callback(err, confirmed, unconfirmed)
+ * @returns {q.Promise}
+ */
+Wallet.prototype.getInfo = function(cb) {
+    var self = this;
+
+    var deferred = q.defer();
+    deferred.promise.spreadNodeify(cb);
+
+    deferred.resolve(
+        self.sdk.getWalletBalance(self.identifier)
     );
 
     return deferred.promise;
@@ -7205,7 +7224,7 @@ Wallet.sortMultiSigKeys = function(pubKeys) {
  * @returns {number}
  */
 Wallet.estimateIncompleteTxFee = function(tx) {
-    var size = 4 + 4;
+    var size = 4 + 4 + 4 + 4; // version + txinVarInt + txoutVarInt + locktime
 
     size += tx.outs.length * 34;
 
@@ -7248,22 +7267,53 @@ Wallet.estimateIncompleteTxFee = function(tx) {
         }
 
         if (multiSig) {
-            size += 32 + // txhash
-            4 + // idx
-            (72 * multiSig[0]) + // sig
-            106 + // script
-            4 + // ?
-            4; // sequence
+            size += (
+                32 + // txhash
+                4 + // idx
+                3 + // scriptVarInt[>=253]
+                1 + // OP_0
+                ((1 + 72) * multiSig[0]) + // (OP_PUSHDATA[<75] + 72) * sigCnt
+                (2 + 105) + // OP_PUSHDATA[>=75] + script
+                4 // sequence
+            );
 
         } else {
             size += 32 + // txhash
             4 + // idx
-            72 + // sig
-            32 + // script
-            4 + // ?
+            73 + // sig
+            34 + // script
             4; // sequence
         }
     });
+
+    var sizeKB = Math.ceil(size / 1000);
+
+    return sizeKB * blocktrail.BASE_FEE;
+};
+
+/**
+ * determine how much fee is required based on the amount of inputs and outputs
+ *  this is an estimation, not a proper 100% correct calculation
+ *  this asumes all inputs are 2of3 multisig
+ *
+ * @param txinCnt       {number}
+ * @param txoutCnt      {number}
+ * @returns {number}
+ */
+Wallet.estimateFee = function(txinCnt, txoutCnt) {
+    var size = 4 + 4 + 4 + 4; // version + txinVarInt + txoutVarInt + locktime
+
+    size += txoutCnt * 34;
+
+    size += (
+            32 + // txhash
+            4 + // idx
+            3 + // scriptVarInt[>=253]
+            1 + // OP_0
+            ((1 + 72) * 2) + // (OP_PUSHDATA[<75] + 72) * sigCnt
+            (2 + 105) + // OP_PUSHDATA[>=75] + script
+            4 // sequence
+        ) * txinCnt;
 
     var sizeKB = Math.ceil(size / 1000);
 
