@@ -7,6 +7,8 @@ var client = blocktrail.BlocktrailSDK({
     testnet : true
 });
 
+console.log(blocktrail.Wallet.estimateFee(193, 1));
+
 client.initWallet({
     identifier: "example-wallet",
     readOnly: true
@@ -27,35 +29,12 @@ client.initWallet({
                 console.log(err);
                 return;
             }
+            
+            wallet.getInfo(function(err, walletInfo) {
+                var estFee = blocktrail.Wallet.estimateFee(walletInfo.confirmed_utxos + walletInfo.unconfirmed_utxos, 1);
 
-            // get all UTXOs
-            wallet.utxos({limit: 200}, function(err, utxos) {
-                // init a bitcoinjs-lib TransactionBuilder
-                var txb = new bitcoin.TransactionBuilder();
-
-                // sum up total value of UTXOs
-                var total = utxos.data.map(function(utxo) {
-                    return utxo['value'];
-                }).reduce(function(value, total) {
-                    return value + total;
-                });
-
-                // add UTXOs as inputs to TransactionBuilder
-                utxos.data.forEach(function(utxo) {
-                    txb.addInput(utxo['hash'], utxo['idx']);
-                });
-
-                // add one output (could be dummy, because we only need it to estimate the fee
-                txb.addOutput(selfAddress, total);
-
-                // estimate the fee based on incomplete transaction
-                var estimatedFee = blocktrail.Wallet.estimateIncompleteTxFee(txb.buildIncomplete());
-
-                // do a real transaction for the total minus the estimated fee
                 var pay = {};
-                pay[selfAddress] = total - estimatedFee;
-
-                console.log(total, estimatedFee, pay);
+                pay[selfAddress] = walletInfo.confirmed + walletInfo.unconfirmed - estFee;
 
                 wallet.pay(pay, function(err, txHash) {
                     if (err) {
