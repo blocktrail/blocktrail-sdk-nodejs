@@ -95,7 +95,6 @@ APIClient.prototype.mnemonicToPrivateKey = function(mnemonic, passphrase, cb) {
 
         worker.addEventListener('error', function(e) {
             deferred.reject(new blocktrail.Error(e.message.replace("Uncaught Error: ", '')));
-            return deferred.promise;
         });
 
         worker.postMessage({method: 'mnemonicToSeedHex', mnemonic: mnemonic, passphrase: passphrase});
@@ -355,6 +354,19 @@ APIClient.prototype.transaction = function(tx, cb) {
     var self = this;
 
     return self.client.get("/transaction/" + tx, null, cb);
+};
+
+/**
+ * get a batch of transactions
+ *
+ * @param txs           string[]    list of transaction hashes (txId)
+ * @param [cb]          function    callback function to call when request is complete
+ * @return q.Promise
+ */
+APIClient.prototype.transactions = function(txs, cb) {
+    var self = this;
+
+    return self.client.post("/transactions", null, txs, cb, false);
 };
 
 /**
@@ -1863,6 +1875,12 @@ Request.prototype.performRequest = function(options) {
     });
 
     if (signHMAC) {
+        if (!self.apiSecret) {
+            var error = new Error("Missing apiSecret! required to sign POST requests!");
+            self.deferred.reject(error);
+            return self.callback(error);
+        }
+
         request.use(superagentHttpSignature({
             headers: ['(request-target)', 'content-md5'],
             algorithm: 'hmac-sha256',
@@ -1964,12 +1982,26 @@ RestClient.prototype.create_request = function(options) {
     return new Request(options);
 };
 
-RestClient.prototype.post = function(path, params, data, fn) {
-    return this.create_request({auth: 'http-signature'}).request('POST', path, params, data, fn);
+RestClient.prototype.post = function(path, params, data, fn, requireAuth) {
+    requireAuth = typeof requireAuth === "undefined" ? true : requireAuth;
+
+    var options = {};
+    if (requireAuth) {
+        options['auth'] = 'http-signature';
+    }
+
+    return this.create_request(options).request('POST', path, params, data, fn);
 };
 
-RestClient.prototype.put = function(path, params, data, fn) {
-    return this.create_request({auth: 'http-signature'}).request('PUT', path, params, data, fn);
+RestClient.prototype.put = function(path, params, data, fn, requireAuth) {
+    requireAuth = typeof requireAuth === "undefined" ? true : requireAuth;
+
+    var options = {};
+    if (requireAuth) {
+        options['auth'] = 'http-signature';
+    }
+
+    return this.create_request(options).request('PUT', path, params, data, fn);
 };
 
 RestClient.prototype.get = function(path, params, doHttpSignature, fn) {
@@ -1987,8 +2019,15 @@ RestClient.prototype.get = function(path, params, doHttpSignature, fn) {
     return this.create_request(options).request('GET', path, params, null, fn);
 };
 
-RestClient.prototype.delete = function(path, params, data, fn) {
-    return this.create_request({auth: 'http-signature'}).request('DELETE', path, params, data, fn);
+RestClient.prototype.delete = function(path, params, data, fn, requireAuth) {
+    requireAuth = typeof requireAuth === "undefined" ? true : requireAuth;
+
+    var options = {};
+    if (requireAuth) {
+        options['auth'] = 'http-signature';
+    }
+
+    return this.create_request(options).request('DELETE', path, params, data, fn);
 };
 
 module.exports = function(options) {
@@ -2285,6 +2324,25 @@ Wallet.prototype.getBalance = function(cb) {
 };
 
 /**
+ * get the balance for the wallet
+ *
+ * @param [cb]  function        callback(err, confirmed, unconfirmed)
+ * @returns {q.Promise}
+ */
+Wallet.prototype.getInfo = function(cb) {
+    var self = this;
+
+    var deferred = q.defer();
+    deferred.promise.spreadNodeify(cb);
+
+    deferred.resolve(
+        self.sdk.getWalletBalance(self.identifier)
+    );
+
+    return deferred.promise;
+};
+
+/**
  * do wallet discovery (slow)
  *
  * @param [gap] int             gap limit
@@ -2403,7 +2461,7 @@ Wallet.prototype.pay = function(pay, changeAddress, allowZeroConf, randomizeChan
                             deferred.notify(Wallet.PAY_PROGRESS_DONE);
 
                             if (!result || !result['complete'] || result['complete'] === 'false') {
-                                return deferred.reject(new blocktrail.TransactionSignError("Failed to completely sign transaction"));
+                                deferred.reject(new blocktrail.TransactionSignError("Failed to completely sign transaction"));
                             } else {
                                 return result['txid'];
                             }
@@ -2653,10 +2711,11 @@ Wallet.prototype.buildTransaction = function(pay, changeAddress, allowZeroConf, 
                         }
                     ], function(err) {
                         if (err) {
-                            return deferred.reject(new blocktrail.WalletSendError(err));
+                            deferred.reject(new blocktrail.WalletSendError(err));
+                            return;
                         }
 
-                        return deferred.resolve([tx, utxos]);
+                        deferred.resolve([tx, utxos]);
                     });
 
                     return deferred.promise;
@@ -2807,7 +2866,7 @@ Wallet.sortMultiSigKeys = function(pubKeys) {
  * @returns {number}
  */
 Wallet.estimateIncompleteTxFee = function(tx) {
-    var size = 4 + 4;
+    var size = 4 + 4 + 4 + 4; // version + txinVarInt + txoutVarInt + locktime
 
     size += tx.outs.length * 34;
 
@@ -2850,22 +2909,53 @@ Wallet.estimateIncompleteTxFee = function(tx) {
         }
 
         if (multiSig) {
-            size += 32 + // txhash
-            4 + // idx
-            (72 * multiSig[0]) + // sig
-            106 + // script
-            4 + // ?
-            4; // sequence
+            size += (
+                32 + // txhash
+                4 + // idx
+                3 + // scriptVarInt[>=253]
+                1 + // OP_0
+                ((1 + 72) * multiSig[0]) + // (OP_PUSHDATA[<75] + 72) * sigCnt
+                (2 + 105) + // OP_PUSHDATA[>=75] + script
+                4 // sequence
+            );
 
         } else {
             size += 32 + // txhash
             4 + // idx
-            72 + // sig
-            32 + // script
-            4 + // ?
+            73 + // sig
+            34 + // script
             4; // sequence
         }
     });
+
+    var sizeKB = Math.ceil(size / 1000);
+
+    return sizeKB * blocktrail.BASE_FEE;
+};
+
+/**
+ * determine how much fee is required based on the amount of inputs and outputs
+ *  this is an estimation, not a proper 100% correct calculation
+ *  this asumes all inputs are 2of3 multisig
+ *
+ * @param txinCnt       {number}
+ * @param txoutCnt      {number}
+ * @returns {number}
+ */
+Wallet.estimateFee = function(txinCnt, txoutCnt) {
+    var size = 4 + 4 + 4 + 4; // version + txinVarInt + txoutVarInt + locktime
+
+    size += txoutCnt * 34;
+
+    size += (
+            32 + // txhash
+            4 + // idx
+            3 + // scriptVarInt[>=253]
+            1 + // OP_0
+            ((1 + 72) * 2) + // (OP_PUSHDATA[<75] + 72) * sigCnt
+            (2 + 105) + // OP_PUSHDATA[>=75] + script
+            4 // sequence
+        ) * txinCnt;
 
     var sizeKB = Math.ceil(size / 1000);
 
