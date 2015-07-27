@@ -768,7 +768,8 @@ APIClient.prototype.createNewWallet = function(options, cb) {
                                 keyIndex,
                                 self.testnet,
                                 checksum,
-                                result.upgrade_key_index
+                                result.upgrade_key_index,
+                                options.bypassNewAddressCheck
                             );
 
                             return wallet.unlock(options).then(function() {
@@ -2056,6 +2057,7 @@ var blocktrail = require('./blocktrail');
  * @param testnet               bool            testnet
  * @param checksum              string
  * @param upgradeToKeyIndex     int
+ * @param bypassNewAddressCheck bool            flag to indicate if wallet should/shouldn't derive new address locally to verify api
  * @constructor
  * @internal
  */
