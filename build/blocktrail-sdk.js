@@ -2068,13 +2068,15 @@ var Wallet = function(
     keyIndex,
     testnet,
     checksum,
-    upgradeToKeyIndex
+    upgradeToKeyIndex,
+    bypassNewAddressCheck
 ) {
     var self = this;
 
     self.sdk = sdk;
     self.identifier = identifier;
     self.locked = true;
+    self.bypassNewAddressCheck = !!bypassNewAddressCheck;
 
     self.testnet = testnet;
     if (self.testnet) {
@@ -2287,11 +2289,14 @@ Wallet.prototype.getNewAddress = function(cb) {
         self.sdk.getNewDerivation(self.identifier, "M/" + self.keyIndex + "'/0")
             .then(function(newDerivation) {
                 var path = newDerivation.path;
-                var address = self.getAddressByPath(newDerivation.path);
+                var address = newDerivation.address;
+                if (!self.bypassNewAddressCheck) {
+                    address = self.getAddressByPath(newDerivation.path);
 
-                // debug check
-                if (address !== newDerivation.address) {
-                    throw new blocktrail.WalletAddressError("Failed to verify address [" + newDerivation.address + "] !== [" + address + "]");
+                    // debug check
+                    if (address !== newDerivation.address) {
+                        throw new blocktrail.WalletAddressError("Failed to verify address [" + newDerivation.address + "] !== [" + address + "]");
+                    }
                 }
 
                 return [address, path];
