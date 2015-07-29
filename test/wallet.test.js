@@ -504,7 +504,7 @@ describe('test wallet, do transaction', function() {
 
                 // change address doesn't always happen ...
                 if (progress.indexOf(blocktrail.Wallet.PAY_PROGRESS_CHANGE_ADDRESS) === -1) {
-                    progress.splice(2, 0, [blocktrail.Wallet.PAY_PROGRESS_CHANGE_ADDRESS]);
+                    progress.splice(2, 0, blocktrail.Wallet.PAY_PROGRESS_CHANGE_ADDRESS);
                 }
 
                 assert.deepEqual(progress, [
