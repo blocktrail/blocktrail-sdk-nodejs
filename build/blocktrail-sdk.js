@@ -1378,13 +1378,13 @@ BackupGenerator.prototype.generatePDF = function(callback) {
                 "For instructions on how to recover your wallet, \n" +
                 "see the 'wallet_recovery_example.php' script in the examples folder of the Blocktrail SDK."
             );
+
+            callback(null, pdf.doc);
         });
     } catch (e) {
         callback(e);
         return;
     }
-
-    callback(null, pdf.doc);
 };
 
 module.exports = BackupGenerator;
