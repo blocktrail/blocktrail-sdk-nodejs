@@ -120,6 +120,8 @@ describe('test new blank wallet', function() {
     });
 
     it("should be created", function(cb) {
+        var progress = [];
+
         client.createNewWallet({
             identifier: myIdentifier,
             passphrase: "password",
@@ -132,9 +134,19 @@ describe('test new blank wallet', function() {
 
                 assert.equal(wallet.identifier, myIdentifier);
                 assert.equal(wallet.getBlocktrailPublicKey("M/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
+
+                assert.deepEqual(progress, [
+                    blocktrail.CREATE_WALLET_PROGRESS_START,
+                    blocktrail.CREATE_WALLET_PROGRESS_PRIMARY,
+                    blocktrail.CREATE_WALLET_PROGRESS_BACKUP,
+                    blocktrail.CREATE_WALLET_PROGRESS_SUBMIT,
+                    blocktrail.CREATE_WALLET_PROGRESS_INIT,
+                    blocktrail.CREATE_WALLET_PROGRESS_DONE
+                ]);
+
                 cb();
             }
-        );
+        ).progress(function(p) { progress.push(p); });
     });
 
     it("should lock", function(cb) {
