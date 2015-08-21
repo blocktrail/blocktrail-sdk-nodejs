@@ -13,6 +13,8 @@ Object.keys(blocktrail).forEach(function(key) {
 APIClient.BlocktrailSDK = APIClient;
 APIClient.Wallet = require('./lib/wallet');
 APIClient.BackupGenerator = require('./lib/backup_generator');
+APIClient.Request = require('./lib/request');
+
 
 // for debugging in the browser
 APIClient.CryptoJS = require('crypto-js');
