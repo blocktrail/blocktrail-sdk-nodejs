@@ -13,20 +13,24 @@ var client = blocktrail.BlocktrailSDK({
 
 //create a new wallet
 var walletIdentifier = "nodejs-example-" + crypto.randomBytes(24).toString('hex');
-client.createNewWallet(walletIdentifier, "example-strong-password", 9999, function(err, wallet, primaryMnemonic, backupMnemonic, blocktrailPubKeys) {
+client.createNewWallet(walletIdentifier, "example-strong-password", 9999, function(err, wallet, backupInfo) {
     if (err) {
         return console.log("createNewWallet ERR", err);
     }
 
     //generate the backup document
-    var backup = new blocktrail.BackupGenerator(wallet.identifier, primaryMnemonic, backupMnemonic, blocktrailPubKeys);
+    var backup = new blocktrail.BackupGenerator(wallet.identifier, backupInfo, {username: 'testing123', 'note to self': 'buy pizza'});
     //create a pdf
     backup.generatePDF(LIBPATH + "/examples/my-wallet-backup.pdf", function(err, result) {
         console.log(err, result);
     });
 
     //can also be html or an image
-    backup.generateHTML(function(result) {
+    backup.generateHTML(function(err, result) {
+        if (err) {
+            console.log(err);
+        }
+
         fs.writeFile(LIBPATH + "/examples/my-wallet-backup.html", result, function(err) {
             if (err) {
                 console.log(err);
@@ -35,10 +39,4 @@ client.createNewWallet(walletIdentifier, "example-strong-password", 9999, functi
             }
         });
     });
-
-    //image (only png)
-    backup.generateImage(LIBPATH + "/examples/my-wallet-backup.png", function(err, result) {
-        console.log(err, result);
-    });
-
 });
