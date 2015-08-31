@@ -4599,8 +4599,7 @@ var _ = require('lodash'),
     RestClient = require('./rest_client'),
     blocktrail = require('./blocktrail'),
     randomBytes = require('randombytes'),
-    CryptoJS = require('crypto-js'),
-    assert = require('assert');
+    CryptoJS = require('crypto-js');
 
 var workify = require('webworkify');
 
@@ -4679,7 +4678,7 @@ APIClient.prototype.mnemonicToPrivateKey = function(mnemonic, passphrase, cb) {
 
     deferred.resolve(q.fcall(function() {
         return self.mnemonicToSeedHex(mnemonic, passphrase).then(function(seedBuffer) {
-            return bitcoin.HDNode.fromSeedBuffer(seedBuffer, network);
+            return bitcoin.HDNode.fromSeedHex(seedBuffer, network);
         });
     }));
 
@@ -4687,13 +4686,11 @@ APIClient.prototype.mnemonicToPrivateKey = function(mnemonic, passphrase, cb) {
 };
 
 APIClient.prototype.mnemonicToSeedHex = function(mnemonic, passphrase, cb) {
-    var self = this;
-
     var deferred = q.defer();
     deferred.promise.spreadNodeify(cb);
 
     if (isNodeJS) {
-        deferred.resolve(bip39.mnemonicToSeed(mnemonic, passphrase));
+        deferred.resolve(bip39.mnemonicToSeedHex(mnemonic, passphrase));
     } else {
         var worker = workify(require('./webworker'));
 
@@ -5347,12 +5344,12 @@ APIClient.prototype.createNewWallet = function(options, cb) {
             return deferred.promise;
         }
 
-        if (options.walletVersion == Wallet.WALLET_VERSION_V1) {
+        if (options.walletVersion === Wallet.WALLET_VERSION_V1) {
             self._createNewWalletV1(options)
                 .progress(function(p) { deferred.notify(p); })
                 .then(function(r) { deferred.resolve(r); }, function(e) { deferred.reject(e); })
             ;
-        } else if (options.walletVersion == Wallet.WALLET_VERSION_V2) {
+        } else if (options.walletVersion === Wallet.WALLET_VERSION_V2) {
             self._createNewWalletV2(options)
                 .progress(function(p) { deferred.notify(p); })
                 .then(function(r) { deferred.resolve(r); }, function(e) { deferred.reject(e); })
@@ -5500,6 +5497,7 @@ APIClient.prototype._createNewWalletV2 = function(options) {
     }
 
     q.fcall(function() {
+        /* jshint -W071, -W074 */
         options.passphrase = options.passphrase || options.password;
 
         if (!options.primaryPrivateKey) {
@@ -5516,7 +5514,8 @@ APIClient.prototype._createNewWalletV2 = function(options) {
                 options.encryptedSecret = CryptoJS.AES.encrypt(options.secret, options.passphrase).toString(CryptoJS.format.OpenSSL); // 'base64' string
             }
 
-            options.encryptedPrimarySeed = CryptoJS.AES.encrypt(options.primarySeed.toString('base64'), options.secret).toString(CryptoJS.format.OpenSSL); // 'base64' string
+            options.encryptedPrimarySeed = CryptoJS.AES.encrypt(options.primarySeed.toString('base64'), options.secret)
+                                                        .toString(CryptoJS.format.OpenSSL); // 'base64' string
             options.recoverySecret = randomBytes(Wallet.WALLET_ENTROPY_BITS / 8).toString('hex'); // string because we use it as passphrase
 
             options.recoveryEncryptedSecret = CryptoJS.AES.encrypt(options.secret, options.recoverySecret).toString(CryptoJS.format.OpenSSL); // 'base64' string
@@ -5595,10 +5594,16 @@ APIClient.prototype._createNewWalletV2 = function(options) {
                     return [
                         wallet,
                         {
-                            encryptedPrimarySeed: options.encryptedPrimarySeed ? bip39.entropyToMnemonic(blocktrail.convert(options.encryptedPrimarySeed, 'base64', 'hex')) : null,
+                            encryptedPrimarySeed: options.encryptedPrimarySeed ?
+                                bip39.entropyToMnemonic(blocktrail.convert(options.encryptedPrimarySeed, 'base64', 'hex')) :
+                                null,
                             backupSeed: options.backupSeed ? bip39.entropyToMnemonic(options.backupSeed.toString('hex')) : null,
-                            recoveryEncryptedSecret: options.recoveryEncryptedSecret ? bip39.entropyToMnemonic(blocktrail.convert(options.recoveryEncryptedSecret, 'base64', 'hex')) : null,
-                            encryptedSecret: options.encryptedSecret ? bip39.entropyToMnemonic(blocktrail.convert(options.encryptedSecret, 'base64', 'hex')) : null,
+                            recoveryEncryptedSecret: options.recoveryEncryptedSecret ?
+                                bip39.entropyToMnemonic(blocktrail.convert(options.recoveryEncryptedSecret, 'base64', 'hex')) :
+                                null,
+                            encryptedSecret: options.encryptedSecret ?
+                                bip39.entropyToMnemonic(blocktrail.convert(options.encryptedSecret, 'base64', 'hex')) :
+                                null,
                             blocktrailPublicKeys: blocktrailPublicKeys
                         }
                     ];
@@ -5653,7 +5658,8 @@ APIClient.prototype.storeNewWalletV1 = function(identifier, primaryPublicKey, ba
  * @param [cb]                  function    callback(err, result)
  * @returns {q.Promise}
  */
-APIClient.prototype.storeNewWalletV2 = function(identifier, primaryPublicKey, backupPublicKey, encryptedPrimarySeed, encryptedSecret, recoverySecret, checksum, keyIndex, cb) {
+APIClient.prototype.storeNewWalletV2 = function(identifier, primaryPublicKey, backupPublicKey, encryptedPrimarySeed, encryptedSecret,
+                                                recoverySecret, checksum, keyIndex, cb) {
     var self = this;
 
     var postData = {
@@ -6015,7 +6021,7 @@ APIClient.prototype.price = function(cb) {
 module.exports = APIClient;
 
 }).call(this,require('_process'))
-},{"./blocktrail":3,"./rest_client":7,"./wallet":8,"./webworker":9,"_process":193,"assert":62,"bip39":12,"bitcoinjs-lib":39,"crypto-js":239,"lodash":266,"q":267,"randombytes":271,"webworkify":278}],2:[function(require,module,exports){
+},{"./blocktrail":3,"./rest_client":7,"./wallet":8,"./webworker":9,"_process":193,"bip39":12,"bitcoinjs-lib":39,"crypto-js":239,"lodash":266,"q":267,"randombytes":271,"webworkify":278}],2:[function(require,module,exports){
 var async = require('async');
 var _ = require('lodash');
 
@@ -6043,7 +6049,7 @@ var BackupGenerator = function(identifier, backupInfo, extraInfo, options) {
     self.blocktrailPublicKeys = [];
 
     if (backupInfo.blocktrailPublicKeys) {
-        _.each(blocktrailPublicKeys, function(pubKey, keyIndex) {
+        _.each(backupInfo.blocktrailPublicKeys, function(pubKey, keyIndex) {
             self.blocktrailPublicKeys.push({
                 keyIndex: keyIndex,
                 pubKey:   pubKey,
@@ -6096,13 +6102,13 @@ BackupGenerator.prototype.generateHTML = function(cb) {
         totalPubKeys: self.blocktrailPublicKeys.length,
         pubKeysHtml: "",
         extraInfo: _.map(self.extraInfo, function(value, key) {
-            if (typeof(value) !== "string") {
+            if (typeof value !== "string") {
                 return value;
             } else {
                 return {
                     title: key,
                     value: value
-                }
+                };
             }
         }),
         options: self.options
@@ -6310,7 +6316,7 @@ BackupGenerator.prototype.generatePDF = function(callback) {
                             _.each(self.extraInfo, function(value, key) {
                                 var title;
 
-                                if (typeof(value) !== "string") {
+                                if (typeof value !== "string") {
                                     title = value.title;
                                     value = value.value;
                                 } else {
@@ -6331,7 +6337,7 @@ BackupGenerator.prototype.generatePDF = function(callback) {
                         }
 
                         callback();
-                    })
+                    });
                 } else {
                     callback();
                 }
@@ -6427,12 +6433,12 @@ var aesDecryptMnemonicToSeed = function(mnemonic, passphrase) {
     return aesDecryptMnemonic(mnemonic, passphrase).toString(CryptoJS.enc.Utf8);
 };
 
-var aesDecryptMnemonicToSeedBuffer = function(mnemonic, passphrase) {
-    return new Buffer(aesDecryptMnemonicToSeedHex(mnemonic, passphrase), 'hex');
-};
-
 var aesDecryptMnemonicToSeedHex = function(mnemonic, passphrase) {
     return convert(aesDecryptMnemonicToSeed(mnemonic, passphrase), 'base64', 'hex');
+};
+
+var aesDecryptMnemonicToSeedBuffer = function(mnemonic, passphrase) {
+    return new Buffer(aesDecryptMnemonicToSeedHex(mnemonic, passphrase), 'hex');
 };
 
 var aesEncryptSeedToMnemonic = function(seed, passphrase) {
@@ -6795,7 +6801,8 @@ module.exports = new QrCode();
 },{"qrcode-canvas":269}],6:[function(require,module,exports){
 (function (process){
 /* jshint -W100, -W071 */
-var _ = require("lodash"),
+var blocktrail = require('./blocktrail'),
+    _ = require("lodash"),
     url = require('url'),
     qs = require('querystring'),
     q = require('q'),
@@ -7000,7 +7007,7 @@ Request.handleFailure = function(body, statusCode) {
         error = new Error(data.msg ? data.msg : null);
 
         Object.keys(data).forEach(function(k) {
-            if (k != "msg") {
+            if (k !== "msg") {
                 error[k] = data[k];
             }
         });
@@ -7030,7 +7037,7 @@ Request.convertError = function(error) {
 module.exports = Request;
 
 }).call(this,require('_process'))
-},{"_process":193,"create-hash":216,"debug":265,"lodash":266,"q":267,"querystring":197,"superagent":275,"superagent-http-signature/index-hmac-only":272,"url":211}],7:[function(require,module,exports){
+},{"./blocktrail":3,"_process":193,"create-hash":216,"debug":265,"lodash":266,"q":267,"querystring":197,"superagent":275,"superagent-http-signature/index-hmac-only":272,"url":211}],7:[function(require,module,exports){
 var _ = require('lodash');
 var Request = require('./request');
 
@@ -7245,10 +7252,10 @@ Wallet.prototype.unlock = function(options, cb) {
         switch (self.walletVersion) {
             case Wallet.WALLET_VERSION_V1:
                 return self.unlockV1(options);
-    
+
             case Wallet.WALLET_VERSION_V2:
                 return self.unlockV2(options);
-    
+
             default:
                 return q.reject(new blocktrail.WalletInitError("Invalid wallet version"));
         }
@@ -7280,7 +7287,7 @@ Wallet.prototype.unlock = function(options, cb) {
             deferred.reject(e);
         }
     );
-    
+
     return deferred.promise;
 };
 
@@ -7351,7 +7358,7 @@ Wallet.prototype.passwordChange = function(newPassword, cb) {
     deferred.promise.nodeify(cb);
 
     q.fcall(function() {
-        if (self.walletVersion != Wallet.WALLET_VERSION_V2) {
+        if (self.walletVersion !== Wallet.WALLET_VERSION_V2) {
             throw new blocktrail.WalletLockedError("Wallet version does not support password change!");
         }
 
@@ -7365,7 +7372,7 @@ Wallet.prototype.passwordChange = function(newPassword, cb) {
 
         var newEncryptedSecret = CryptoJS.AES.encrypt(self.secret, newPassword).toString(CryptoJS.format.OpenSSL);
 
-        return self.sdk.updateWallet(self.identifier, {encrypted_secret: newEncryptedSecret}).then(function(result) {
+        return self.sdk.updateWallet(self.identifier, {encrypted_secret: newEncryptedSecret}).then(function() {
             self.encryptedSecret = newEncryptedSecret;
 
             // backupInfo
