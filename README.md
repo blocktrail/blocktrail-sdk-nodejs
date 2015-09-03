@@ -7,6 +7,10 @@ at https://www.blocktrail.com/api/docs/lang/nodejs
 [![Latest Stable Version](https://badge.fury.io/js/blocktrail-sdk.svg)](https://www.npmjs.org/package/blocktrail-sdk)
 [![Build Status](https://travis-ci.org/blocktrail/blocktrail-sdk-nodejs.png?branch=master)](https://travis-ci.org/blocktrail/blocktrail-sdk-nodejs)
 
+Upgrading from v1.3.x to v1.4.0
+-------------------------------
+**IMPORTANT** `v1.4.0` has a few BC breaks, please check [docs/CHANGELOG.md](docs/CHANGELOG.md)!!
+
 IMPORTANT! FLOATS ARE EVIL!!
 ----------------------------
 As is best practice with financial data, The API returns all values as an integer, the Bitcoin value in Satoshi's.
