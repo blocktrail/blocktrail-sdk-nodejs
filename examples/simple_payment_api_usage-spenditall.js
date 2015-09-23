@@ -45,7 +45,7 @@ client.initWallet({
                 }
 
                 var pay = {};
-                pay[selfAddress] = maxSpendable;
+                pay[selfAddress] = maxSpendable.max;
 
                 wallet.pay(pay, function(err, txHash) {
                     if (err) {
