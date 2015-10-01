@@ -125,7 +125,7 @@ describe('test new blank wallet, v2', function() {
                 identifier: myIdentifier,
                 passphrase: "password",
                 keyIndex: 9999
-            }, function(err, _wallet, primaryMnemonic, secretMnemonic, backupMnemonic) {
+            }, function(err, _wallet, backupInfo) {
                 assert.ifError(err);
                 assert.ok(_wallet);
 
