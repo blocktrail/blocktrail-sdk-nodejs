@@ -24,7 +24,7 @@
   "unused": true,       // Warn unused variables.
   "sub": true,          // Allow ['key']
 
-  "maxparams": 11,      // Maximum number of parameters for a function
+  "maxparams": 20,      // Maximum number of parameters for a function
   "maxstatements": 25,  // Maximum number of statements in a function
   "maxcomplexity": 15,  // Cyclomatic complexity (http://en.wikipedia.org/wiki/Cyclomatic_complexity)
   "maxdepth": 4,        // Maximum depth of nested control structures

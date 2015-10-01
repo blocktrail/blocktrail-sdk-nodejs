@@ -7,10 +7,14 @@ at https://www.blocktrail.com/api/docs/lang/nodejs
 [![Latest Stable Version](https://badge.fury.io/js/blocktrail-sdk.svg)](https://www.npmjs.org/package/blocktrail-sdk)
 [![Build Status](https://travis-ci.org/blocktrail/blocktrail-sdk-nodejs.png?branch=master)](https://travis-ci.org/blocktrail/blocktrail-sdk-nodejs)
 
+Upgrading from v1.x to v2.0.0
+-----------------------------
+**IMPORTANT** `v2.0.0` has a few BC breaks, please check [docs/CHANGELOG.md](docs/CHANGELOG.md)!!
+
 IMPORTANT! FLOATS ARE EVIL!!
 ----------------------------
 As is best practice with financial data, The API returns all values as an integer, the Bitcoin value in Satoshi's.
-**In Javascript even more than in other languages it's really easy to make mistakes whem converting from float to integer etc!**
+**In Javascript even more than in other languages it's really easy to make mistakes when converting from float to integer etc!**
 
 The BlockTrail SDK has some easy to use functions to do this for you, we recommend using these
 and we also **strongly** recommend doing all Bitcoin calculation and storing of data in integers
