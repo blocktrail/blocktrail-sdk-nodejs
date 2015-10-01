@@ -277,7 +277,7 @@ describe('test new blank wallet, v1', function() {
                 identifier: myIdentifier,
                 passphrase: "password",
                 keyIndex: 9999,
-                walletVersion: 'v1'
+                walletVersion: blocktrail.Wallet.WALLET_VERSION_V1
             }, function(err, _wallet) {
                 assert.ifError(err);
                 assert.ok(_wallet);
