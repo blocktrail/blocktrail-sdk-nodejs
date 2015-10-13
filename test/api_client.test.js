@@ -65,7 +65,7 @@ describe('data api', function() {
             cb();
         });
     });
-    it('test addressUnspentOutputs', function(cb) {
+    it.skip('test addressUnspentOutputs', function(cb) {
         client.addressUnspentOutputs("1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp", {limit: 23}, function(err, address_utxo) {
             assert.ifError(err);
             assert.ok('data' in address_utxo);
