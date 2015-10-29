@@ -20,6 +20,7 @@ APIClient.UnspentOutputFinder = require('./lib/unspent_output_finder');
 
 // data service providers, for wallet recovery
 APIClient.BlocktrailBitcoinService = require('./lib/services/blocktrail_bitcoin_service');
+APIClient.InsightBitcoinService = require('./lib/services/insight_bitcoin_service');
 
 // expose these for using in the browser
 APIClient.randomBytes = require('randombytes');
