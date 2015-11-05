@@ -85,7 +85,7 @@ var sweeperOptions = {
     network: 'btc',
     testnet: useTestnet,
     logging: true,          // display extra info in console
-    sweepBatchSize: 50     // number of addresses to check at a time
+    sweepBatchSize: 50     // number of addresses to check at a time (use a larger number for older wallets)
 };
 //var walletSweeper = new blocktrail.WalletSweeper(backupDataV1, bitcoinDataClient, sweeperOptions);  //version 1, testnet
 var walletSweeper = new blocktrail.WalletSweeper(backupDataV2, bitcoinDataClient, sweeperOptions);      //version 2, mainnet
@@ -96,7 +96,7 @@ var discoverAndSweep = true;
 if (!discoverAndSweep) {
     //Do wallet fund discovery - can be run separately from sweeping
     console.log('-----Discovering Funds-----');
-    var batchSize = 20;
+    var batchSize = 25;
     walletSweeper.discoverWalletFunds(batchSize).done(function(result) {
         console.log(result);
     }, function(err) {
