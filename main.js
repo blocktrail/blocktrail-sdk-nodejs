@@ -15,6 +15,13 @@ APIClient.Wallet = require('./lib/wallet');
 APIClient.BackupGenerator = require('./lib/backup_generator');
 APIClient.Request = require('./lib/request');
 
+APIClient.WalletSweeper = require('./lib/wallet_sweeper');
+APIClient.UnspentOutputFinder = require('./lib/unspent_output_finder');
+
+// data service providers, for wallet recovery
+APIClient.BlocktrailBitcoinService = require('./lib/services/blocktrail_bitcoin_service');
+APIClient.InsightBitcoinService = require('./lib/services/insight_bitcoin_service');
+
 // expose these for using in the browser
 APIClient.randomBytes = require('randombytes');
 APIClient.lodash = require('lodash');
