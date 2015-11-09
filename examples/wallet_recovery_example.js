@@ -97,11 +97,16 @@ if (!discoverAndSweep) {
     //Do wallet fund discovery - can be run separately from sweeping
     console.log('-----Discovering Funds-----');
     var batchSize = 25;
-    walletSweeper.discoverWalletFunds(batchSize).done(function(result) {
-        console.log(result);
-    }, function(err) {
-        console.log(err);
-    });
+    walletSweeper.discoverWalletFunds(batchSize)
+        .progress(function(progress) {
+            console.info(progress);
+        })
+        .then(function(result) {
+            console.log(result);
+        })
+        .catch(function(err) {
+            console.error(err);
+        });
 
 
 } else {
@@ -109,10 +114,15 @@ if (!discoverAndSweep) {
     console.log('\n-----Sweeping Wallet-----');
     //var receivingAddress = "2NCfSZa6f8YwAnjvGcorGDdMSyY9kMzQTZe";     //testnet address in wallet 1
     var receivingAddress = "3EBzEG5g23gTFCW6LE8uf7tVx8WpKpVUUd";        //mainnet address in wallet 2
-    walletSweeper.sweepWallet(receivingAddress).done(function(result) {
-        console.log(result);
-    }, function(err) {
-        console.log(err);
-    });
+    walletSweeper.sweepWallet(receivingAddress)
+        .progress(function(progress) {
+            console.info(progress);
+        })
+        .then(function(result) {
+            console.log(result);
+        })
+        .catch(function(err) {
+            console.error(err);
+        });
 
 }
