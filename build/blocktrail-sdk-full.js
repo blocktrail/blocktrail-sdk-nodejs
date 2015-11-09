@@ -9166,88 +9166,136 @@ WalletSweeper.prototype.discoverWalletFunds = function (increment, cb) {
     var deferred = q.defer();
     deferred.promise.nodeify(cb);
 
-    //for each blocktrail pub key, do fund discovery on batches of addresses
-    async.eachSeries(Object.keys(this.blocktrailPublicKeys), function (keyIndex, done) {
-        var i = 0;
-        var utxos = null;
+    async.nextTick(function() {
+        //for each blocktrail pub key, do fund discovery on batches of addresses
+        async.eachSeries(Object.keys(self.blocktrailPublicKeys), function (keyIndex, done) {
+            var i = 0;
+            var utxos = null;
 
-        async.doWhilst(function(done) {
-            //do
-            if (self.settings.logging) {
-                console.log("generating " + increment + " addresses using blocktrail key index " + keyIndex);
-            }
-            var addresses = self.createBatchAddresses(i, increment, keyIndex);
-            totalAddressesGenerated += Object.keys(addresses).length;
-
-            if (self.settings.logging) {
-                console.log("starting fund discovery for " + increment + " addresses...");
-            }
-
-            //get the unspent outputs for this batch of addresses
-            utxos = null;
-            self.utxoFinder.getUTXOs(_.keys(addresses)).done(function(result) {
-                utxos = result;
-                //save the address utxos, along with relevant path and redeem script
-                _.each(utxos, function(outputs, address) {
-                    addressUTXOs[address] = {
-                        path:   addresses[address]['path'],
-                        redeem: addresses[address]['redeem'],
-                        utxos:  outputs
-                    };
-                    totalUTXOs += outputs.length;
-
-                    //add up the total utxo value for all addresses
-                    totalBalance = _.reduce(outputs, function (carry, output) {
-                        return carry + output['value'];
-                    }, totalBalance);
-
-                    if (self.settings.logging) {
-                        console.log("found " + outputs.length + " unspent outputs in address " + address);
-                    }
+            async.doWhilst(function(done) {
+                //do
+                if (self.settings.logging) {
+                    console.log("generating " + increment + " addresses using blocktrail key index " + keyIndex);
+                }
+                deferred.notify({
+                    message: "generating " + increment + " addresses",
+                    increment: increment,
+                    btPubKeyIndex: keyIndex,
+                    //addresses: [],
+                    totalAddresses: totalAddressesGenerated,
+                    addressUTXOs: addressUTXOs,
+                    totalUTXOs: totalUTXOs,
+                    totalBalance: totalBalance
                 });
 
-                //ready for the next batch
-                i += increment;
-                done();
+                async.nextTick(function() {
+                    var addresses = self.createBatchAddresses(i, increment, keyIndex);
+                    totalAddressesGenerated += Object.keys(addresses).length;
+
+                    if (self.settings.logging) {
+                        console.log("starting fund discovery for " + increment + " addresses...");
+                    }
+
+                    deferred.notify({
+                        message: "starting fund discovery for " + increment + " addresses",
+                        increment: increment,
+                        btPubKeyIndex: keyIndex,
+                        //addresses: addresses,
+                        totalAddresses: totalAddressesGenerated,
+                        addressUTXOs: addressUTXOs,
+                        totalUTXOs: totalUTXOs,
+                        totalBalance: totalBalance
+                    });
+
+                    //get the unspent outputs for this batch of addresses
+                    utxos = null;
+                    self.utxoFinder.getUTXOs(_.keys(addresses)).done(function(result) {
+                        utxos = result;
+                        //save the address utxos, along with relevant path and redeem script
+                        _.each(utxos, function(outputs, address) {
+                            addressUTXOs[address] = {
+                                path: addresses[address]['path'],
+                                redeem: addresses[address]['redeem'],
+                                utxos: outputs
+                            };
+                            totalUTXOs += outputs.length;
+
+                            //add up the total utxo value for all addresses
+                            totalBalance = _.reduce(outputs, function(carry, output) {
+                                return carry + output['value'];
+                            }, totalBalance);
+
+                            if (self.settings.logging) {
+                                console.log("found " + outputs.length + " unspent outputs in address " + address);
+                            }
+                            deferred.notify({
+                                message: "discovering funds",
+                                increment: increment,
+                                btPubKeyIndex: keyIndex,
+                                //addresses: addresses,
+                                totalAddresses: totalAddressesGenerated,
+                                addressUTXOs: addressUTXOs,
+                                totalUTXOs: totalUTXOs,
+                                totalBalance: totalBalance
+                            });
+                        });
+
+                        //ready for the next batch
+                        i += increment;
+                        async.nextTick(done);
+                    }, function(err) {
+                        done(err);
+                    });
+                });
+            }, function() {
+                //while
+                return utxos && Object.keys(utxos).length > 0;
             }, function(err) {
-                done(err);
+                //all done
+                if (err) {
+                    console.log("batch complete, but with errors", err.message);
+
+                    deferred.notify({
+                        message: "batch complete, but with errors: " + err.message,
+                        error: err,
+                        increment: increment,
+                        btPubKeyIndex: keyIndex,
+                        //addresses: [],
+                        totalAddresses: totalAddressesGenerated,
+                        addressUTXOs: addressUTXOs,
+                        totalUTXOs: totalUTXOs,
+                        totalBalance: totalBalance
+                    });
+                    //should we stop if an error was encountered?   @todo consider this
+                    //done(err);
+                }
+                //ready for next Blocktrail pub key
+                async.nextTick(done);
             });
-        }, function() {
-            //while
-            return utxos && Object.keys(utxos).length > 0;
+
         }, function(err) {
-            //all done
-            if(err) {
-                console.log("batch complete, but with errors", err.message);
-                //should we stop if an error was encountered?   @todo consider this
-                //done(err);
+            //callback
+            if (err) {
+                //perhaps we should also reject the promise, and stop everything?
+                if (self.settings.logging) {
+                    console.log("error encountered when discovering funds", err);
+                }
             }
-            //ready for next Blocktrail pub key
-            done();
-        });
 
-    }, function(err) {
-        //callback
-        if (err) {
-            //perhaps we should also reject the promise, and stop everything?
             if (self.settings.logging) {
-                console.log("error encountered when discovering funds", err);
+                console.log("finished fund discovery: "+totalBalance+" Satoshi (in "+totalUTXOs+" outputs) found when searching "+totalAddressesGenerated+" addresses");
             }
-        }
 
-        if (self.settings.logging) {
-            console.log("finished fund discovery: "+totalBalance+" Satoshi (in "+totalUTXOs+" outputs) found when searching "+totalAddressesGenerated+" addresses");
-        }
+            self.sweepData = {
+                utxos: addressUTXOs,
+                count: totalUTXOs,
+                balance: totalBalance,
+                addressesSearched: totalAddressesGenerated
+            };
 
-        self.sweepData = {
-            utxos: addressUTXOs,
-            count: totalUTXOs,
-            balance: totalBalance,
-            addressesSearched: totalAddressesGenerated
-        };
-
-        //resolve the promise
-        deferred.resolve(self.sweepData);
+            //resolve the promise
+            deferred.resolve(self.sweepData);
+        });
     });
 
     return deferred.promise;
@@ -9263,18 +9311,25 @@ WalletSweeper.prototype.sweepWallet = function (destinationAddress, cb) {
     }
     if (!this.sweepData) {
         //do wallet fund discovery
-        this.discoverWalletFunds().done(function(sweepData) {
-            if (self.sweepData['balance'] === 0) {
-                //no funds found
-                deferred.reject("No funds found after searching through " + self.sweepData['addressesSearched'] + " addresses");
-                return deferred.promise;
-            }
+        this.discoverWalletFunds()
+            .progress(function(progress) {
+                deferred.notify(progress);
+            })
+            .done(function(sweepData) {
+                if (self.sweepData['balance'] === 0) {
+                    //no funds found
+                    deferred.reject("No funds found after searching through " + self.sweepData['addressesSearched'] + " addresses");
+                    return deferred.promise;
+                }
 
-            //create and sign the transaction
-            var transaction = self.createTransaction(destinationAddress);
-            deferred.resolve(transaction);
-
-        });
+                //create and sign the transaction
+                try {
+                    var transaction = self.createTransaction(destinationAddress, null, deferred);
+                    deferred.resolve(transaction);
+                } catch (e) {
+                    deferred.reject(e);
+                }
+            });
     } else {
         if (this.sweepData['balance'] === 0) {
             //no funds found
@@ -9283,17 +9338,32 @@ WalletSweeper.prototype.sweepWallet = function (destinationAddress, cb) {
         }
 
         //create and sign the transaction
-        var transaction = self.createTransaction(destinationAddress);
-        deferred.resolve(transaction);
+        try {
+            var transaction = self.createTransaction(destinationAddress, null, deferred);
+            deferred.resolve(transaction);
+        } catch (e) {
+            deferred.reject(e);
+        }
     }
 
     return deferred.promise;
 };
 
-WalletSweeper.prototype.createTransaction = function (destinationAddress) {
+/**
+ * creates a raw transaction from the sweep data
+ * @param destinationAddress        the destination address for the transaction
+ * @param fee                       a specific transaction fee to use (optional: if null, fee will be estimated)
+ * @param deferred                  a deferred promise object, used for giving progress updates (optional)
+ */
+WalletSweeper.prototype.createTransaction = function (destinationAddress, fee, deferred) {
     var self = this;
     if (this.settings.logging) {
         console.log("Creating transaction to address destinationAddress");
+    }
+    if (deferred) {
+        deferred.notify({
+            message: "creating raw transaction to " + destinationAddress
+        });
     }
 
     // create raw transaction
@@ -9320,11 +9390,23 @@ WalletSweeper.prototype.createTransaction = function (destinationAddress) {
     var sendAmount = self.sweepData['balance'];
     var outputIdx = rawTransaction.addOutput(destinationAddress, sendAmount);
 
-    //estimate the fee and reduce it's value from the output
-    var fee = walletSDK.estimateIncompleteTxFee(rawTransaction.tx);
+    if (typeof fee == "undefined" || fee == null) {
+        //estimate the fee and reduce it's value from the output
+        if (deferred) {
+            deferred.notify({
+                message: "estimating transaction fee"
+            });
+        }
+        fee = walletSDK.estimateIncompleteTxFee(rawTransaction.tx);
+    }
     rawTransaction.tx.outs[outputIdx].value -= fee;
 
     //sign and return the raw transaction
+    if (deferred) {
+        deferred.notify({
+            message: "signing transaction"
+        });
+    }
     return this.signTransaction(rawTransaction, inputs);
 };
 
