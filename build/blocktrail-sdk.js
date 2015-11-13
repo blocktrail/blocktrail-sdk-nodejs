@@ -4933,10 +4933,11 @@ APIClient.CryptoJS = require('crypto-js');
 APIClient.debug = require('debug');
 APIClient.bip39 = require('bip39');
 APIClient.bitcoin = require('bitcoinjs-lib');
+APIClient.superagent = require('superagent');
 
 exports = module.exports = APIClient;
 
-},{"./lib/api_client":1,"./lib/backup_generator":2,"./lib/blocktrail":3,"./lib/request":6,"./lib/services/blocktrail_bitcoin_service":8,"./lib/services/insight_bitcoin_service":9,"./lib/unspent_output_finder":10,"./lib/wallet":11,"./lib/wallet_sweeper":12,"bip39":22,"bitcoinjs-lib":36,"crypto-js":159,"debug":185,"lodash":230,"randombytes":268}],15:[function(require,module,exports){
+},{"./lib/api_client":1,"./lib/backup_generator":2,"./lib/blocktrail":3,"./lib/request":6,"./lib/services/blocktrail_bitcoin_service":8,"./lib/services/insight_bitcoin_service":9,"./lib/unspent_output_finder":10,"./lib/wallet":11,"./lib/wallet_sweeper":12,"bip39":22,"bitcoinjs-lib":36,"crypto-js":159,"debug":185,"lodash":230,"randombytes":268,"superagent":283}],15:[function(require,module,exports){
 // http://wiki.commonjs.org/wiki/Unit_Testing/1.0
 //
 // THIS IS NOT TESTED NOR LIKELY TO WORK OUTSIDE V8!
@@ -8136,6 +8137,7 @@ module.exports={
   "_from": "bigi@>=1.4.0 <2.0.0",
   "_id": "bigi@1.4.1",
   "_inCache": true,
+  "_installable": true,
   "_location": "/bigi",
   "_nodeVersion": "2.1.0",
   "_npmUser": {
@@ -8180,7 +8182,6 @@ module.exports={
   },
   "gitHead": "7d034a1b38ca90f68daa9de472dda2fb813836f1",
   "homepage": "https://github.com/cryptocoinjs/bigi#readme",
-  "installable": true,
   "keywords": [
     "arbitrary",
     "arithmetic",
@@ -8219,6 +8220,7 @@ module.exports={
   ],
   "name": "bigi",
   "optionalDependencies": {},
+  "readme": "ERROR: No README data found!",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/cryptocoinjs/bigi.git"
@@ -24487,6 +24489,7 @@ module.exports={
   "_from": "elliptic@>=6.0.0 <7.0.0",
   "_id": "elliptic@6.0.2",
   "_inCache": true,
+  "_installable": true,
   "_location": "/create-ecdh/elliptic",
   "_nodeVersion": "5.0.0",
   "_npmUser": {
@@ -24544,7 +24547,6 @@ module.exports={
   ],
   "gitHead": "330106da186712d228d79bc71ae8e7e68565fa9d",
   "homepage": "https://github.com/indutny/elliptic",
-  "installable": true,
   "keywords": [
     "Cryptography",
     "EC",
@@ -24561,6 +24563,7 @@ module.exports={
   ],
   "name": "elliptic",
   "optionalDependencies": {},
+  "readme": "ERROR: No README data found!",
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/indutny/elliptic.git"
@@ -27178,6 +27181,7 @@ module.exports={
   "_from": "elliptic@>=6.0.0 <7.0.0",
   "_id": "elliptic@6.0.2",
   "_inCache": true,
+  "_installable": true,
   "_location": "/crypto-browserify/elliptic",
   "_nodeVersion": "5.0.0",
   "_npmUser": {
@@ -27235,7 +27239,6 @@ module.exports={
   ],
   "gitHead": "330106da186712d228d79bc71ae8e7e68565fa9d",
   "homepage": "https://github.com/indutny/elliptic",
-  "installable": true,
   "keywords": [
     "Cryptography",
     "EC",
@@ -27252,6 +27255,7 @@ module.exports={
   ],
   "name": "elliptic",
   "optionalDependencies": {},
+  "readme": "ERROR: No README data found!",
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/indutny/elliptic.git"
