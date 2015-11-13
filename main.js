@@ -29,5 +29,6 @@ APIClient.CryptoJS = require('crypto-js');
 APIClient.debug = require('debug');
 APIClient.bip39 = require('bip39');
 APIClient.bitcoin = require('bitcoinjs-lib');
+APIClient.superagent = require('superagent');
 
 exports = module.exports = APIClient;
