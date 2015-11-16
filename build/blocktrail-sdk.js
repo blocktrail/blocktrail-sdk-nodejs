@@ -252,6 +252,25 @@ APIClient.prototype.addressTransactions = function(address, params, cb) {
 };
 
 /**
+ * get all transactions for a batch of addresses (paginated)
+ *
+ * @param addresses     array       address hashes
+ * @param [params]      array       pagination: {page: 1, limit: 20, sort_dir: 'asc'}
+ * @param [cb]          function    callback function to call when request is complete
+ * @return q.Promise
+ */
+APIClient.prototype.batchAddressHasTransactions = function(addresses, params, cb) {
+    var self = this;
+
+    if (typeof params === "function") {
+        cb = params;
+        params = null;
+    }
+
+    return self.client.post("/address/has-transactions", params, {"addresses": addresses}, cb);
+};
+
+/**
  * get all unconfirmed transactions for an address (paginated)
  *
  * @param address       string      address hash
@@ -2712,92 +2731,18 @@ BlocktrailBitcoinService.prototype.setPaginationLimit = function(limit) {
 };
 
 /**
- * gets unspent outputs for an address, returning an array of outputs with hash, index, value, and script pub hex
- *
- * @param address
- * @returns {q.Promise}     promise resolves with array of unspent outputs as [{"hash": hash, "index": index, "value": value, "script_hex": scriptHex}]
- */
-BlocktrailBitcoinService.prototype.getUnspentOutputs = function (address, cb) {
-    var self = this;
-    var deferred = q.defer();
-    deferred.promise.nodeify(cb);
-
-    var page = 1;
-    var results = null;
-    var utxos = [];
-    var retries = 0;
-
-    //get unspent outputs for the address - required data: hash, index, value, and script hex,
-    async.doWhilst(function(done) {
-        //do
-        var params = {
-            page: page,
-            limit: self.settings.paginationLimit
-        };
-        self.client.addressUnspentOutputs(address, params).then(function(result) {
-            results = result;
-            utxos = utxos.concat(results['data']);
-            page++;
-            done();
-        }, function(err) {
-            console.log('error happened:', err);
-            //error encountered, keep retrying until the retry limit has passed
-            //use a short delay to help tackle rate limiting
-            /*
-             if (retries < self.settings.retryLimit) {
-                 retries++;
-                 //@todo
-                 setTimeout(function() {
-                    self.getUnspentOutputs(address);
-                 }, self.settings.retryDelay);
-
-                 return self.getUnspentOutputs(address);
-             } else {
-                 done(err);
-             }
-             */
-            done(err);  //nocommit
-        });
-    }, function() {
-        //while
-        return results && results['data'].length > 0;
-    }, function(err) {
-        //all done
-        if(err) {
-            console.log("complete, but with errors", err.message);
-        }
-
-        //reduce the returned data into the values we're interested in
-        var result = _.map(utxos, function (utxo, index) {
-            return {
-                'hash': utxo['hash'],
-                'index': utxo['index'],
-                'value': utxo['value'],
-                'script_hex': utxo['script_hex']
-            };
-        });
-        deferred.resolve(result);
-    });
-
-    return deferred.promise;
-};
-
-/**
  * gets unspent outputs for a batch of addresses, returning an array of outputs with hash, index, value, and script pub hex mapped to each corresponding address
  *
  * @param {array} addresses   array of addresses
  * @returns {q.Promise}     promise resolves with array of unspent outputs mapped to addresses as { address: [{"hash": hash, "index": index, "value": value, "script_hex": scriptHex}]}
  */
-BlocktrailBitcoinService.prototype.getBatchUnspentOutputs = function (addresses, cb) {
+BlocktrailBitcoinService.prototype.getBatchUnspentOutputs = function (addresses) {
     var self = this;
     var deferred = q.defer();
-    deferred.promise.nodeify(cb);
 
     var page = 1;
     var results = null;
-    var batchResults = {};  //utxos mapped to addresses
     var utxos = [];
-    var retries = 0;
 
     //get unspent outputs for the current chunk of addresses - required data: hash, index, value, and script hex,
     async.doWhilst(function(done) {
@@ -2806,28 +2751,12 @@ BlocktrailBitcoinService.prototype.getBatchUnspentOutputs = function (addresses,
             page: page,
             limit: self.settings.paginationLimit
         };
-        self.client.batchAddressUnspentOutputs(addresses, params).then(function(result) {
-            results = result;
+        self.client.batchAddressUnspentOutputs(addresses, params).then(function(results) {
             utxos = utxos.concat(results['data']);
             page++;
             done();
         }, function(err) {
             console.log('error happened:', err);
-            //error encountered, keep retrying until the retry limit has passed
-            //use a short delay to help tackle rate limiting
-            /*
-             if (retries < self.settings.retryLimit) {
-                 retries++;
-                 //@todo
-                 setTimeout(function() {
-                    self.getUnspentOutputs(address);
-                 }, self.settings.retryDelay);
-
-                 return self.getUnspentOutputs(address);
-             } else {
-                 done(err);
-             }
-             */
             done(err);
         });
     }, function() {
@@ -2839,6 +2768,7 @@ BlocktrailBitcoinService.prototype.getBatchUnspentOutputs = function (addresses,
             console.log("complete, but with errors", err.message);
         }
 
+        var batchResults = {};  //utxos mapped to addresses
         //reduce the returned data into the values we're interested in, and map to the relevant addresses
         utxos.forEach(function(utxo, index) {
             var address = utxo['address'];
@@ -2858,6 +2788,19 @@ BlocktrailBitcoinService.prototype.getBatchUnspentOutputs = function (addresses,
     });
 
     return deferred.promise;
+};
+
+/**
+ * @param {array} addresses   array of addresses
+ * @returns {q.Promise}
+ */
+BlocktrailBitcoinService.prototype.batchAddressHasTransactions = function (addresses) {
+    var self = this;
+
+    return self.client.batchAddressHasTransactions(addresses)
+        .then(function(result) {
+            return result.has_transactions;
+        });
 };
 
 module.exports = BlocktrailBitcoinService;
@@ -2892,13 +2835,60 @@ var InsightBitcoinService = function (options) {
 };
 
 /**
- * gets unspent outputs for an address, returning an array of outputs with hash, index, value, and script pub hex
+ * gets unspent outputs for a batch of addresses, returning an array of outputs with hash, index, value, and script pub hex mapped to each corresponding address
  *
- * @param address
- * @returns {q.Promise}     promise resolves with array of unspent outputs as [{"hash": hash, "index": index, "value": value, "script_hex": scriptHex}]
+ * @param {array} addresses   array of addresses
+ * @returns {q.Promise}     promise resolves with array of unspent outputs mapped to addresses as { address: [{"hash": hash, "index": index, "value": value, "script_hex": scriptHex}]}
  */
-InsightBitcoinService.prototype.getUnspentOutputs = function (address, cb) {
-    throw new Error('unsupported: use getBatchUnspentOutputs instead');
+InsightBitcoinService.prototype.getBatchUnspentOutputs = function (addresses) {
+    var self = this;
+    var deferred = q.defer();
+
+    //get unspent outputs for the chunk of addresses - required data: hash, index, value, and script hex,
+    var data = {"addrs": addresses.join(',')};
+    self.postRequest("https://" + (self.settings.testnet ? 'test-' : '') + 'insight.bitpay.com/api/addrs/utxo', data).then(function(results) {
+        var batchResults = {};  //utxos mapped to addresses
+
+        //reduce the returned data into the values we're interested in, and map to the relevant addresses
+        results.forEach(function(utxo, index) {
+            var address = utxo['address'];
+
+            if (typeof batchResults[address] == "undefined") {
+                batchResults[address] = [];
+            }
+
+            batchResults[address].push({
+                'hash': utxo['txid'],
+                'index': utxo['vout'],
+                'value': blocktrail.toSatoshi(utxo['amount']),
+                'script_hex': utxo['scriptPubKey']
+            });
+        });
+        deferred.resolve(batchResults);
+
+    }, function(err) {
+        deferred.reject(err);
+    });
+
+
+    return deferred.promise;
+};
+
+/**
+ * gets transactions for a batch of addresses
+ *
+ * @param {array} addresses   array of addresses
+ * @returns {q.Promise}
+ */
+InsightBitcoinService.prototype.batchAddressHasTransactions = function (addresses) {
+    var self = this;
+
+    var data = {"addrs": addresses.join(',')};
+    return self.postRequest("https://" + (self.settings.testnet ? 'test-' : '') + 'insight.bitpay.com/api/addrs/txs', data)
+        .then(function(results) {
+            return results.items.length > 0;
+        })
+    ;
 };
 
 InsightBitcoinService.prototype.postRequest = function (url, data) {
@@ -2931,68 +2921,6 @@ InsightBitcoinService.prototype.postRequest = function (url, data) {
 
     return deferred.promise;
 };
-/**
- * gets unspent outputs for a batch of addresses, returning an array of outputs with hash, index, value, and script pub hex mapped to each corresponding address
- *
- * @param {array} addresses   array of addresses
- * @returns {q.Promise}     promise resolves with array of unspent outputs mapped to addresses as { address: [{"hash": hash, "index": index, "value": value, "script_hex": scriptHex}]}
- */
-InsightBitcoinService.prototype.getBatchUnspentOutputs = function (addresses, cb) {
-    var self = this;
-    var deferred = q.defer();
-    deferred.promise.nodeify(cb);
-
-    var batchResults = {};  //utxos mapped to addresses
-    var utxos = [];
-    var retries = 0;
-
-    //get unspent outputs for the chunk of addresses - required data: hash, index, value, and script hex,
-    var data = {"addrs": addresses.join(',')};
-    self.postRequest("https://" + (self.settings.testnet ? 'test-' : '') + 'insight.bitpay.com/api/addrs/utxo', data).then(function(results) {
-
-        //reduce the returned data into the values we're interested in, and map to the relevant addresses
-        results.forEach(function(utxo, index) {
-            var address = utxo['address'];
-
-            if (typeof batchResults[address] == "undefined") {
-                batchResults[address] = [];
-            }
-
-            batchResults[address].push({
-                'hash': utxo['txid'],
-                'index': utxo['vout'],
-                'value': blocktrail.toSatoshi(utxo['amount']),
-                'script_hex': utxo['scriptPubKey']
-            });
-        });
-        deferred.resolve(batchResults);
-
-    }, function(err) {
-        console.log('error happened:', err);
-        //error encountered, keep retrying until the retry limit has passed
-        //use a short delay to help tackle rate limiting
-        /*
-         if (retries < self.settings.retryLimit) {
-         retries++;
-         //@todo
-         setTimeout(function() {
-         self.getUnspentOutputs(address);
-         }, self.settings.retryDelay);
-
-         return self.getUnspentOutputs(address);
-         } else {
-         done(err);
-         }
-         */
-        if(err) {
-            console.log("complete, but with errors", err);
-        }
-        deferred.resolve(batchResults);
-    });
-
-
-    return deferred.promise;
-};
 
 module.exports = InsightBitcoinService;
 
@@ -3021,72 +2949,42 @@ var UnspentOutputFinder = function (bitcoinDataClient, options) {
  * @param addresses         an array of addresses to find unspent output for
  * @returns {q.Promise}     resolves with an object (associative array) of unspent outputs for each address with a spendable balance
  */
-UnspentOutputFinder.prototype.getUTXOs = function (addresses, cb) {
+UnspentOutputFinder.prototype.getUTXOs = function (addresses) {
     var self = this;
     var results = {};
-    //@todo use promises and callback for async stuff
+
     var deferred = q.defer();
-    deferred.promise.nodeify(cb);
 
-    if (typeof self.client.getBatchUnspentOutputs == "function") {
-        //do batch if the bitcoin service supports it...
-        async.eachSeries(_.chunk(addresses, self.settings.batchChunkSize), function (addressBatch, done) {
-            if (self.settings.logging) {
-                console.log("checking batch of "+addressBatch.length+" addresses", addressBatch);
-            }
-            //get the utxos for this address
-            self.client.getBatchUnspentOutputs(addressBatch).done(function(batchResults) {
-                _.each(batchResults, function(utxos, address) {
-                    //add the found utxos to the final result
-                    if (utxos.length > 0) {
-                        results[address] = utxos;
-                    }
-                });
-                //this iteration is complete
-                done();
-            }, function(err) {
-                done(err);
-            });
+    //do batch if the bitcoin service supports it...
+    async.eachSeries(_.chunk(addresses, self.settings.batchChunkSize), function (addressBatch, done) {
+        if (self.settings.logging) {
+            console.log("checking batch of " + addressBatch.length + " addresses for UTXOs", addressBatch.join(","));
+        }
 
-        }, function(err) {
-            //callback
-            if (err) {
-                //perhaps we should also reject the promise, and stop everything?
-                console.log("error encountered", err);
-            }
-
-            //resolve the promise
-            deferred.resolve(results);
-        });
-    } else {
-        //do one address at a time, to deal with rate limiting better
-        async.eachSeries(addresses, function(address, done) {
-            if (self.settings.logging) {
-                console.log("checking address: " + address);
-            }
-            //get the utxos for this address
-            self.client.getUnspentOutputs(address).done(function(utxos) {
+        //get the utxos for this address
+        self.client.getBatchUnspentOutputs(addressBatch).done(function(batchResults) {
+            _.each(batchResults, function(utxos, address) {
                 //add the found utxos to the final result
                 if (utxos.length > 0) {
                     results[address] = utxos;
                 }
-                //this iteration is complete
-                done();
-            }, function(err) {
-                done(err);
             });
-
+            //this iteration is complete
+            done();
         }, function(err) {
-            //callback
-            if (err) {
-                //perhaps we should also reject the promise, and stop everything?
-                console.log("error encountered", err);
-            }
-
-            //resolve the promise
-            deferred.resolve(results);
+            done(err);
         });
-    }
+
+    }, function(err) {
+        //callback
+        if (err) {
+            //perhaps we should also reject the promise, and stop everything?
+            console.log("error encountered", err);
+        }
+
+        //resolve the promise
+        deferred.resolve(results);
+    });
 
     return deferred.promise;
 };
@@ -4384,7 +4282,7 @@ module.exports = Wallet;
 }).call(this,require("buffer").Buffer)
 },{"./blocktrail":3,"assert":15,"async":16,"bip39":22,"bitcoinjs-lib":36,"buffer":80,"crypto-js":159,"lodash":230,"q":261}],12:[function(require,module,exports){
 (function (Buffer){
-var unspentOutputFinder = require('./unspent_output_finder');
+var unspentOutputFinder = require('./unspent_output_finder')
 var bitcoin = require('bitcoinjs-lib');
 var bip39 = require("bip39");
 var CryptoJS = require('crypto-js');
@@ -4411,6 +4309,7 @@ var WalletSweeper = function (backupData, bitcoinDataClient, options) {
         sweepBatchSize: 200
     };
     this.settings = _.merge({}, this.defaultSettings, options);
+    this.bitcoinDataClient = bitcoinDataClient;
     this.utxoFinder = new unspentOutputFinder(bitcoinDataClient, this.settings);
     this.sweepData = null;
 
@@ -4608,19 +4507,21 @@ WalletSweeper.prototype.createAddress = function (path) {
  * @returns {{}}
  */
 WalletSweeper.prototype.createBatchAddresses = function (start, count, keyIndex) {
+    var self = this;
     var addresses = {};
     var chain = 0;
 
-    for (var i = 0; i < count; i++) {
+    return q.all(_.range(0, count).map(function(i) {
         //create a path subsequent address
         var path =  "M/" + keyIndex + "'/" + chain + "/" + (start+i);
-        var multisig = this.createAddress(path);
+        var multisig = self.createAddress(path);
         addresses[multisig['address']] = {
             redeem: multisig['redeem'],
             path: path
         };
-    }
-    return addresses;
+    })).then(function() {
+        return addresses;
+    });
 };
 
 WalletSweeper.prototype.discoverWalletFunds = function (increment, cb) {
@@ -4640,15 +4541,15 @@ WalletSweeper.prototype.discoverWalletFunds = function (increment, cb) {
         //for each blocktrail pub key, do fund discovery on batches of addresses
         async.eachSeries(Object.keys(self.blocktrailPublicKeys), function (keyIndex, done) {
             var i = 0;
-            var utxos = null;
+            var hasTransactions = false;
 
             async.doWhilst(function(done) {
                 //do
                 if (self.settings.logging) {
-                    console.log("generating " + increment + " addresses using blocktrail key index " + keyIndex);
+                    console.log("generating addresses " + i + " -> " + (i + increment) + " using blocktrail key index " + keyIndex);
                 }
                 deferred.notify({
-                    message: "generating " + increment + " addresses",
+                    message: "generating addresses " + i + " -> " + (i + increment) + "",
                     increment: increment,
                     btPubKeyIndex: keyIndex,
                     //addresses: [],
@@ -4659,47 +4560,16 @@ WalletSweeper.prototype.discoverWalletFunds = function (increment, cb) {
                 });
 
                 async.nextTick(function() {
-                    var addresses = self.createBatchAddresses(i, increment, keyIndex);
-                    totalAddressesGenerated += Object.keys(addresses).length;
-
-                    if (self.settings.logging) {
-                        console.log("starting fund discovery for " + increment + " addresses...");
-                    }
-
-                    deferred.notify({
-                        message: "starting fund discovery for " + increment + " addresses",
-                        increment: increment,
-                        btPubKeyIndex: keyIndex,
-                        //addresses: addresses,
-                        totalAddresses: totalAddressesGenerated,
-                        addressUTXOs: addressUTXOs,
-                        totalUTXOs: totalUTXOs,
-                        totalBalance: totalBalance
-                    });
-
-                    //get the unspent outputs for this batch of addresses
-                    utxos = null;
-                    self.utxoFinder.getUTXOs(_.keys(addresses)).done(function(result) {
-                        utxos = result;
-                        //save the address utxos, along with relevant path and redeem script
-                        _.each(utxos, function(outputs, address) {
-                            addressUTXOs[address] = {
-                                path: addresses[address]['path'],
-                                redeem: addresses[address]['redeem'],
-                                utxos: outputs
-                            };
-                            totalUTXOs += outputs.length;
-
-                            //add up the total utxo value for all addresses
-                            totalBalance = _.reduce(outputs, function(carry, output) {
-                                return carry + output['value'];
-                            }, totalBalance);
+                    self.createBatchAddresses(i, increment, keyIndex)
+                        .then(function (batch) {
+                            totalAddressesGenerated += Object.keys(batch).length;
 
                             if (self.settings.logging) {
-                                console.log("found " + outputs.length + " unspent outputs in address " + address);
+                                console.log("starting fund discovery for " + increment + " addresses...");
                             }
+
                             deferred.notify({
-                                message: "discovering funds",
+                                message: "starting fund discovery for " + increment + " addresses",
                                 increment: increment,
                                 btPubKeyIndex: keyIndex,
                                 //addresses: addresses,
@@ -4708,18 +4578,70 @@ WalletSweeper.prototype.discoverWalletFunds = function (increment, cb) {
                                 totalUTXOs: totalUTXOs,
                                 totalBalance: totalBalance
                             });
-                        });
 
-                        //ready for the next batch
-                        i += increment;
-                        async.nextTick(done);
-                    }, function(err) {
-                        done(err);
-                    });
+                            //get the unspent outputs for this batch of addresses
+                            return self.bitcoinDataClient.batchAddressHasTransactions(_.keys(batch)).then(function (_hasTransactions) {
+                                hasTransactions = _hasTransactions;
+                                if (self.settings.logging) {
+                                    console.log("batch " + (hasTransactions ? "has" : "does not have") + " transactions...");
+                                }
+
+                                return q.when(hasTransactions)
+                                    .then(function (hasTransactions) {
+                                        if (!hasTransactions) {
+                                            return;
+                                        }
+
+                                        //get the unspent outputs for this batch of addresses
+                                        return self.utxoFinder.getUTXOs(_.keys(batch)).then(function (utxos) {
+                                            // save the address utxos, along with relevant path and redeem script
+                                            _.each(utxos, function (outputs, address) {
+                                                addressUTXOs[address] = {
+                                                    path: batch[address]['path'],
+                                                    redeem: batch[address]['redeem'],
+                                                    utxos: outputs
+                                                };
+                                                totalUTXOs += outputs.length;
+
+                                                //add up the total utxo value for all addresses
+                                                totalBalance = _.reduce(outputs, function (carry, output) {
+                                                    return carry + output['value'];
+                                                }, totalBalance);
+
+                                                if (self.settings.logging) {
+                                                    console.log("found " + outputs.length + " unspent outputs for address: " + address);
+                                                }
+                                            });
+
+                                            deferred.notify({
+                                                message: "discovering funds",
+                                                increment: increment,
+                                                btPubKeyIndex: keyIndex,
+                                                totalAddresses: totalAddressesGenerated,
+                                                addressUTXOs: addressUTXOs,
+                                                totalUTXOs: totalUTXOs,
+                                                totalBalance: totalBalance
+                                            });
+                                        });
+                                    })
+                                ;
+                            });
+                        })
+                        .then(
+                            function () {
+                                //ready for the next batch
+                                i += increment;
+                                async.nextTick(done);
+                            },
+                            function(err) {
+                                done(err);
+                            }
+                        )
+                    ;
                 });
             }, function() {
                 //while
-                return utxos && Object.keys(utxos).length > 0;
+                return hasTransactions;
             }, function(err) {
                 //all done
                 if (err) {
@@ -4730,14 +4652,11 @@ WalletSweeper.prototype.discoverWalletFunds = function (increment, cb) {
                         error: err,
                         increment: increment,
                         btPubKeyIndex: keyIndex,
-                        //addresses: [],
                         totalAddresses: totalAddressesGenerated,
                         addressUTXOs: addressUTXOs,
                         totalUTXOs: totalUTXOs,
                         totalBalance: totalBalance
                     });
-                    //should we stop if an error was encountered?   @todo consider this
-                    //done(err);
                 }
                 //ready for next Blocktrail pub key
                 async.nextTick(done);
@@ -8166,6 +8085,7 @@ module.exports={
   "_from": "bigi@>=1.4.0 <2.0.0",
   "_id": "bigi@1.4.1",
   "_inCache": true,
+  "_installable": true,
   "_location": "/bigi",
   "_nodeVersion": "2.1.0",
   "_npmUser": {
@@ -8210,7 +8130,6 @@ module.exports={
   },
   "gitHead": "7d034a1b38ca90f68daa9de472dda2fb813836f1",
   "homepage": "https://github.com/cryptocoinjs/bigi#readme",
-  "installable": true,
   "keywords": [
     "arbitrary",
     "arithmetic",
@@ -8249,6 +8168,7 @@ module.exports={
   ],
   "name": "bigi",
   "optionalDependencies": {},
+  "readme": "ERROR: No README data found!",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/cryptocoinjs/bigi.git"
@@ -17413,7 +17333,7 @@ function utf8ToBytes (string, units) {
       }
 
       // valid surrogate pair
-      codePoint = leadSurrogate - 0xD800 << 10 | codePoint - 0xDC00 | 0x10000
+      codePoint = (leadSurrogate - 0xD800 << 10 | codePoint - 0xDC00) + 0x10000
     } else if (leadSurrogate) {
       // valid bmp char, but last char was a lead
       if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
@@ -24517,6 +24437,7 @@ module.exports={
   "_from": "elliptic@>=6.0.0 <7.0.0",
   "_id": "elliptic@6.0.2",
   "_inCache": true,
+  "_installable": true,
   "_location": "/create-ecdh/elliptic",
   "_nodeVersion": "5.0.0",
   "_npmUser": {
@@ -24574,7 +24495,6 @@ module.exports={
   ],
   "gitHead": "330106da186712d228d79bc71ae8e7e68565fa9d",
   "homepage": "https://github.com/indutny/elliptic",
-  "installable": true,
   "keywords": [
     "Cryptography",
     "EC",
@@ -24591,6 +24511,7 @@ module.exports={
   ],
   "name": "elliptic",
   "optionalDependencies": {},
+  "readme": "ERROR: No README data found!",
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/indutny/elliptic.git"
@@ -27208,6 +27129,7 @@ module.exports={
   "_from": "elliptic@>=6.0.0 <7.0.0",
   "_id": "elliptic@6.0.2",
   "_inCache": true,
+  "_installable": true,
   "_location": "/crypto-browserify/elliptic",
   "_nodeVersion": "5.0.0",
   "_npmUser": {
@@ -27265,7 +27187,6 @@ module.exports={
   ],
   "gitHead": "330106da186712d228d79bc71ae8e7e68565fa9d",
   "homepage": "https://github.com/indutny/elliptic",
-  "installable": true,
   "keywords": [
     "Cryptography",
     "EC",
@@ -27282,6 +27203,7 @@ module.exports={
   ],
   "name": "elliptic",
   "optionalDependencies": {},
+  "readme": "ERROR: No README data found!",
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/indutny/elliptic.git"
