@@ -9035,17 +9035,32 @@ var WalletSweeper = function (backupData, bitcoinDataClient, options) {
         if (typeof backupData.backupMnemonic == "undefined" || !backupData.backupMnemonic) {
             throw new Error('missing backup seed for version 2 wallet');
         }
-        if (typeof backupData.passwordEncryptedSecretMnemonic == "undefined" || !backupData.passwordEncryptedSecretMnemonic) {
-            throw new Error('missing password encrypted secret for version 2 wallet');
-        }
-        if (typeof backupData.password == "undefined") {
-            throw new Error('missing primary passphrase for version 2 wallet');
+        //can either recover with password and password encrypted secret, or with encrypted recovery secret and a decryption key
+        var usePassword = typeof backupData.password != "undefined" && backupData.password != null;
+        if (usePassword) {
+            if (typeof backupData.passwordEncryptedSecretMnemonic == "undefined" || !backupData.passwordEncryptedSecretMnemonic) {
+                throw new Error('missing password encrypted secret for version 2 wallet');
+            }
+            if (typeof backupData.password == "undefined") {
+                throw new Error('missing primary passphrase for version 2 wallet');
+            }
+        } else {
+            if (typeof backupData.encryptedRecoverySecretMnemonic == "undefined" || !backupData.encryptedRecoverySecretMnemonic) {
+                throw new Error('missing encrypted recovery secret for version 2 wallet (recovery without password)');
+            }
+            if (!backupData.recoverySecretDecryptionKey) {
+                throw new Error('missing recovery secret decryption key for version 2 wallet (recovery without password)');
+            }
         }
 
         // cleanup copy paste errors from mnemonics
         backupData.encryptedPrimaryMnemonic = backupData.encryptedPrimaryMnemonic.trim().replace(new RegExp("\r\n", 'g'), " ").replace(new RegExp("\n", 'g'), " ").replace(/\s+/g, " ");
         backupData.backupMnemonic = backupData.backupMnemonic.trim().replace(new RegExp("\r\n", 'g'), " ").replace(new RegExp("\n", 'g'), " ").replace(/\s+/g, " ");
-        backupData.passwordEncryptedSecretMnemonic = backupData.passwordEncryptedSecretMnemonic.trim().replace(new RegExp("\r\n", 'g'), " ").replace(new RegExp("\n", 'g'), " ").replace(/\s+/g, " ");
+        if (usePassword) {
+            backupData.passwordEncryptedSecretMnemonic = backupData.passwordEncryptedSecretMnemonic.trim().replace(new RegExp("\r\n", 'g'), " ").replace(new RegExp("\n", 'g'), " ").replace(/\s+/g, " ");
+        } else {
+            backupData.encryptedRecoverySecretMnemonic = backupData.encryptedRecoverySecretMnemonic.trim().replace(new RegExp("\r\n", 'g'), " ").replace(new RegExp("\n", 'g'), " ").replace(/\s+/g, " ");
+        }
     }
 
 
@@ -9064,11 +9079,24 @@ var WalletSweeper = function (backupData, bitcoinDataClient, options) {
         // if a version 2 wallet, need to process backup data a bit more first...
 
         // convert mnemonics to hex (bip39) and then base64 for decryption
-        backupData.passwordEncryptedSecretMnemonic = blocktrail.convert(bip39.mnemonicToEntropy(backupData.passwordEncryptedSecretMnemonic), 'hex', 'base64');
         backupData.encryptedPrimaryMnemonic = blocktrail.convert(bip39.mnemonicToEntropy(backupData.encryptedPrimaryMnemonic), 'hex', 'base64');
+        if (usePassword) {
+            backupData.passwordEncryptedSecretMnemonic = blocktrail.convert(bip39.mnemonicToEntropy(backupData.passwordEncryptedSecretMnemonic), 'hex', 'base64');
+        } else {
+            backupData.encryptedRecoverySecretMnemonic = blocktrail.convert(bip39.mnemonicToEntropy(backupData.encryptedRecoverySecretMnemonic), 'hex', 'base64');
+        }
 
         // decrypt encryption secret
-        var secret = CryptoJS.AES.decrypt(backupData.passwordEncryptedSecretMnemonic, backupData.password).toString(CryptoJS.enc.Utf8);
+        var secret;
+        if (usePassword) {
+            secret = CryptoJS.AES.decrypt(backupData.passwordEncryptedSecretMnemonic, backupData.password).toString(CryptoJS.enc.Utf8);
+        } else {
+            secret = CryptoJS.AES.decrypt(backupData.encryptedRecoverySecretMnemonic, backupData.recoverySecretDecryptionKey).toString(CryptoJS.enc.Utf8);
+        }
+
+        if (!secret) {
+            throw new Error("Could not decrypt secret with " + (usePassword ? "password" : "decryption key"));
+        }
 
         // now finally decrypt the primary seed and convert to buffer (along with backup seed)
         primarySeed = new Buffer(CryptoJS.AES.decrypt(backupData.encryptedPrimaryMnemonic, secret).toString(CryptoJS.enc.Utf8), 'base64');
@@ -9080,6 +9108,7 @@ var WalletSweeper = function (backupData, bitcoinDataClient, options) {
     this.backupPrivateKey = bitcoin.HDNode.fromSeedBuffer(backupSeed, this.network);
 
     if (this.settings.logging) {
+        console.log('using password method: ' + usePassword);
         console.log("Primary Prv Key: " + this.primaryPrivateKey.toBase58());
         console.log("Primary Pub Key: " + this.primaryPrivateKey.neutered().toBase58());
         console.log("Backup Prv Key: " + this.backupPrivateKey.toBase58());
@@ -12728,7 +12757,6 @@ module.exports={
   "_from": "bigi@>=1.4.0 <2.0.0",
   "_id": "bigi@1.4.1",
   "_inCache": true,
-  "_installable": true,
   "_location": "/bigi",
   "_nodeVersion": "2.1.0",
   "_npmUser": {
@@ -12773,6 +12801,7 @@ module.exports={
   },
   "gitHead": "7d034a1b38ca90f68daa9de472dda2fb813836f1",
   "homepage": "https://github.com/cryptocoinjs/bigi#readme",
+  "installable": true,
   "keywords": [
     "arbitrary",
     "arithmetic",
@@ -12811,7 +12840,6 @@ module.exports={
   ],
   "name": "bigi",
   "optionalDependencies": {},
-  "readme": "ERROR: No README data found!",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/cryptocoinjs/bigi.git"
@@ -29080,7 +29108,6 @@ module.exports={
   "_from": "elliptic@>=6.0.0 <7.0.0",
   "_id": "elliptic@6.0.2",
   "_inCache": true,
-  "_installable": true,
   "_location": "/create-ecdh/elliptic",
   "_nodeVersion": "5.0.0",
   "_npmUser": {
@@ -29138,6 +29165,7 @@ module.exports={
   ],
   "gitHead": "330106da186712d228d79bc71ae8e7e68565fa9d",
   "homepage": "https://github.com/indutny/elliptic",
+  "installable": true,
   "keywords": [
     "Cryptography",
     "EC",
@@ -29154,7 +29182,6 @@ module.exports={
   ],
   "name": "elliptic",
   "optionalDependencies": {},
-  "readme": "ERROR: No README data found!",
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/indutny/elliptic.git"
@@ -31772,7 +31799,6 @@ module.exports={
   "_from": "elliptic@>=6.0.0 <7.0.0",
   "_id": "elliptic@6.0.2",
   "_inCache": true,
-  "_installable": true,
   "_location": "/crypto-browserify/elliptic",
   "_nodeVersion": "5.0.0",
   "_npmUser": {
@@ -31830,6 +31856,7 @@ module.exports={
   ],
   "gitHead": "330106da186712d228d79bc71ae8e7e68565fa9d",
   "homepage": "https://github.com/indutny/elliptic",
+  "installable": true,
   "keywords": [
     "Cryptography",
     "EC",
@@ -31846,7 +31873,6 @@ module.exports={
   ],
   "name": "elliptic",
   "optionalDependencies": {},
-  "readme": "ERROR: No README data found!",
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/indutny/elliptic.git"
