@@ -41,17 +41,21 @@ var backupDataV1 = {
  * backupMnemonic:              the "backup seed" mnemonic, obtained from our backup pdf (page 1)
  *
  * passwordEncryptedSecretMnemonic: the "password encrypted secret" mnemonic, obtained from our backup pdf (page 2)
+ * password:                        our wallet password, as used to unlock the wallet when sending transactions
  *
- * password:                    our wallet password, as used to unlock the wallet when sending transactions
- * blocktrailKeys:              an array of the blocktrail pubkeys objects as {keyIndex: keyIndex, path: path, pubkey: pubkey}
- *                                  keyIndex:   key index printed below each pubkey QR code on the backup pdf (page 1)
- *                                  path:       path printed below each pubkey QR code on the backup pdf (page 1)
- *                                  pubkey:     the contents of the QR code (page 1)
+ * encryptedRecoverySecretMnemonic: the "Encrypted Recovery Secret" an alternative to the password and encrypted secret, if the password is forgotten (page 1)
+ * recoverySecretDecryptionKey:     required to decrypt the encrypted recovery secret. Must be obtained from Blocktrail via support@blocktrail.com
+ *
+ * blocktrailKeys:                  an array of the blocktrail pubkeys objects as {keyIndex: keyIndex, path: path, pubkey: pubkey}
+ *                                      keyIndex:   key index printed below each pubkey QR code on the backup pdf (page 1)
+ *                                      path:       path printed below each pubkey QR code on the backup pdf (page 1)
+ *                                      pubkey:     the contents of the QR code (page 1)
  */
 var backupDataV2 = {
     walletVersion:                   2,
     encryptedPrimaryMnemonic:        "fat arena brown skull echo quiz diesel beach gift olympic riot orphan sketch chief exchange height danger nasty clutch dune wing run drastic roast exist super toddler combine vault salute salad trap spider tenant draw million insane alley pelican spot alpha cheese version clog arm tomorrow slush plunge",
     backupMnemonic:                  "aerobic breeze taste swear whip service bone siege tackle grow drip few tray clay crumble glass athlete bronze office roast learn tuition exist symptom",
+
     passwordEncryptedSecretMnemonic: "fat arena brown skull echo quick damage toe later above jewel life void despair outer model annual various original stool answer vessel tired fragile visa summer step dash inform unit member social liberty valve tonight ocean pretty dial ability special angry like ancient unit shiver safe hospital ocean around poet album split they random decide ginger guilt mix evolve click avoid oven sad gospel worry chaos another lonely essence lucky health view",
     password:                        "test",
 
@@ -80,19 +84,45 @@ var bitcoinDataClient = new blocktrail.BlocktrailBitcoinService({
 
 
 
-//create instance of sweeper - this will automatically create primary keys from mnemonics
+
+var discoverAndSweep = true;        //do we want to discover funds and sweep them to another wallet at the same time?
+var recoverWithPassword = false;     //do we want to try and recover with or without the password?
+
+
+/**
+ * create an instance of the wallet sweaper, which generates the wallet keys from the backup data
+ *
+ */
 var sweeperOptions = {
     network: 'btc',
     testnet: useTestnet,
     logging: true,          // display extra info in console
-    sweepBatchSize: 50     // number of addresses to check at a time (use a larger number for older wallets)
+    sweepBatchSize: 50      // number of addresses to check at a time (use a larger number for older wallets)
 };
-//var walletSweeper = new blocktrail.WalletSweeper(backupDataV1, bitcoinDataClient, sweeperOptions);  //version 1, testnet
-var walletSweeper = new blocktrail.WalletSweeper(backupDataV2, bitcoinDataClient, sweeperOptions);      //version 2, mainnet
+var walletSweeper;
+if (recoverWithPassword) {
+    console.log('Creating wallet keys using password method...');
+    //walletSweeper = new blocktrail.WalletSweeper(backupDataV1, bitcoinDataClient, sweeperOptions);  //version 1, testnet
+    walletSweeper = new blocktrail.WalletSweeper(backupDataV2, bitcoinDataClient, sweeperOptions);      //version 2, mainnet
+} else {
+    /**
+     * if the wallet password is forgotten for a V2 wallet, it is possible to use the "Encrypted Recovery Secret" on the backup pdf
+     * along with a decryption key which must be obtained directly from Blocktrail.
+     */
+    backupDataV2.password = null;
+    backupDataV2.encryptedRecoverySecretMnemonic = "fat arena brown skull echo question sphere farm witness slender hospital note sketch two level ten oyster interest oppose stable method left fringe damage shiver tumble help group eyebrow recipe also another front account apart tomato trigger daring slush magic lunch clump knife cloth measure tool tower hood define salute reopen cover sad bag scan kingdom fault tag increase snap cruise input amused once spring skin grief syrup actual legend tribe emotion";
+    backupDataV2.recoverySecretDecryptionKey = "86e23bddc80dfb93fc4b05cbfae9c08b6d7398014c52232541237dfe2faaf963";
+
+    console.log('Creating wallet keys using encrypted secret method...');
+    //walletSweeper = new blocktrail.WalletSweeper(backupDataV1, bitcoinDataClient, sweeperOptions);  //version 1, testnet
+    walletSweeper = new blocktrail.WalletSweeper(backupDataV2, bitcoinDataClient, sweeperOptions);      //version 2, mainnet
+}
 
 
-
-var discoverAndSweep = true;
+/**
+ * now we can discover funds in the wallet, and then create a transaction to send them all to a new address
+ *
+ */
 if (!discoverAndSweep) {
     //Do wallet fund discovery - can be run separately from sweeping
     console.log('-----Discovering Funds-----');
@@ -107,7 +137,6 @@ if (!discoverAndSweep) {
         .catch(function(err) {
             console.error(err);
         });
-
 
 } else {
     // Do wallet fund discovery and sweeping - if successful you will be returned a signed transaction ready to submit to the network
