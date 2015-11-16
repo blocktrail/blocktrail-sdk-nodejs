@@ -80,7 +80,7 @@ var bitcoinDataClient = new blocktrail.BlocktrailBitcoinService({
     testnet:    useTestnet
 });
 // there is also an Insight data service using bitpay's API
-//bitcoinDataClient = new blocktrail.InsightBitcoinService({testnet: useTestnet});
+// bitcoinDataClient = new blocktrail.InsightBitcoinService({testnet: useTestnet});
 
 
 
@@ -90,14 +90,14 @@ var recoverWithPassword = false;     //do we want to try and recover with or wit
 
 
 /**
- * create an instance of the wallet sweaper, which generates the wallet keys from the backup data
+ * create an instance of the wallet sweeper, which generates the wallet keys from the backup data
  *
  */
 var sweeperOptions = {
     network: 'btc',
     testnet: useTestnet,
     logging: true,          // display extra info in console
-    sweepBatchSize: 50      // number of addresses to check at a time (use a larger number for older wallets)
+    sweepBatchSize: 100     // number of addresses to check at a time (use a larger number for older wallets)
 };
 var walletSweeper;
 if (recoverWithPassword) {
