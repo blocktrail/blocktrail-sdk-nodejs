@@ -1288,9 +1288,18 @@ APIClient.prototype.coinSelection = function(identifier, pay, lockUTXO, allowZer
                 fee_strategy: feeStrategy
             },
             pay
-        ).then(function(result) {
-            return [result.utxos, result.fee, result.change];
-        })
+        ).then(
+            function(result) {
+                return [result.utxos, result.fee, result.change];
+            },
+            function(err) {
+                if (err.message.match(/too low to pay the fee/)) {
+                    throw blocktrail.WalletFeeError(err);
+                }
+
+                throw err;
+            }
+        )
     );
 
     return deferred.promise;
@@ -2080,7 +2089,7 @@ Error.extend = function(subTypeName, errorCode /*optional*/) {
         //populate error details
         this.name = subTypeName;
         this.code = errorCode;
-        this.message = message || '';
+        this.message = message ? (message.message || message || '') : '';
 
         //include stack trace in error object (only supported in v8 browsers)
         if (Error.captureStackTrace) {
@@ -2129,6 +2138,7 @@ blocktrail.Error = Error.extend("Error", 500);
 
 blocktrail.FEE_STRATEGY_BASE_FEE = 'base_fee';
 blocktrail.FEE_STRATEGY_OPTIMAL = 'optimal';
+blocktrail.FEE_STRATEGY_LOW_PRIORITY = 'low_priority';
 
 // apply patch to Q to add spreadNodeify for all dependants of this module
 blocktrail.patchQ(require('q'));
@@ -3092,6 +3102,7 @@ Wallet.PAY_PROGRESS_DONE = 100;
 
 Wallet.FEE_STRATEGY_BASE_FEE = blocktrail.FEE_STRATEGY_BASE_FEE;
 Wallet.FEE_STRATEGY_OPTIMAL = blocktrail.FEE_STRATEGY_OPTIMAL;
+Wallet.FEE_STRATEGY_LOW_PRIORITY = blocktrail.FEE_STRATEGY_LOW_PRIORITY;
 
 Wallet.prototype.unlock = function(options, cb) {
     var self = this;
