@@ -84,6 +84,16 @@ Files in `./build` are:
 
 If you use these browserified versions of our SDK it will be accessible as `window.blocktrailSDK` or plain `blocktrailSDK`.
 
+Known Supported and Tested Browsers:
+ - Android 4.3+ (Use Crosswalk for lower versions if neccesary)
+ - iOS6+
+ - IE9+
+
+For the following any modern version will work just fine:
+ - Chrome
+ - FireFox
+ - Safari
+
 Uglify
 ------
 If you're planning to uglify/minify the javascript yourself, make sure to exclude the following variable names from being mangled:  

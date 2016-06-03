@@ -75,6 +75,15 @@ describe('data api', function() {
             cb();
         });
     });
+    it('test batchAddressUnspentOutputs', function(cb) {
+        client.batchAddressUnspentOutputs(["1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp", "1KFHE7w8BhaENAswwryaoccDb6qcT6DbYY"], {limit: 23}, function(err, address_utxo) {
+            assert.ifError(err);
+            assert.ok('data' in address_utxo);
+            assert.ok('total' in address_utxo);
+            assert.ok(address_utxo['total'] >= address_utxo['data'].length);
+            cb();
+        });
+    });
     it('test verifyAddress', function(cb) {
         client.verifyAddress("16dwJmR4mX5RguGrocMfN9Q9FR2kZcLw2z", "HPMOHRgPSMKdXrU6AqQs/i9S7alOakkHsJiqLGmInt05Cxj6b/WhS7kJxbIQxKmDW08YKzoFnbVZIoTI2qofEzk=", function(err, result) {
             assert.ifError(err);
