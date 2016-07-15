@@ -750,6 +750,63 @@ describe('test wallet, do transaction, without mnemonics', function() {
     });
 });
 
+describe('test wallet, do opreturn transaction', function() {
+    var wallet;
+
+    it("should exists", function(cb) {
+        client.initWallet({
+            identifier: "unittest-transaction",
+            passphrase: TRANSACTION_TEST_WALLET_PASSWORD
+        }, function(err, _wallet) {
+            assert.ifError(err);
+            assert.ok(_wallet);
+
+            wallet = _wallet;
+
+            assert.equal(wallet.primaryMnemonic, "give pause forget seed dance crawl situate hole keen");
+            assert.equal(wallet.identifier, "unittest-transaction");
+            assert.equal(wallet.getBlocktrailPublicKey("M/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
+            cb();
+        });
+    });
+
+    it("should be able to do a payment with opreturn output", function(cb) {
+        wallet.getNewAddress(function(err, address, path) {
+            assert.ifError(err);
+
+            var pay = {};
+            pay[address] = blocktrail.toSatoshi(0.001);
+            pay[blocktrail.Wallet.OP_RETURN] = "BLOCKTRAILTESTDATA";
+
+            wallet.pay(pay, function(err, txHash) {
+                assert.ifError(err);
+                assert.ok(txHash);
+
+
+                // 200ms timeout, for w/e this is neccesary now ... @TODO: figure out why ...
+                setTimeout(function() {
+                    client.transaction(txHash, function(err, tx) {
+                        assert.ifError(err);
+                        assert.ok(tx);
+
+                        var hasOpreturn;
+                        tx.outputs.forEach(function(output) {
+                            if (output.type === 'op_return') {
+                                hasOpreturn = true;
+
+                                assert.equal(output.script_hex, "6a12424c4f434b545241494c5445535444415441");
+                            }
+                        });
+                        assert.ok(hasOpreturn);
+
+                        cb();
+                    });
+                }, 200);
+            });
+        });
+    });
+});
+
 describe('test wallet discovery and upgrade key index', function() {
     var myIdentifier = "nodejs-sdk-" + crypto.randomBytes(24).toString('hex');
     var wallet;
