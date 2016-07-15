@@ -2687,7 +2687,7 @@ module.exports = function(options) {
 };
 
 },{"./request":6,"lodash":230}],8:[function(require,module,exports){
-var blocktrailSDK = require('../api_client');
+var BlocktrailSDK = require('../api_client');
 var _ = require('lodash');
 var q = require('q');
 var async = require('async');
@@ -2697,7 +2697,7 @@ var async = require('async');
  * @param options
  * @constructor
  */
-var BlocktrailBitcoinService = function (options) {
+var BlocktrailBitcoinService = function(options) {
     this.defaultSettings = {
         apiKey:      null,
         apiSecret:   null,
@@ -2716,7 +2716,7 @@ var BlocktrailBitcoinService = function (options) {
     this.settings.network = networkSettings.network;
     this.settings.testnet = networkSettings.testnet;
 
-    this.client = new blocktrailSDK(this.settings);
+    this.client = new BlocktrailSDK(this.settings);
 };
 
 BlocktrailBitcoinService.prototype.normaliseNetwork =  function(network, testnet) {
@@ -2728,6 +2728,7 @@ BlocktrailBitcoinService.prototype.normaliseNetwork =  function(network, testnet
             } else {
                 return {network: "BTC", testnet: false};
             }
+        break;
         case 'tbtc':
         case 'bitcoin-testnet':
             return {network: "BTC", testnet: true};
@@ -2741,12 +2742,14 @@ BlocktrailBitcoinService.prototype.setPaginationLimit = function(limit) {
 };
 
 /**
- * gets unspent outputs for a batch of addresses, returning an array of outputs with hash, index, value, and script pub hex mapped to each corresponding address
+ * gets unspent outputs for a batch of addresses, returning an array of outputs with hash, index,
+ * value, and script pub hex mapped to each corresponding address
  *
- * @param {array} addresses   array of addresses
- * @returns {q.Promise}     promise resolves with array of unspent outputs mapped to addresses as { address: [{"hash": hash, "index": index, "value": value, "script_hex": scriptHex}]}
+ * @param {array} addresses array of addresses
+ * @returns {q.Promise}     promise resolves with array of unspent outputs mapped to addresses as
+ *                          { address: [{"hash": hash, "index": index, "value": value, "script_hex": scriptHex}]}
  */
-BlocktrailBitcoinService.prototype.getBatchUnspentOutputs = function (addresses) {
+BlocktrailBitcoinService.prototype.getBatchUnspentOutputs = function(addresses) {
     var self = this;
     var deferred = q.defer();
 
@@ -2774,16 +2777,16 @@ BlocktrailBitcoinService.prototype.getBatchUnspentOutputs = function (addresses)
         return results && results['data'].length > 0;
     }, function(err) {
         //all done
-        if(err) {
+        if (err) {
             console.log("complete, but with errors", err.message);
         }
 
         var batchResults = {};  //utxos mapped to addresses
         //reduce the returned data into the values we're interested in, and map to the relevant addresses
-        utxos.forEach(function(utxo, index) {
+        utxos.forEach(function(utxo) {
             var address = utxo['address'];
 
-            if (typeof batchResults[address] == "undefined") {
+            if (typeof batchResults[address] === "undefined") {
                 batchResults[address] = [];
             }
 
@@ -2804,7 +2807,7 @@ BlocktrailBitcoinService.prototype.getBatchUnspentOutputs = function (addresses)
  * @param {array} addresses   array of addresses
  * @returns {q.Promise}
  */
-BlocktrailBitcoinService.prototype.batchAddressHasTransactions = function (addresses) {
+BlocktrailBitcoinService.prototype.batchAddressHasTransactions = function(addresses) {
     var self = this;
 
     return self.client.batchAddressHasTransactions(addresses)
@@ -2820,14 +2823,13 @@ var blocktrail = require('../blocktrail');
 var request = require('superagent');
 var _ = require('lodash');
 var q = require('q');
-var async = require('async');
 
 /**
  *
  * @param options
  * @constructor
  */
-var InsightBitcoinService = function (options) {
+var InsightBitcoinService = function(options) {
     this.defaultSettings = {
         testnet:    false,
 
@@ -2835,22 +2837,17 @@ var InsightBitcoinService = function (options) {
         retryDelay:  20
     };
     this.settings = _.merge({}, this.defaultSettings, options);
-
-    var httpOptions = {
-        https: true,
-        host: '',
-        port: '',
-        endpoint: (this.settings.testnet ? 'test-' : '') + 'insight.bitpay.com/api/'
-    };
 };
 
 /**
- * gets unspent outputs for a batch of addresses, returning an array of outputs with hash, index, value, and script pub hex mapped to each corresponding address
+ * gets unspent outputs for a batch of addresses, returning an array of outputs with hash, index, value,
+ * and script pub hex mapped to each corresponding address
  *
- * @param {array} addresses   array of addresses
- * @returns {q.Promise}     promise resolves with array of unspent outputs mapped to addresses as { address: [{"hash": hash, "index": index, "value": value, "script_hex": scriptHex}]}
+ * @param {array} addresses array of addresses
+ * @returns {q.Promise}     promise resolves with array of unspent outputs mapped to addresses as
+ *                          { address: [{"hash": hash, "index": index, "value": value, "script_hex": scriptHex}]}
  */
-InsightBitcoinService.prototype.getBatchUnspentOutputs = function (addresses) {
+InsightBitcoinService.prototype.getBatchUnspentOutputs = function(addresses) {
     var self = this;
     var deferred = q.defer();
 
@@ -2860,10 +2857,10 @@ InsightBitcoinService.prototype.getBatchUnspentOutputs = function (addresses) {
         var batchResults = {};  //utxos mapped to addresses
 
         //reduce the returned data into the values we're interested in, and map to the relevant addresses
-        results.forEach(function(utxo, index) {
+        results.forEach(function(utxo) {
             var address = utxo['address'];
 
-            if (typeof batchResults[address] == "undefined") {
+            if (typeof batchResults[address] === "undefined") {
                 batchResults[address] = [];
             }
 
@@ -2890,7 +2887,7 @@ InsightBitcoinService.prototype.getBatchUnspentOutputs = function (addresses) {
  * @param {array} addresses   array of addresses
  * @returns {q.Promise}
  */
-InsightBitcoinService.prototype.batchAddressHasTransactions = function (addresses) {
+InsightBitcoinService.prototype.batchAddressHasTransactions = function(addresses) {
     var self = this;
 
     var data = {"addrs": addresses.join(',')};
@@ -2901,7 +2898,7 @@ InsightBitcoinService.prototype.batchAddressHasTransactions = function (addresse
     ;
 };
 
-InsightBitcoinService.prototype.postRequest = function (url, data) {
+InsightBitcoinService.prototype.postRequest = function(url, data) {
     var deferred = q.defer();
     request
         .post(url)
@@ -2934,7 +2931,7 @@ InsightBitcoinService.prototype.postRequest = function (url, data) {
 
 module.exports = InsightBitcoinService;
 
-},{"../blocktrail":3,"async":16,"lodash":230,"q":261,"superagent":283}],10:[function(require,module,exports){
+},{"../blocktrail":3,"lodash":230,"q":261,"superagent":283}],10:[function(require,module,exports){
 var _ = require('lodash');
 var q = require('q');
 var async = require('async');
@@ -2944,7 +2941,7 @@ var async = require('async');
  * @param options
  * @constructor
  */
-var UnspentOutputFinder = function (bitcoinDataClient, options) {
+var UnspentOutputFinder = function(bitcoinDataClient, options) {
     this.defaultSettings = {
         logging: false,
         batchChunkSize: 200
@@ -2959,14 +2956,14 @@ var UnspentOutputFinder = function (bitcoinDataClient, options) {
  * @param addresses         an array of addresses to find unspent output for
  * @returns {q.Promise}     resolves with an object (associative array) of unspent outputs for each address with a spendable balance
  */
-UnspentOutputFinder.prototype.getUTXOs = function (addresses) {
+UnspentOutputFinder.prototype.getUTXOs = function(addresses) {
     var self = this;
     var results = {};
 
     var deferred = q.defer();
 
     //do batch if the bitcoin service supports it...
-    async.eachSeries(_.chunk(addresses, self.settings.batchChunkSize), function (addressBatch, done) {
+    async.eachSeries(_.chunk(addresses, self.settings.batchChunkSize), function(addressBatch, done) {
         if (self.settings.logging) {
             console.log("checking batch of " + addressBatch.length + " addresses for UTXOs", addressBatch.join(","));
         }
@@ -3048,6 +3045,7 @@ var Wallet = function(
     upgradeToKeyIndex,
     bypassNewAddressCheck
 ) {
+    /* jshint -W071 */
     var self = this;
 
     self.sdk = sdk;
@@ -3092,6 +3090,9 @@ Wallet.WALLET_VERSION_V1 = 'v1';
 Wallet.WALLET_VERSION_V2 = 'v2';
 
 Wallet.WALLET_ENTROPY_BITS = 256;
+
+Wallet.OP_RETURN = 'opreturn';
+Wallet.DATA = Wallet.OP_RETURN; // alias
 
 Wallet.PAY_PROGRESS_START = 0;
 Wallet.PAY_PROGRESS_COIN_SELECTION = 10;
@@ -3671,12 +3672,19 @@ Wallet.prototype.buildTransaction = function(pay, changeAddress, allowZeroConf, 
     deferred.promise.spreadNodeify(cb);
 
     q.nextTick(function() {
-        var send = {};
+        var send = [];
 
+        // normalize / validate sends
         Object.keys(pay).forEach(function(address) {
             address = address.trim();
             var value = pay[address];
             var err = null;
+
+            if (address === Wallet.OP_RETURN) {
+                var datachunk = Buffer.isBuffer(value) ? value : new Buffer(value, 'utf-8');
+                send.push({scriptPubKey: bitcoin.scripts.nullDataOutput(datachunk).toBuffer().toString('hex'), value: 0});
+                return;
+            }
 
             var addr;
             try {
@@ -3700,10 +3708,10 @@ Wallet.prototype.buildTransaction = function(pay, changeAddress, allowZeroConf, 
                 return deferred.promise;
             }
 
-            send[address] = value;
+            send.push({address: address, value: parseInt(value, 10)});
         });
 
-        if (!Object.keys(send).length) {
+        if (!send.length) {
             deferred.reject(new blocktrail.WalletSendError("Need at least one recipient"));
             return deferred.promise;
         }
@@ -3711,7 +3719,7 @@ Wallet.prototype.buildTransaction = function(pay, changeAddress, allowZeroConf, 
         deferred.notify(Wallet.PAY_PROGRESS_COIN_SELECTION);
 
         deferred.resolve(
-            self.coinSelection(pay, true, allowZeroConf, feeStrategy, options)
+            self.coinSelection(send, true, allowZeroConf, feeStrategy, options)
             /**
              *
              * @param {Object[]} utxos
@@ -3781,8 +3789,14 @@ Wallet.prototype.buildTransaction = function(pay, changeAddress, allowZeroConf, 
                          * @param cb
                          */
                         function(cb) {
-                            Object.keys(send).forEach(function(address) {
-                                outputs.push({address: address, value: parseInt(send[address], 10)});
+                            send.forEach(function(_send) {
+                                if (_send.address) {
+                                    outputs.push({address: _send.address, value: _send.value});
+                                } else if (_send.scriptPubKey) {
+                                    outputs.push({scriptPubKey: bitcoin.Script.fromBuffer(new Buffer(_send.scriptPubKey, 'hex')), value: _send.value});
+                                } else {
+                                    throw new Error("Invalid send");
+                                }
                             });
 
                             cb();
@@ -3841,7 +3855,7 @@ Wallet.prototype.buildTransaction = function(pay, changeAddress, allowZeroConf, 
                          */
                         function(cb) {
                             outputs.forEach(function(outputInfo) {
-                                txb.addOutput(outputInfo.address, outputInfo.value);
+                                txb.addOutput(outputInfo.scriptPubKey || outputInfo.address, outputInfo.value);
                             });
 
                             cb();
@@ -4293,11 +4307,10 @@ module.exports = Wallet;
 }).call(this,require("buffer").Buffer)
 },{"./blocktrail":3,"assert":15,"async":16,"bip39":22,"bitcoinjs-lib":36,"buffer":80,"crypto-js":159,"lodash":230,"q":261}],12:[function(require,module,exports){
 (function (Buffer){
-var unspentOutputFinder = require('./unspent_output_finder')
+var UnspentOutputFinder = require('./unspent_output_finder');
 var bitcoin = require('bitcoinjs-lib');
 var bip39 = require("bip39");
 var CryptoJS = require('crypto-js');
-var blocktrailSDK = require('./api_client');
 var blocktrail = require('./blocktrail');
 var walletSDK = require('./wallet');
 var _ = require('lodash');
@@ -4311,7 +4324,8 @@ var async = require('async');
  * @param options
  * @constructor
  */
-var WalletSweeper = function (backupData, bitcoinDataClient, options) {
+var WalletSweeper = function(backupData, bitcoinDataClient, options) {
+    /* jshint -W071, -W074 */
     var self = this;
     this.defaultSettings = {
         network: 'btc',
@@ -4321,7 +4335,7 @@ var WalletSweeper = function (backupData, bitcoinDataClient, options) {
     };
     this.settings = _.merge({}, this.defaultSettings, options);
     this.bitcoinDataClient = bitcoinDataClient;
-    this.utxoFinder = new unspentOutputFinder(bitcoinDataClient, this.settings);
+    this.utxoFinder = new UnspentOutputFinder(bitcoinDataClient, this.settings);
     this.sweepData = null;
 
     // set the bitcoinlib network
@@ -4329,42 +4343,50 @@ var WalletSweeper = function (backupData, bitcoinDataClient, options) {
 
     backupData.walletVersion = backupData.walletVersion || 2;   //default to version 2 wallets
 
+    var usePassword = false;
+
     // validate backup data, cleanup input, and prepare seeds
     if (!Array.isArray(backupData.blocktrailKeys)) {
         throw new Error('blocktrail pub keys are required (must be type Array)');
     }
-    if (backupData.walletVersion == 1) {
-        if (typeof backupData.primaryMnemonic == "undefined" || !backupData.primaryMnemonic) {
+    if (1 === backupData.walletVersion) {
+        if (typeof backupData.primaryMnemonic === "undefined" || !backupData.primaryMnemonic) {
             throw new Error('missing primary mnemonic for version 1 wallet');
         }
-        if (typeof backupData.backupMnemonic == "undefined" || !backupData.backupMnemonic) {
+        if (typeof backupData.backupMnemonic === "undefined" || !backupData.backupMnemonic) {
             throw new Error('missing backup mnemonic for version 1 wallet');
         }
-        if (typeof backupData.primaryPassphrase == "undefined") {
+        if (typeof backupData.primaryPassphrase === "undefined") {
             throw new Error('missing primary passphrase for version 1 wallet');
         }
 
         // cleanup copy paste errors from mnemonics
-        backupData.primaryMnemonic = backupData.primaryMnemonic.trim().replace(new RegExp("\r\n", 'g'), " ").replace(new RegExp("\n", 'g'), " ").replace(/\s+/g, " ");
-        backupData.backupMnemonic = backupData.backupMnemonic.trim().replace(new RegExp("\r\n", 'g'), " ").replace(new RegExp("\n", 'g'), " ").replace(/\s+/g, " ");
+        backupData.primaryMnemonic = backupData.primaryMnemonic.trim()
+                                        .replace(new RegExp("\r\n", 'g'), " ")
+                                        .replace(new RegExp("\n", 'g'), " ")
+                                        .replace(/\s+/g, " ");
+        backupData.backupMnemonic = backupData.backupMnemonic.trim()
+                                        .replace(new RegExp("\r\n", 'g'), " ")
+                                        .replace(new RegExp("\n", 'g'), " ")
+                                        .replace(/\s+/g, " ");
     } else {
-        if (typeof backupData.encryptedPrimaryMnemonic == "undefined" || !backupData.encryptedPrimaryMnemonic) {
+        if (typeof backupData.encryptedPrimaryMnemonic === "undefined" || !backupData.encryptedPrimaryMnemonic) {
             throw new Error('missing encrypted primary seed for version 2 wallet');
         }
-        if (typeof backupData.backupMnemonic == "undefined" || !backupData.backupMnemonic) {
+        if (typeof backupData.backupMnemonic === "undefined" || !backupData.backupMnemonic) {
             throw new Error('missing backup seed for version 2 wallet');
         }
         //can either recover with password and password encrypted secret, or with encrypted recovery secret and a decryption key
-        var usePassword = typeof backupData.password != "undefined" && backupData.password != null;
+        usePassword = typeof backupData.password !== "undefined" && backupData.password !== null;
         if (usePassword) {
-            if (typeof backupData.passwordEncryptedSecretMnemonic == "undefined" || !backupData.passwordEncryptedSecretMnemonic) {
+            if (typeof backupData.passwordEncryptedSecretMnemonic === "undefined" || !backupData.passwordEncryptedSecretMnemonic) {
                 throw new Error('missing password encrypted secret for version 2 wallet');
             }
-            if (typeof backupData.password == "undefined") {
+            if (typeof backupData.password === "undefined") {
                 throw new Error('missing primary passphrase for version 2 wallet');
             }
         } else {
-            if (typeof backupData.encryptedRecoverySecretMnemonic == "undefined" || !backupData.encryptedRecoverySecretMnemonic) {
+            if (typeof backupData.encryptedRecoverySecretMnemonic === "undefined" || !backupData.encryptedRecoverySecretMnemonic) {
                 throw new Error('missing encrypted recovery secret for version 2 wallet (recovery without password)');
             }
             if (!backupData.recoverySecretDecryptionKey) {
@@ -4373,25 +4395,33 @@ var WalletSweeper = function (backupData, bitcoinDataClient, options) {
         }
 
         // cleanup copy paste errors from mnemonics
-        backupData.encryptedPrimaryMnemonic = backupData.encryptedPrimaryMnemonic.trim().replace(new RegExp("\r\n", 'g'), " ").replace(new RegExp("\n", 'g'), " ").replace(/\s+/g, " ");
-        backupData.backupMnemonic = backupData.backupMnemonic.trim().replace(new RegExp("\r\n", 'g'), " ").replace(new RegExp("\n", 'g'), " ").replace(/\s+/g, " ");
+        backupData.encryptedPrimaryMnemonic = backupData.encryptedPrimaryMnemonic.trim()
+                                                .replace(new RegExp("\r\n", 'g'), " ")
+                                                .replace(new RegExp("\n", 'g'), " ")
+                                                .replace(/\s+/g, " ");
+        backupData.backupMnemonic = backupData.backupMnemonic.trim()
+                                    .replace(new RegExp("\r\n", 'g'), " ")
+                                    .replace(new RegExp("\n", 'g'), " ")
+                                    .replace(/\s+/g, " ");
         if (usePassword) {
-            backupData.passwordEncryptedSecretMnemonic = backupData.passwordEncryptedSecretMnemonic.trim().replace(new RegExp("\r\n", 'g'), " ").replace(new RegExp("\n", 'g'), " ").replace(/\s+/g, " ");
+            backupData.passwordEncryptedSecretMnemonic = backupData.passwordEncryptedSecretMnemonic.trim()
+                .replace(new RegExp("\r\n", 'g'), " ").replace(new RegExp("\n", 'g'), " ").replace(/\s+/g, " ");
         } else {
-            backupData.encryptedRecoverySecretMnemonic = backupData.encryptedRecoverySecretMnemonic.trim().replace(new RegExp("\r\n", 'g'), " ").replace(new RegExp("\n", 'g'), " ").replace(/\s+/g, " ");
+            backupData.encryptedRecoverySecretMnemonic = backupData.encryptedRecoverySecretMnemonic.trim()
+                .replace(new RegExp("\r\n", 'g'), " ").replace(new RegExp("\n", 'g'), " ").replace(/\s+/g, " ");
         }
     }
 
 
     // create BIP32 HDNodes for the Blocktrail public keys
     this.blocktrailPublicKeys = {};
-    _.each(backupData.blocktrailKeys, function(blocktrailKey, index) {
+    _.each(backupData.blocktrailKeys, function(blocktrailKey) {
         self.blocktrailPublicKeys[blocktrailKey['keyIndex']] = bitcoin.HDNode.fromBase58(blocktrailKey['pubkey'], self.network);
     });
 
     // convert the primary and backup mnemonics to seeds (using BIP39)
     var primarySeed, backupSeed;
-    if (backupData.walletVersion == 1) {
+    if (1 === backupData.walletVersion) {
         primarySeed = bip39.mnemonicToSeed(backupData.primaryMnemonic, backupData.primaryPassphrase);
         backupSeed = bip39.mnemonicToSeed(backupData.backupMnemonic, "");
     } else {
@@ -4400,9 +4430,11 @@ var WalletSweeper = function (backupData, bitcoinDataClient, options) {
         // convert mnemonics to hex (bip39) and then base64 for decryption
         backupData.encryptedPrimaryMnemonic = blocktrail.convert(bip39.mnemonicToEntropy(backupData.encryptedPrimaryMnemonic), 'hex', 'base64');
         if (usePassword) {
-            backupData.passwordEncryptedSecretMnemonic = blocktrail.convert(bip39.mnemonicToEntropy(backupData.passwordEncryptedSecretMnemonic), 'hex', 'base64');
+            backupData.passwordEncryptedSecretMnemonic = blocktrail.convert(
+                bip39.mnemonicToEntropy(backupData.passwordEncryptedSecretMnemonic), 'hex', 'base64');
         } else {
-            backupData.encryptedRecoverySecretMnemonic = blocktrail.convert(bip39.mnemonicToEntropy(backupData.encryptedRecoverySecretMnemonic), 'hex', 'base64');
+            backupData.encryptedRecoverySecretMnemonic = blocktrail.convert(
+                bip39.mnemonicToEntropy(backupData.encryptedRecoverySecretMnemonic), 'hex', 'base64');
         }
 
         // decrypt encryption secret
@@ -4452,6 +4484,7 @@ WalletSweeper.prototype.getBitcoinNetwork =  function(network, testnet) {
             } else {
                 return bitcoin.networks.bitcoin;
             }
+        break;
         case 'tbtc':
         case 'bitcoin-testnet':
             return bitcoin.networks.testnet;
@@ -4466,7 +4499,7 @@ WalletSweeper.prototype.getBitcoinNetwork =  function(network, testnet) {
  * @param path
  * @returns {boolean}
  */
-WalletSweeper.prototype.getBlocktrailPublicKey = function (path) {
+WalletSweeper.prototype.getBlocktrailPublicKey = function(path) {
     path = path.replace("m", "M");
     var keyIndex = path.split("/")[1].replace("'", "");
 
@@ -4483,7 +4516,7 @@ WalletSweeper.prototype.getBlocktrailPublicKey = function (path) {
  * @param path
  * @returns {{address: *, redeemScript: *}}
  */
-WalletSweeper.prototype.createAddress = function (path) {
+WalletSweeper.prototype.createAddress = function(path) {
     //ensure a public path is used
     path = path.replace("m", "M");
     var keyIndex = path.split("/")[1].replace("'", "");
@@ -4517,14 +4550,14 @@ WalletSweeper.prototype.createAddress = function (path) {
  * @param keyIndex
  * @returns {{}}
  */
-WalletSweeper.prototype.createBatchAddresses = function (start, count, keyIndex) {
+WalletSweeper.prototype.createBatchAddresses = function(start, count, keyIndex) {
     var self = this;
     var addresses = {};
     var chain = 0;
 
     return q.all(_.range(0, count).map(function(i) {
         //create a path subsequent address
-        var path =  "M/" + keyIndex + "'/" + chain + "/" + (start+i);
+        var path =  "M/" + keyIndex + "'/" + chain + "/" + (start + i);
         var multisig = self.createAddress(path);
         addresses[multisig['address']] = {
             redeem: multisig['redeem'],
@@ -4535,13 +4568,13 @@ WalletSweeper.prototype.createBatchAddresses = function (start, count, keyIndex)
     });
 };
 
-WalletSweeper.prototype.discoverWalletFunds = function (increment, cb) {
+WalletSweeper.prototype.discoverWalletFunds = function(increment, cb) {
     var self = this;
     var totalBalance = 0;
     var totalUTXOs = 0;
     var totalAddressesGenerated = 0;
     var addressUTXOs = {};    //addresses and their utxos, paths and redeem scripts
-    if (typeof increment == "undefined") {
+    if (typeof increment === "undefined") {
         increment = this.settings.sweepBatchSize;
     }
 
@@ -4550,7 +4583,7 @@ WalletSweeper.prototype.discoverWalletFunds = function (increment, cb) {
 
     async.nextTick(function() {
         //for each blocktrail pub key, do fund discovery on batches of addresses
-        async.eachSeries(Object.keys(self.blocktrailPublicKeys), function (keyIndex, done) {
+        async.eachSeries(Object.keys(self.blocktrailPublicKeys), function(keyIndex, done) {
             var i = 0;
             var hasTransactions = false;
 
@@ -4572,7 +4605,7 @@ WalletSweeper.prototype.discoverWalletFunds = function (increment, cb) {
 
                 async.nextTick(function() {
                     self.createBatchAddresses(i, increment, keyIndex)
-                        .then(function (batch) {
+                        .then(function(batch) {
                             totalAddressesGenerated += Object.keys(batch).length;
 
                             if (self.settings.logging) {
@@ -4591,22 +4624,22 @@ WalletSweeper.prototype.discoverWalletFunds = function (increment, cb) {
                             });
 
                             //get the unspent outputs for this batch of addresses
-                            return self.bitcoinDataClient.batchAddressHasTransactions(_.keys(batch)).then(function (_hasTransactions) {
+                            return self.bitcoinDataClient.batchAddressHasTransactions(_.keys(batch)).then(function(_hasTransactions) {
                                 hasTransactions = _hasTransactions;
                                 if (self.settings.logging) {
                                     console.log("batch " + (hasTransactions ? "has" : "does not have") + " transactions...");
                                 }
 
                                 return q.when(hasTransactions)
-                                    .then(function (hasTransactions) {
+                                    .then(function(hasTransactions) {
                                         if (!hasTransactions) {
                                             return;
                                         }
 
                                         //get the unspent outputs for this batch of addresses
-                                        return self.utxoFinder.getUTXOs(_.keys(batch)).then(function (utxos) {
+                                        return self.utxoFinder.getUTXOs(_.keys(batch)).then(function(utxos) {
                                             // save the address utxos, along with relevant path and redeem script
-                                            _.each(utxos, function (outputs, address) {
+                                            _.each(utxos, function(outputs, address) {
                                                 addressUTXOs[address] = {
                                                     path: batch[address]['path'],
                                                     redeem: batch[address]['redeem'],
@@ -4615,7 +4648,7 @@ WalletSweeper.prototype.discoverWalletFunds = function (increment, cb) {
                                                 totalUTXOs += outputs.length;
 
                                                 //add up the total utxo value for all addresses
-                                                totalBalance = _.reduce(outputs, function (carry, output) {
+                                                totalBalance = _.reduce(outputs, function(carry, output) {
                                                     return carry + output['value'];
                                                 }, totalBalance);
 
@@ -4639,7 +4672,7 @@ WalletSweeper.prototype.discoverWalletFunds = function (increment, cb) {
                             });
                         })
                         .then(
-                            function () {
+                            function() {
                                 //ready for the next batch
                                 i += increment;
                                 async.nextTick(done);
@@ -4683,7 +4716,8 @@ WalletSweeper.prototype.discoverWalletFunds = function (increment, cb) {
             }
 
             if (self.settings.logging) {
-                console.log("finished fund discovery: "+totalBalance+" Satoshi (in "+totalUTXOs+" outputs) found when searching "+totalAddressesGenerated+" addresses");
+                console.log("finished fund discovery: " + totalBalance + " Satoshi (in " + totalUTXOs + " outputs) " +
+                    "found when searching " + totalAddressesGenerated + " addresses");
             }
 
             self.sweepData = {
@@ -4701,7 +4735,7 @@ WalletSweeper.prototype.discoverWalletFunds = function (increment, cb) {
     return deferred.promise;
 };
 
-WalletSweeper.prototype.sweepWallet = function (destinationAddress, cb) {
+WalletSweeper.prototype.sweepWallet = function(destinationAddress, cb) {
     var self = this;
     var deferred = q.defer();
     deferred.promise.nodeify(cb);
@@ -4715,7 +4749,7 @@ WalletSweeper.prototype.sweepWallet = function (destinationAddress, cb) {
             .progress(function(progress) {
                 deferred.notify(progress);
             })
-            .done(function(sweepData) {
+            .done(function() {
                 if (self.sweepData['balance'] === 0) {
                     //no funds found
                     deferred.reject("No funds found after searching through " + self.sweepData['addressesSearched'] + " addresses");
@@ -4755,7 +4789,7 @@ WalletSweeper.prototype.sweepWallet = function (destinationAddress, cb) {
  * @param fee                       a specific transaction fee to use (optional: if null, fee will be estimated)
  * @param deferred                  a deferred promise object, used for giving progress updates (optional)
  */
-WalletSweeper.prototype.createTransaction = function (destinationAddress, fee, deferred) {
+WalletSweeper.prototype.createTransaction = function(destinationAddress, fee, deferred) {
     var self = this;
     if (this.settings.logging) {
         console.log("Creating transaction to address destinationAddress");
@@ -4770,7 +4804,7 @@ WalletSweeper.prototype.createTransaction = function (destinationAddress, fee, d
     var rawTransaction = new bitcoin.TransactionBuilder();
     var inputs = [];
     _.each(this.sweepData['utxos'], function(data, address) {
-        _.each(data.utxos, function(utxo, index) {
+        _.each(data.utxos, function(utxo) {
             rawTransaction.addInput(utxo['hash'], utxo['index']);
             inputs.push({
                  txid:         utxo['hash'],
@@ -4790,7 +4824,7 @@ WalletSweeper.prototype.createTransaction = function (destinationAddress, fee, d
     var sendAmount = self.sweepData['balance'];
     var outputIdx = rawTransaction.addOutput(destinationAddress, sendAmount);
 
-    if (typeof fee == "undefined" || fee == null) {
+    if (typeof fee === "undefined" || fee === null) {
         //estimate the fee and reduce it's value from the output
         if (deferred) {
             deferred.notify({
@@ -4810,7 +4844,7 @@ WalletSweeper.prototype.createTransaction = function (destinationAddress, fee, d
     return this.signTransaction(rawTransaction, inputs);
 };
 
-WalletSweeper.prototype.signTransaction = function (rawTransaction, inputs) {
+WalletSweeper.prototype.signTransaction = function(rawTransaction, inputs) {
     var self = this;
     if (this.settings.logging) {
         console.log("Signing transaction");
@@ -4832,7 +4866,7 @@ WalletSweeper.prototype.signTransaction = function (rawTransaction, inputs) {
 module.exports = WalletSweeper;
 
 }).call(this,require("buffer").Buffer)
-},{"./api_client":1,"./blocktrail":3,"./unspent_output_finder":10,"./wallet":11,"async":16,"bip39":22,"bitcoinjs-lib":36,"buffer":80,"crypto-js":159,"lodash":230,"q":261}],13:[function(require,module,exports){
+},{"./blocktrail":3,"./unspent_output_finder":10,"./wallet":11,"async":16,"bip39":22,"bitcoinjs-lib":36,"buffer":80,"crypto-js":159,"lodash":230,"q":261}],13:[function(require,module,exports){
 var bip39 = require("bip39");
 
 module.exports = function(self) {
@@ -11257,12 +11291,15 @@ ECKey.fromWIF = function (string) {
 ECKey.makeRandom = function (compressed, rng) {
   rng = rng || randomBytes
 
-  var buffer = rng(32)
-  typeForce('Buffer', buffer)
-  assert.equal(buffer.length, 32, 'Expected 256-bit Buffer from RNG')
+  var d
 
-  var d = BigInteger.fromBuffer(buffer)
-  d = d.mod(ECKey.curve.n)
+  do {
+    var buffer = rng(32)
+    typeForce('Buffer', buffer)
+    assert.equal(buffer.length, 32, 'Expected 256-bit Buffer from RNG')
+
+    d = BigInteger.fromBuffer(buffer)
+  } while (d.compareTo(ECKey.curve) >= 0)
 
   return new ECKey(d, compressed)
 }
@@ -11534,6 +11571,7 @@ function HDNode (K, chainCode, network) {
   } else if (K instanceof ECKey) {
     assert(K.pub.compressed, 'ECKey must be compressed')
     this.privKey = K
+    this.pubKey = K.pub
   } else if (K instanceof ECPubKey) {
     assert(K.compressed, 'ECPubKey must be compressed')
     this.pubKey = K
@@ -15824,18 +15862,18 @@ var createHash = require('create-hash')
 
 // SHA256(SHA256(buffer))
 function sha256x2 (buffer) {
-  buffer = createHash('sha256').update(buffer).digest()
-  return createHash('sha256').update(buffer).digest()
+  var tmp = createHash('sha256').update(buffer).digest()
+  return createHash('sha256').update(tmp).digest()
 }
 
 // Encode a buffer as a base58-check encoded string
 function encode (payload) {
-  var checksum = sha256x2(payload).slice(0, 4)
+  var checksum = sha256x2(payload)
 
   return base58.encode(Buffer.concat([
     payload,
     checksum
-  ]))
+  ], payload.length + 4))
 }
 
 // Decode a base58-check encoded string to a buffer
@@ -15844,13 +15882,12 @@ function decode (string) {
 
   var payload = buffer.slice(0, -4)
   var checksum = buffer.slice(-4)
-  var newChecksum = sha256x2(payload).slice(0, 4)
+  var newChecksum = sha256x2(payload)
 
-  for (var i = 0; i < newChecksum.length; ++i) {
-    if (newChecksum[i] === checksum[i]) continue
-
-    throw new Error('Invalid checksum')
-  }
+  if (checksum[0] ^ newChecksum[0] |
+      checksum[1] ^ newChecksum[1] |
+      checksum[2] ^ newChecksum[2] |
+      checksum[3] ^ newChecksum[3]) throw new Error('Invalid checksum')
 
   return payload
 }
@@ -58170,6 +58207,60 @@ function reduced(list) {
 
 },{}],285:[function(require,module,exports){
 (function (Buffer){
+var inherits = require('inherits')
+
+function TfTypeError (type, value) {
+  this.tfError = Error.call(this)
+
+  if (arguments.length === 1 && typeof type === 'string') {
+    this.message = type
+  } else {
+    this.tfType = type
+    this.tfValue = value
+
+    var message
+    Object.defineProperty(this, 'message', {
+      get: function () {
+        if (message) return message
+        message = tfErrorString(type, value)
+
+        return message
+      }
+    })
+  }
+}
+
+inherits(TfTypeError, Error)
+Object.defineProperty(TfTypeError, 'stack', { get: function () { return this.tfError.stack } })
+
+function TfPropertyTypeError (type, property, value, error) {
+  this.tfError = error || Error.call(this)
+  this.tfProperty = property
+  this.tfType = type
+  this.tfValue = value
+
+  var message
+  Object.defineProperty(this, 'message', {
+    get: function () {
+      if (message) return message
+      if (type) {
+        message = tfPropertyErrorString(type, property, value)
+      } else {
+        message = 'Unexpected property "' + property + '"'
+      }
+
+      return message
+    }
+  })
+}
+
+inherits(TfPropertyTypeError, Error)
+Object.defineProperty(TfPropertyTypeError, 'stack', { get: function () { return this.tfError.stack } })
+
+TfPropertyTypeError.prototype.asChildOf = function (property) {
+  return new TfPropertyTypeError(this.tfType, property + '.' + this.tfProperty, this.tfValue, this.tfError)
+}
+
 function getFunctionName (fn) {
   return fn.name || fn.toString().match(/function (.*?)\s*\(/)[1]
 }
@@ -58228,11 +58319,11 @@ var nativeTypes = {
 var otherTypes = {
   arrayOf: function arrayOf (type) {
     function arrayOf (value, strict) {
-      try {
-        return nativeTypes.Array(value) && value.every(function (x) { return typeforce(type, x, strict) })
-      } catch (e) {
-        return false
-      }
+      if (!nativeTypes.Array(value)) return false
+
+      return value.every(function (x) {
+        return typeforce(type, x, strict, arrayOf)
+      })
     }
     arrayOf.toJSON = function () { return [tfJSON(type)] }
 
@@ -58241,7 +58332,7 @@ var otherTypes = {
 
   maybe: function maybe (type) {
     function maybe (value, strict) {
-      return nativeTypes.Null(value) || typeforce(type, value, strict)
+      return nativeTypes.Null(value) || typeforce(type, value, strict, maybe)
     }
     maybe.toJSON = function () { return '?' + stfJSON(type) }
 
@@ -58250,31 +58341,33 @@ var otherTypes = {
 
   object: function object (type) {
     function object (value, strict) {
-      typeforce(nativeTypes.Object, value, strict)
+      if (!nativeTypes.Object(value)) return false
+      if (nativeTypes.Null(value)) return false
 
-      var propertyName, propertyType, propertyValue
+      var propertyName
 
       try {
         for (propertyName in type) {
-          propertyType = type[propertyName]
-          propertyValue = value[propertyName]
+          var propertyType = type[propertyName]
+          var propertyValue = value[propertyName]
 
           typeforce(propertyType, propertyValue, strict)
         }
       } catch (e) {
-        if (/Expected property "/.test(e.message)) {
-          e.message = e.message.replace(/Expected property "(.+)" of/, 'Expected property "' + propertyName + '.$1" of')
-          throw e
+        if (e instanceof TfPropertyTypeError) {
+          throw e.asChildOf(propertyName)
+        } else if (e instanceof TfTypeError) {
+          throw new TfPropertyTypeError(e.tfType, propertyName, e.tfValue, e.tfError)
         }
 
-        throw new TypeError(tfPropertyErrorString(propertyType, propertyName, propertyValue))
+        throw e
       }
 
       if (strict) {
         for (propertyName in value) {
           if (type[propertyName]) continue
 
-          throw new TypeError('Unexpected property "' + propertyName + '"')
+          throw new TfPropertyTypeError(undefined, propertyName)
         }
       }
 
@@ -58288,8 +58381,9 @@ var otherTypes = {
   map: function map (propertyType, propertyKeyType) {
     function map (value, strict) {
       typeforce(nativeTypes.Object, value, strict)
+      if (nativeTypes.Null(value)) return false
 
-      var propertyName, propertyValue
+      var propertyName
 
       try {
         for (propertyName in value) {
@@ -58297,20 +58391,22 @@ var otherTypes = {
             typeforce(propertyKeyType, propertyName, strict)
           }
 
-          propertyValue = value[propertyName]
+          var propertyValue = value[propertyName]
           typeforce(propertyType, propertyValue, strict)
         }
       } catch (e) {
-        if (/Expected property "/.test(e.message)) {
-          e.message = e.message.replace(/Expected property "(.+)" of/, 'Expected property "' + propertyName + '.$1" of')
-          throw e
+        if (e instanceof TfPropertyTypeError) {
+          throw e.asChildOf(propertyName)
+        } else if (e instanceof TfTypeError) {
+          throw new TfPropertyTypeError(e.tfType, propertyKeyType || propertyName, e.tfValue)
         }
 
-        throw new TypeError(tfPropertyErrorString(propertyType, propertyKeyType || propertyName, propertyValue))
+        throw e
       }
 
       return true
     }
+
     if (propertyKeyType) {
       map.toJSON = function () { return '{' + stfJSON(propertyKeyType) + ': ' + stfJSON(propertyType) + '}' }
     } else {
@@ -58328,7 +58424,9 @@ var otherTypes = {
         try {
           return typeforce(type, value, strict)
         } catch (e) {
-          return false
+          if (e instanceof TfTypeError || e instanceof TfPropertyTypeError) return false
+
+          throw e
         }
       })
     }
@@ -58338,7 +58436,7 @@ var otherTypes = {
   },
 
   quacksLike: function quacksLike (type) {
-    function quacksLike (value, strict) {
+    function quacksLike (value) {
       return type === getValueTypeName(value)
     }
     quacksLike.toJSON = function () { return type }
@@ -58391,11 +58489,11 @@ function compile (type) {
   return otherTypes.value(type)
 }
 
-function typeforce (type, value, strict) {
+function typeforce (type, value, strict, surrogate) {
   if (nativeTypes.Function(type)) {
     if (type(value, strict)) return true
 
-    throw new TypeError(tfErrorString(type, value))
+    throw new TfTypeError(surrogate || type, value)
   }
 
   // JIT
@@ -58418,8 +58516,12 @@ for (typeName in otherTypes) {
 module.exports = typeforce
 module.exports.compile = compile
 
+// export Error objects
+module.exports.TfTypeError = TfTypeError
+module.exports.TfPropertyTypeError = TfPropertyTypeError
+
 }).call(this,{"isBuffer":require("../is-buffer/index.js")})
-},{"../is-buffer/index.js":228}],286:[function(require,module,exports){
+},{"../is-buffer/index.js":228,"inherits":226}],286:[function(require,module,exports){
 (function (root) {
    "use strict";
 
