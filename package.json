@@ -75,8 +75,8 @@
     "grunt-contrib-watch": "~0.6.1",
     "grunt-notify": "~0.2.17",
     "mocha": "*",
-    "jshint": "*",
-    "jscs": "*",
+    "jshint": "~2.9.1",
+    "jscs": "~3.0.7",
     "browserify": "*",
     "watchify": "*",
     "brfs": "*"
@@ -84,6 +84,6 @@
   "scripts": {
     "test": "mocha",
     "browserify": "grunt build",
-    "lint": "jshint main.js lib/ test/ && jscs main.js lib/ test/"
+    "lint": "./node_modules/jscs/bin/jscs main.js lib/ test/ && ./node_modules/jscs/bin/jscs main.js main.js lib/ test/"
   }
 }
