@@ -21,6 +21,11 @@ env:
   global:
    - secure: Snil9qE37z0EVbjVI1AOIaObLnH95Iac7y3IBwTMbuMVaCIi8rHS9Gs/2DCdiZdGNt7dTsh6QeVtVIbsH/fQs3S7cEX6E8V++1P7waEQ+QngKiEvE648dsMt9aTIS6YoGo/0srSgehFEocuHj+FU3e2EbYQ3nzi3t2ZThvvNkq8=
    - secure: feD1efbA6NLZSOlIQ3bIC/nNl/piuzjrYf2agNbCmGaNHwLHAvtareOPK/bxPFyMc431aQKvrDbMjaV2VdPly0XcPg8ZsPKtxAI2xk9dwt1FF0NqFaNb4rh59+4IOoJJRjriLerWHc2MvrzZ8tPYid0HtMlfzDgbvfAAba0lBWU=
+   - secure: "Lhdu+nqYD1Cmi23mLlmE3gS3Gm9NLLudNdpfJGKSkAuLI0tEgaWgmnL0t4icVelDl1CMQTk1X9xjePjQHhq+UeBlfjS/4egVQX7i8woYKiGBjmWebLT+6enq1TUSyC24RfM24AH0IyLGwkrpFBhvKfEycFssqReqIGyTycrw+n4="
+   - secure: "YiEEOJHjwIf26XqE7e10N+eQb7Ns96Lj6oIxENBaa+5NYWU32F2Pjq+T5f3t15C0/OC0VOnXd1CnRhjzsKq31tAdhK9xN5jSKd8/MiiwpCg6Gq98ZWkmic0NKyEgwziU5WaAYxnFEGfrlyC6QF1JUE0UQhTdmYsFJ8xnf/Obbaw="
+
+addons:
+  sauce_connect: true
 
 notifications:
   slack:
