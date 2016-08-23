@@ -27,9 +27,6 @@ env:
    - secure: "Lhdu+nqYD1Cmi23mLlmE3gS3Gm9NLLudNdpfJGKSkAuLI0tEgaWgmnL0t4icVelDl1CMQTk1X9xjePjQHhq+UeBlfjS/4egVQX7i8woYKiGBjmWebLT+6enq1TUSyC24RfM24AH0IyLGwkrpFBhvKfEycFssqReqIGyTycrw+n4="
    - secure: "YiEEOJHjwIf26XqE7e10N+eQb7Ns96Lj6oIxENBaa+5NYWU32F2Pjq+T5f3t15C0/OC0VOnXd1CnRhjzsKq31tAdhK9xN5jSKd8/MiiwpCg6Gq98ZWkmic0NKyEgwziU5WaAYxnFEGfrlyC6QF1JUE0UQhTdmYsFJ8xnf/Obbaw="
 
-before_script:
-   - bash ./downloadSauceConnect.sh
-
 notifications:
   slack:
     secure: gybn0stlysc78PYGwAxLGKQuwilHsViQe7fQ9VZTnKw8XQ4qdWxZC7Gk3Sg6XNntCSFYT8bSAO8LDQsT0yutODJ1ErxGuMRuJElSktRr5ylerWgzXbcpDyCA+hI1tzso94ITLTOamw9tGn8FyGvhMAMkByLZYpzuMjiWn+5BbzI=
