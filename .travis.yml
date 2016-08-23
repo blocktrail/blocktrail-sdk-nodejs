@@ -11,6 +11,7 @@ node_js:
 
 before_install:
  - git submodule update --init --recursive
+ - npm install -g grunt-cli
 
 script:
  - mocha
