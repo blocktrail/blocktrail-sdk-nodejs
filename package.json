@@ -75,7 +75,7 @@
     "grunt-contrib-concat": "~0.5.1",
     "grunt-contrib-watch": "~0.6.1",
     "grunt-notify": "~0.2.17",
-    "mocha": "2.3.4",
+    "mocha": "*",
     "jshint": "~2.9.1",
     "jscs": "~3.0.7",
     "browserify": "*",
