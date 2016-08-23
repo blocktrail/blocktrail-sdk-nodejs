@@ -16,6 +16,7 @@ script:
  - mocha
  - ./node_modules/jscs/bin/jscs main.js lib/ test/
  - ./node_modules/jscs/bin/jscs main.js main.js lib/ test/
+ - grunt test-browser
 
 addons:
   sauce_connect: true
