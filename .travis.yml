@@ -19,8 +19,8 @@ script:
 
 env:
   global:
-   - secure: Snil9qE37z0EVbjVI1AOIaObLnH95Iac7y3IBwTMbuMVaCIi8rHS9Gs/2DCdiZdGNt7dTsh6QeVtVIbsH/fQs3S7cEX6E8V++1P7waEQ+QngKiEvE648dsMt9aTIS6YoGo/0srSgehFEocuHj+FU3e2EbYQ3nzi3t2ZThvvNkq8=
-   - secure: feD1efbA6NLZSOlIQ3bIC/nNl/piuzjrYf2agNbCmGaNHwLHAvtareOPK/bxPFyMc431aQKvrDbMjaV2VdPly0XcPg8ZsPKtxAI2xk9dwt1FF0NqFaNb4rh59+4IOoJJRjriLerWHc2MvrzZ8tPYid0HtMlfzDgbvfAAba0lBWU=
+   - secure: NE2he5OpsNa9PGxCupBpYJ/+B7n5CfHlGAs6dE/Zc7gDVCykTDxOsQUzykc2CBSKknlzlZZXfjLr3CfVcQCFGxx1Sy3ngSztCyv3zQm3yex8DlKLL1vjpI8dHejYaF801fS1BUkGKOG7g8omcGtQDz8uI0eVAkm3PjnWnQRGJ+4=
+   - secure: "echRP+/qe3wm+mQZH+HbsFQBCbO/M78NR0MAjyAwSyi+0F0Wbh4B+gjHWL8oitzChahF1UVNdLX0QgRke4buBKzEKF+0dmctg1eqSTNn3sghK4Tg5G5RQwD26+k3aW4WUo3u5Rte36R3OC4msb221RC3MIo8CNGMzuq7lkp8dx4="
 
 notifications:
   slack:
