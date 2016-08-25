@@ -81,7 +81,7 @@ var createDiscoveryTestWallet = function(identifier, passphrase, cb) {
     return _createTestWallet(identifier, passphrase, primaryMnemonic, backupMnemonic, cb);
 };
 
-var createTransactionTestWallet = function(identifier, passphrase, cb) {
+var createTransactionTestWallet = function(identifier, cb) {
     return _createTestWallet(identifier, TRANSACTION_TEST_WALLET_PASSWORD, TRANSACTION_TEST_WALLET_PRIMARY_MNEMONIC, TRANSACTION_TEST_WALLET_BACKUP_MNEMONIC, cb);
 };
 
