@@ -11,19 +11,6 @@ module.exports = function (grunt) {
     }, {
         browserName: 'firefox',
         platform: 'linux'
-    }, {
-        browserName: 'safari',
-        platform: 'ios'
-    }, {
-        browserName: 'googlechrome',
-        platform: 'ios'
-    }, {
-        browserName: 'googlechrome',
-        platform: 'android',
-        version: '10'
-    }, {
-        browserName: 'firefox',
-        platform: 'android'
     }];
 
     grunt.initConfig({
