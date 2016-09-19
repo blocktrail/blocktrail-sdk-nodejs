@@ -39,6 +39,7 @@ module.exports = function (grunt) {
                     build: process.env.TRAVIS_JOB_ID,
                     testname: 'mocha tests',
                     throttled: 5,
+                    statusCheckAttempts: 180,
                     pollInterval: 4000,
                     sauceConfig: {
                         'video-upload-on-pass': true
