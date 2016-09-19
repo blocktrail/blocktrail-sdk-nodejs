@@ -1,5 +1,52 @@
 module.exports = function (grunt) {
+    var browsers = [{
+        browserName: 'googlechrome',
+        platform: 'Win10'
+    }, {
+        browserName: 'googlechrome',
+        platform: 'linux'
+    }, {
+        browserName: 'firefox',
+        platform: 'Win10'
+    }, {
+        browserName: 'edge',
+        platform: 'Win10'
+    }, {
+        browserName: 'firefox',
+        platform: 'linux'
+    }];
+
     grunt.initConfig({
+        pkg: grunt.file.readJSON('package.json'),
+        connect: {
+            server: {
+                options: {
+                    base: '',
+                    port: 9999
+                }
+            }
+        },
+
+        'saucelabs-mocha': {
+            all: {
+                options: {
+                    // username: 'saucelabs-user-name', // if not provided it'll default to ENV SAUCE_USERNAME (if applicable)
+                    // key: 'saucelabs-key', // if not provided it'll default to ENV SAUCE_ACCESS_KEY (if applicable)
+                    urls: [
+                        'http://127.0.0.1:9999/test/run-tests.html'
+                    ],
+                    browsers: browsers,
+                    build: process.env.TRAVIS_JOB_ID,
+                    testname: 'mocha tests',
+                    throttled: 5,
+                    statusCheckAttempts: 180,
+                    pollInterval: 4000,
+                    sauceConfig: {
+                        'video-upload-on-pass': true
+                    }
+                }
+            }
+        },
 
         /*
          * Javascript concatenation
@@ -57,6 +104,16 @@ module.exports = function (grunt) {
                 },
                 src: 'main.js',
                 dest: 'build/blocktrail-sdk.js'
+            },
+            test: {
+                options : {
+                    browserifyOptions : {
+                        standalone: 'blocktrailTEST'
+                    },
+                    transform : ['brfs']
+                },
+                src: 'test.js',
+                dest: 'build/test.js'
             }
         },
 
@@ -70,7 +127,7 @@ module.exports = function (grunt) {
                 tasks : ['default']
             },
             browserify : {
-                files : ['main.js', 'lib/*', 'lib/**/*'],
+                files : ['main.js', 'test.js', 'test/*', 'test/**/*', 'lib/*', 'lib/**/*'],
                 tasks : ['browserify', 'concat']
             },
             deps : {
@@ -82,11 +139,14 @@ module.exports = function (grunt) {
 
     grunt.loadNpmTasks('grunt-browserify');
     grunt.loadNpmTasks('grunt-contrib-uglify');
+    grunt.loadNpmTasks('grunt-contrib-connect');
+    grunt.loadNpmTasks('grunt-saucelabs');
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-notify');
 
     grunt.registerTask('build', ['browserify', 'concat', 'uglify']);
+    grunt.registerTask('test-browser', ['connect', 'saucelabs-mocha']);
     grunt.registerTask('default', ['build']);
 };
 
