@@ -1,20 +1,20 @@
 module.exports = function (grunt) {
     var browsers = [{
-        browserName: 'firefox',
-        version: '19',
-        platform: 'XP'
-    }, {
         browserName: 'googlechrome',
-        platform: 'XP'
+        platform: 'Win10'
     }, {
         browserName: 'googlechrome',
         platform: 'linux'
     }, {
-        browserName: 'internet explorer',
-        platform: 'WIN8',
-        version: '10'
+        browserName: 'firefox',
+        platform: 'Win10'
+    }, {
+        browserName: 'edge',
+        platform: 'Win10'
+    }, {
+        browserName: 'firefox',
+        platform: 'linux'
     }];
-
 
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
@@ -38,7 +38,9 @@ module.exports = function (grunt) {
                     browsers: browsers,
                     build: process.env.TRAVIS_JOB_ID,
                     testname: 'mocha tests',
-                    throttled: 3,
+                    throttled: 5,
+                    statusCheckAttempts: 180,
+                    pollInterval: 4000,
                     sauceConfig: {
                         'video-upload-on-pass': true
                     }
