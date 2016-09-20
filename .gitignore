@@ -4,3 +4,4 @@ bundle.js
 
 
 .dev*.js
+test/run-tests.html

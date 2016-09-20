@@ -1,5 +1,9 @@
 language: node_js
 
+branches:
+  only: 
+   - master
+
 node_js:
  - '0.11'
  - '0.10'
@@ -11,16 +15,21 @@ node_js:
 
 before_install:
  - git submodule update --init --recursive
+ - npm install -g grunt-cli
 
 script:
  - mocha
  - ./node_modules/jscs/bin/jscs main.js lib/ test/
  - ./node_modules/jscs/bin/jscs main.js main.js lib/ test/
+ - grunt build
+ - sh -c 'if [ "$TRAVIS_NODE_VERSION" = "0.10" ]; then grunt test-browser; fi';
 
 env:
   global:
-   - secure: Snil9qE37z0EVbjVI1AOIaObLnH95Iac7y3IBwTMbuMVaCIi8rHS9Gs/2DCdiZdGNt7dTsh6QeVtVIbsH/fQs3S7cEX6E8V++1P7waEQ+QngKiEvE648dsMt9aTIS6YoGo/0srSgehFEocuHj+FU3e2EbYQ3nzi3t2ZThvvNkq8=
-   - secure: feD1efbA6NLZSOlIQ3bIC/nNl/piuzjrYf2agNbCmGaNHwLHAvtareOPK/bxPFyMc431aQKvrDbMjaV2VdPly0XcPg8ZsPKtxAI2xk9dwt1FF0NqFaNb4rh59+4IOoJJRjriLerWHc2MvrzZ8tPYid0HtMlfzDgbvfAAba0lBWU=
+   - secure: NE2he5OpsNa9PGxCupBpYJ/+B7n5CfHlGAs6dE/Zc7gDVCykTDxOsQUzykc2CBSKknlzlZZXfjLr3CfVcQCFGxx1Sy3ngSztCyv3zQm3yex8DlKLL1vjpI8dHejYaF801fS1BUkGKOG7g8omcGtQDz8uI0eVAkm3PjnWnQRGJ+4=
+   - secure: "echRP+/qe3wm+mQZH+HbsFQBCbO/M78NR0MAjyAwSyi+0F0Wbh4B+gjHWL8oitzChahF1UVNdLX0QgRke4buBKzEKF+0dmctg1eqSTNn3sghK4Tg5G5RQwD26+k3aW4WUo3u5Rte36R3OC4msb221RC3MIo8CNGMzuq7lkp8dx4="
+   - secure: "Lhdu+nqYD1Cmi23mLlmE3gS3Gm9NLLudNdpfJGKSkAuLI0tEgaWgmnL0t4icVelDl1CMQTk1X9xjePjQHhq+UeBlfjS/4egVQX7i8woYKiGBjmWebLT+6enq1TUSyC24RfM24AH0IyLGwkrpFBhvKfEycFssqReqIGyTycrw+n4="
+   - secure: "YiEEOJHjwIf26XqE7e10N+eQb7Ns96Lj6oIxENBaa+5NYWU32F2Pjq+T5f3t15C0/OC0VOnXd1CnRhjzsKq31tAdhK9xN5jSKd8/MiiwpCg6Gq98ZWkmic0NKyEgwziU5WaAYxnFEGfrlyC6QF1JUE0UQhTdmYsFJ8xnf/Obbaw="
 
 notifications:
   slack:
