@@ -16,6 +16,8 @@ module.exports = function (grunt) {
         platform: 'linux'
     }];
 
+    console.log(process.env.BLOCKTRAIL_SDK_APIKEY);
+
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
         connect: {
@@ -44,6 +46,21 @@ module.exports = function (grunt) {
                     sauceConfig: {
                         'video-upload-on-pass': true
                     }
+                }
+            }
+        },
+
+        template: {
+            runtests: {
+                options: {
+                    data: {
+                        process: {
+                            env: process.env
+                        }
+                    }
+                },
+                files: {
+                    'test/run-tests.html': ['test/run-tests.tpl.html']
                 }
             }
         },
@@ -144,6 +161,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-notify');
+    grunt.loadNpmTasks('grunt-template');
 
     grunt.registerTask('build', ['browserify', 'concat', 'uglify']);
     grunt.registerTask('test-browser', ['connect', 'saucelabs-mocha']);
