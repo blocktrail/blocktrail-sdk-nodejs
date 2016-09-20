@@ -4,4 +4,4 @@ bundle.js
 
 
 .dev*.js
-run-tests.html
+test/run-tests.html
