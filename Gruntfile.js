@@ -1,4 +1,5 @@
 module.exports = function (grunt) {
+
     var browsers = [{
         browserName: 'googlechrome',
         platform: 'Win10'
@@ -7,9 +8,6 @@ module.exports = function (grunt) {
         platform: 'linux'
     }, {
         browserName: 'firefox',
-        platform: 'Win10'
-    }, {
-        browserName: 'edge',
         platform: 'Win10'
     }, {
         browserName: 'firefox',
@@ -40,7 +38,7 @@ module.exports = function (grunt) {
                     browsers: browsers,
                     build: process.env.TRAVIS_JOB_ID,
                     testname: 'mocha tests',
-                    throttled: 5,
+                    throttled: 2,
                     statusCheckAttempts: 180,
                     pollInterval: 4000,
                     sauceConfig: {
@@ -145,7 +143,7 @@ module.exports = function (grunt) {
             },
             browserify : {
                 files : ['main.js', 'test.js', 'test/*', 'test/**/*', 'lib/*', 'lib/**/*'],
-                tasks : ['browserify', 'concat']
+                tasks : ['browserify', 'concat', 'template']
             },
             deps : {
                 files : ['vendor/**/*.js'],
@@ -164,7 +162,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-template');
 
     grunt.registerTask('build', ['browserify', 'concat', 'uglify']);
-    grunt.registerTask('test-browser', ['connect', 'saucelabs-mocha']);
+    grunt.registerTask('test-browser', ['template', 'connect', 'saucelabs-mocha']);
     grunt.registerTask('default', ['build']);
 };
 
