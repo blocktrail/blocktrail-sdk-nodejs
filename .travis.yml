@@ -24,9 +24,6 @@ script:
  - grunt build
  - sh -c 'if [ "$TRAVIS_NODE_VERSION" = "0.10" ]; then grunt test-browser; fi';
 
-addons:
-  sauce_connect: true
-
 env:
   global:
    - secure: NE2he5OpsNa9PGxCupBpYJ/+B7n5CfHlGAs6dE/Zc7gDVCykTDxOsQUzykc2CBSKknlzlZZXfjLr3CfVcQCFGxx1Sy3ngSztCyv3zQm3yex8DlKLL1vjpI8dHejYaF801fS1BUkGKOG7g8omcGtQDz8uI0eVAkm3PjnWnQRGJ+4=
