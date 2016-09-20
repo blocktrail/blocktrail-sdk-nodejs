@@ -14,8 +14,6 @@ module.exports = function (grunt) {
         platform: 'linux'
     }];
 
-    console.log(process.env.BLOCKTRAIL_SDK_APIKEY);
-
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
         connect: {
