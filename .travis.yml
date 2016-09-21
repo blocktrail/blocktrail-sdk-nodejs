@@ -13,16 +13,21 @@ node_js:
  - 'node'
  - 'iojs'
 
+matrix:
+  include:
+  - node_js: 0.12
+    env: SAUCELABS=true
+
 before_install:
  - git submodule update --init --recursive
  - npm install -g grunt-cli
 
 script:
- - mocha
- - ./node_modules/jscs/bin/jscs main.js lib/ test/
- - ./node_modules/jscs/bin/jscs main.js main.js lib/ test/
- - grunt build
- - sh -c 'if [ "$TRAVIS_NODE_VERSION" = "0.10" ]; then grunt test-browser; fi';
+ - sh -c 'if [ "$SAUCELABS" = "false" ]; then mocha; fi';
+ - sh -c 'if [ "$SAUCELABS" = "false" ]; then ./node_modules/jshint/bin/jshint main.js lib/ test/; fi';
+ - sh -c 'if [ "$SAUCELABS" = "false" ]; then ./node_modules/jscs/bin/jscs main.js lib/ test/; fi';
+ - sh -c 'if [ "$SAUCELABS" = "true" ]; then grunt build; fi';
+ - sh -c 'if [ "$SAUCELABS" = "true" ]; then grunt test-browser; fi';
 
 env:
   global:
@@ -30,6 +35,8 @@ env:
    - secure: "echRP+/qe3wm+mQZH+HbsFQBCbO/M78NR0MAjyAwSyi+0F0Wbh4B+gjHWL8oitzChahF1UVNdLX0QgRke4buBKzEKF+0dmctg1eqSTNn3sghK4Tg5G5RQwD26+k3aW4WUo3u5Rte36R3OC4msb221RC3MIo8CNGMzuq7lkp8dx4="
    - secure: "Lhdu+nqYD1Cmi23mLlmE3gS3Gm9NLLudNdpfJGKSkAuLI0tEgaWgmnL0t4icVelDl1CMQTk1X9xjePjQHhq+UeBlfjS/4egVQX7i8woYKiGBjmWebLT+6enq1TUSyC24RfM24AH0IyLGwkrpFBhvKfEycFssqReqIGyTycrw+n4="
    - secure: "YiEEOJHjwIf26XqE7e10N+eQb7Ns96Lj6oIxENBaa+5NYWU32F2Pjq+T5f3t15C0/OC0VOnXd1CnRhjzsKq31tAdhK9xN5jSKd8/MiiwpCg6Gq98ZWkmic0NKyEgwziU5WaAYxnFEGfrlyC6QF1JUE0UQhTdmYsFJ8xnf/Obbaw="
+  matrix:
+   - SAUCELABS=false
 
 notifications:
   slack:
