@@ -11,8 +11,8 @@ var bip39 = require("bip39");
  * @type APIClient
  */
 var client = blocktrail.BlocktrailSDK({
-    apiKey : process.env.BLOCKTRAIL_SDK_APIKEY || "EXAMPLE_BLOCKTRAIL_SDK_NODEJS_APIKEY",
-    apiSecret : process.env.BLOCKTRAIL_SDK_APISECRET || "EXAMPLE_BLOCKTRAIL_SDK_NODEJS_APISECRET",
+    apiKey : process.env.BLOCKTRAIL_SDK_APIKEY || window.BLOCKTRAIL_SDK_APIKEY || "EXAMPLE_BLOCKTRAIL_SDK_NODEJS_APIKEY",
+    apiSecret : process.env.BLOCKTRAIL_SDK_APISECRET || window.BLOCKTRAIL_SDK_APISECRET || "EXAMPLE_BLOCKTRAIL_SDK_NODEJS_APISECRET",
     testnet : true
 });
 
