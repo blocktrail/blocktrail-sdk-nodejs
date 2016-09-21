@@ -1,4 +1,5 @@
 /* jshint -W101, -W098 */
+/* global window */
 var _ = require('lodash');
 var blocktrail = require('../');
 var assert = require('assert');
