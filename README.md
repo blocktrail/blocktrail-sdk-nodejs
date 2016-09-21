@@ -6,6 +6,10 @@ at https://www.blocktrail.com/api/docs/lang/nodejs
 
 [![Latest Stable Version](https://badge.fury.io/js/blocktrail-sdk.svg)](https://www.npmjs.org/package/blocktrail-sdk)
 [![Build Status](https://travis-ci.org/blocktrail/blocktrail-sdk-nodejs.png?branch=master)](https://travis-ci.org/blocktrail/blocktrail-sdk-nodejs)
+[![Sauce Test Status](https://saucelabs.com/buildstatus/team_blocktrail)](https://saucelabs.com/u/team_blocktrail)
+
+
+[![Sauce Test Status](https://saucelabs.com/browser-matrix/team_blocktrail.svg)](https://saucelabs.com/u/team_blocktrail)
 
 Upgrading from v1.x to v2.0.0
 -----------------------------
