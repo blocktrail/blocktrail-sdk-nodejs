@@ -28,7 +28,8 @@
   },
   "main": "./main.js",
   "browser": {
-    "./lib/backup_generator.js": "./lib/backup_generator-browser.js"
+    "./lib/backup_generator.js": "./lib/backup_generator-browser.js",
+    "./lib/pbkdf2_sha512.js": "./lib/pbkdf2_sha512-sjcl.js"
   },
   "dependencies": {
     "assert-plus": "0.1.5",
@@ -49,6 +50,7 @@
     "qrcode-canvas": "~0.0.1",
     "qrcode-js": "git://github.com/blocktrail/qrcode-js.git#master",
     "randombytes": "^2.0.1",
+    "sjcl": "git://github.com/blocktrail/sjcl.git#minify-library",
     "superagent": "^0.21.0",
     "superagent-http-signature": "0.1.3",
     "superagent-promise": "^0.2.0",
