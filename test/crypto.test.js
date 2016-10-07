@@ -56,24 +56,23 @@ describe('mnemonic', function() {
 });
 
 describe('wallet', function() {
-    it('should allow password RESET', function() {
-        var expectedSecret = new Buffer('9d1a50059b9107f430b8526697d371205770986d020c45900867d228fe56feaa', 'hex');
+    _.forEach(vectors.password_reset_case, function(f) {
+        it('should allow password RESET', function() {
+            var expectedSecret = new Buffer(f.expectedSecret, 'hex');
 
-        // user lost passphrase, has backup sheet
+            // user lost passphrase, has backup sheet
+            var recoverySecret = new Buffer(f.recoverySecret,'hex');
+            //  ^ this comes from Blocktrail
 
-        var recoverySecret = new Buffer('c40f61d7be45d699cc91dd929af01da235cf67abd6d3d8c0290d2b30c4066acf','hex');
-        //  ^ this comes from Blocktrail
+            var recoveryEncryptedSecret = f.recoveryEncryptedMnemonic;
+            //  ^ the user keeps this
 
-        var recoveryEncryptedSecret = 'light army dragon annual army gauge pumpkin swift home license scale accident ' +
-            'supply garbage turn atom display comfort frequent suit choice demand strategy wasp enrich occur dash slogan ' +
-            'spring express melt edge long budget dwarf exile crystal limb that normal eternal unveil tennis quality cruel ' +
-            'hamster whisper parade situate viable sting special kingdom output height supply surround local can fork';
-        //  ^ the user keeps this
-
-        var decodedRS = V3Crypt.Mnemonic.decode(recoveryEncryptedSecret);
-        var decryptedSecret = V3Crypt.Encryption.decrypt(decodedRS, recoverySecret);
-        assert.equal(decryptedSecret.toString('hex'), expectedSecret.toString('hex'));
+            var decodedRS = V3Crypt.Mnemonic.decode(recoveryEncryptedSecret);
+            var decryptedSecret = V3Crypt.Encryption.decrypt(decodedRS, recoverySecret);
+            assert.equal(decryptedSecret.toString('hex'), expectedSecret.toString('hex'));
+        });
     });
+
 
     it('uses secret to decrypt primarySeed', function() {
         _.forEach(vectors.decryptonly, function(vector, key) {
@@ -95,7 +94,7 @@ describe('wallet', function() {
     });
 
     it('encryption should produce valid encryption of the wallet seed', function() {
-        this.timeout(5000);
+        this.timeout(0);
         var passphrase = new Buffer('S2SZKBjdLwfnpesqEw9DNbaCvM2X8s9GmBcKfqBkrHtNYA8XQ5nfhzDgnT5aq5HedEYXhn3nbtpukzxaGgB2cxxBCkJJdBQJ');
         var primarySeed = randomBytes(Wallet.WALLET_ENTROPY_BITS / 8);
 
