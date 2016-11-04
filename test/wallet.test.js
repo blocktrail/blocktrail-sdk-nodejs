@@ -137,10 +137,10 @@ var createRecoveryTestWallet = function(identifier, passphrase, cb) {
                 keyIndex: 9999
             };
 
-            var expectedVersion = assumedDefault
+            var expectedVersion = assumedDefault;
             if (walletVersion !== null) {
-                cnf.walletVersion = walletVersion
-                expectedVersion = walletVersion
+                cnf.walletVersion = walletVersion;
+                expectedVersion = walletVersion;
             }
 
             client.createNewWallet(cnf, function(err, _wallet, backupInfo) {
@@ -148,7 +148,7 @@ var createRecoveryTestWallet = function(identifier, passphrase, cb) {
                 assert.ok(_wallet);
 
                 wallet = _wallet;
-                assert.equal(wallet.walletVersion, expectedVersion)
+                assert.equal(wallet.walletVersion, expectedVersion);
                 assert.equal(wallet.identifier, myIdentifier);
                 assert.equal(wallet.getBlocktrailPublicKey("M/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
 
