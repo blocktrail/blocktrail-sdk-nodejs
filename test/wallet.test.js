@@ -101,7 +101,7 @@ var createRecoveryTestWallet = function(identifier, passphrase, cb) {
   blocktrail.Wallet.WALLET_VERSION_V2,
   blocktrail.Wallet.WALLET_VERSION_V3,
   null /* test our assumed default version */
-].map(function (walletVersion) {
+].map(function(walletVersion) {
     var assumedDefault = blocktrail.Wallet.WALLET_VERSION_V3;
     describe('test new blank wallet, ' + walletVersion, function() {
         var myIdentifier = "nodejs-sdk-" + crypto.randomBytes(24).toString('hex');
@@ -144,26 +144,26 @@ var createRecoveryTestWallet = function(identifier, passphrase, cb) {
             }
 
             client.createNewWallet(cnf, function(err, _wallet, backupInfo) {
-                  assert.ifError(err);
-                  assert.ok(_wallet);
+                assert.ifError(err);
+                assert.ok(_wallet);
 
-                  wallet = _wallet;
-                  assert.equal(wallet.walletVersion, expectedVersion)
-                  assert.equal(wallet.identifier, myIdentifier);
-                  assert.equal(wallet.getBlocktrailPublicKey("M/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
+                wallet = _wallet;
+                assert.equal(wallet.walletVersion, expectedVersion)
+                assert.equal(wallet.identifier, myIdentifier);
+                assert.equal(wallet.getBlocktrailPublicKey("M/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
 
-                  assert.deepEqual(progress, [
-                      blocktrail.CREATE_WALLET_PROGRESS_START,
-                      blocktrail.CREATE_WALLET_PROGRESS_PRIMARY,
-                      blocktrail.CREATE_WALLET_PROGRESS_BACKUP,
-                      blocktrail.CREATE_WALLET_PROGRESS_SUBMIT,
-                      blocktrail.CREATE_WALLET_PROGRESS_INIT,
-                      blocktrail.CREATE_WALLET_PROGRESS_DONE
-                  ]);
+                assert.deepEqual(progress, [
+                    blocktrail.CREATE_WALLET_PROGRESS_START,
+                    blocktrail.CREATE_WALLET_PROGRESS_PRIMARY,
+                    blocktrail.CREATE_WALLET_PROGRESS_BACKUP,
+                    blocktrail.CREATE_WALLET_PROGRESS_SUBMIT,
+                    blocktrail.CREATE_WALLET_PROGRESS_INIT,
+                    blocktrail.CREATE_WALLET_PROGRESS_DONE
+                ]);
 
-                  cb();
-              }
-            ).progress(function(p) { progress.push(p); });
+                cb();
+            })
+            .progress(function(p) { progress.push(p); });
         });
 
         it("should lock", function(cb) {
