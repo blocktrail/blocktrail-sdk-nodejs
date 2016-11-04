@@ -56,6 +56,7 @@ describe('mnemonic', function() {
 });
 
 describe('wallet', function() {
+
     it('should allow password RESET', function() {
         var expectedSecret = new Buffer('9d1a50059b9107f430b8526697d371205770986d020c45900867d228fe56feaa', 'hex');
 
@@ -95,7 +96,7 @@ describe('wallet', function() {
     });
 
     it('encryption should produce valid encryption of the wallet seed', function() {
-        this.timeout(5000);
+        this.timeout(0);
         var passphrase = new Buffer('S2SZKBjdLwfnpesqEw9DNbaCvM2X8s9GmBcKfqBkrHtNYA8XQ5nfhzDgnT5aq5HedEYXhn3nbtpukzxaGgB2cxxBCkJJdBQJ');
         var primarySeed = randomBytes(Wallet.WALLET_ENTROPY_BITS / 8);
 
