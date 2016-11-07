@@ -57,7 +57,7 @@ describe('mnemonic', function() {
 
 describe('wallet', function() {
     _.forEach(vectors.password_reset_case, function (f) {
-        it('should allow password RESET', function() {
+        it('should allow password RESET', function () {
             var expectedSecret = new Buffer(f.expectedSecret, 'hex');
 
             // user lost passphrase, has backup sheet
