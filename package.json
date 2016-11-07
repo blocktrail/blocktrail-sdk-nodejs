@@ -28,11 +28,13 @@
   },
   "main": "./main.js",
   "browser": {
-    "./lib/backup_generator.js": "./lib/backup_generator-browser.js"
+    "./lib/backup_generator.js": "./lib/backup_generator-browser.js",
+    "./lib/pbkdf2_sha512.js": "./lib/pbkdf2_sha512-browser.js"
   },
   "dependencies": {
     "assert-plus": "0.1.5",
     "async": "0.9.0",
+    "sjcl": "git://github.com/blocktrail/sjcl.git#minify-library",
     "bip39": "git://github.com/blocktrail/bip39.git#sjcl-browser-bip39",
     "bitcoinjs-lib": "1.5.6",
     "bops": "0.0.6",

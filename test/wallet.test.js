@@ -93,45 +93,62 @@ var createRecoveryTestWallet = function(identifier, passphrase, cb) {
     return _createTestWallet(identifier, passphrase, primaryMnemonic, backupMnemonic, cb);
 };
 
-describe('test new blank wallet, v2', function() {
-    var myIdentifier = "nodejs-sdk-" + crypto.randomBytes(24).toString('hex');
-    var wallet;
+/**
+ * Test operations on v2 and v3 wallets.
+ * Also tests the default, encouraging to look at this test if it changes again.
+ */
+[
+  blocktrail.Wallet.WALLET_VERSION_V2,
+  blocktrail.Wallet.WALLET_VERSION_V3,
+  null /* test our assumed default version */
+].map(function(walletVersion) {
+    var assumedDefault = blocktrail.Wallet.WALLET_VERSION_V3;
+    describe('test new blank wallet, ' + walletVersion, function() {
+        var myIdentifier = "nodejs-sdk-" + crypto.randomBytes(24).toString('hex');
+        var wallet;
 
-    after(function(cb) {
-        if (wallet) {
-            wallet.deleteWallet(true, function(err, result) {
+        after(function(cb) {
+            if (wallet) {
+                wallet.deleteWallet(true, function(err, result) {
+                    cb();
+                });
+            } else {
+                cb();
+            }
+        });
+
+        it("shouldn't already exist", function(cb) {
+            client.initWallet({
+                identifier: myIdentifier,
+                readOnly: true
+            }, function(err, wallet) {
+                assert.ok(err);
+                assert.ok(!wallet, "wallet with random ID [" + myIdentifier + "] already exists...");
+
                 cb();
             });
-        } else {
-            cb();
-        }
-    });
-
-    it("shouldn't already exist", function(cb) {
-        client.initWallet({
-            identifier: myIdentifier,
-            readOnly: true
-        }, function(err, wallet) {
-            assert.ok(err);
-            assert.ok(!wallet, "wallet with random ID [" + myIdentifier + "] already exists...");
-
-            cb();
         });
-    });
 
-    it("should be created", function(cb) {
-        var progress = [];
-
-        client.createNewWallet({
+        it("should be created", function(cb) {
+            var progress = [];
+            var cnf = {
                 identifier: myIdentifier,
                 passphrase: "password",
                 keyIndex: 9999
-            }, function(err, _wallet, backupInfo) {
+            };
+
+            var expectedVersion = assumedDefault;
+            if (walletVersion !== null) {
+                cnf.walletVersion = walletVersion;
+                expectedVersion = walletVersion;
+            }
+
+            client.createNewWallet(cnf, function(err, _wallet, backupInfo) {
                 assert.ifError(err);
                 assert.ok(_wallet);
 
                 wallet = _wallet;
-
+                assert.equal(wallet.walletVersion, expectedVersion);
                 assert.equal(wallet.identifier, myIdentifier);
                 assert.equal(wallet.getBlocktrailPublicKey("M/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
 
@@ -145,94 +162,21 @@ describe('test new blank wallet, v2', function() {
                 ]);
 
                 cb();
-            }
-        ).progress(function(p) { progress.push(p); });
-    });
+            })
+            .progress(function(p) { progress.push(p); });
+        });
 
-    it("should lock", function(cb) {
-        assert(!wallet.locked);
-        wallet.lock();
-        assert(wallet.locked);
-        cb();
-    });
-
-    it("should init", function(cb) {
-        client.initWallet({
-            identifier: myIdentifier,
-            readOnly: true
-        }, function(err, _wallet) {
-            assert.ifError(err);
-            assert.ok(_wallet);
-
-            wallet = _wallet;
-
+        it("should lock", function(cb) {
+            assert(!wallet.locked);
+            wallet.lock();
+            assert(wallet.locked);
             cb();
         });
-    });
 
-    it("should have a 0 balance", function(cb) {
-        wallet.getBalance(function(err, confirmed, unconfirmed) {
-            assert.ifError(err);
-            assert.equal(confirmed, 0);
-            assert.equal(unconfirmed, 0);
-
-            cb();
-        });
-    });
-
-    it("shouldn't be able to pay when locked", function(cb) {
-        wallet.pay({
-            "2N6Fg6T74Fcv1JQ8FkPJMs8mYmbm9kitTxy": blocktrail.toSatoshi(0.001)
-        }, function(err, txHash) {
-            assert.ok(!!err && err.message.match(/unlocked/));
-            assert.ok(err instanceof blocktrail.WalletLockedError);
-
-            cb();
-        });
-    });
-
-    it("shouldn't be able to upgrade when locked", function(cb) {
-        wallet.upgradeKeyIndex(10000, function(err) {
-            assert.ok(!!err && err.message.match(/unlocked/));
-            assert.ok(err instanceof blocktrail.WalletLockedError);
-
-            cb();
-        });
-    });
-
-    it("should unlock", function(cb) {
-        wallet.unlock({password: "password"}, function(err) {
-            assert.ifError(err);
-
-            cb();
-        });
-    });
-
-    it("shouldn't be able to pay when unlocked (because of no balance)", function(cb) {
-        wallet.pay({
-            "2N6Fg6T74Fcv1JQ8FkPJMs8mYmbm9kitTxy": blocktrail.toSatoshi(0.001)
-        }, function(err, txHash) {
-            assert.ok(!!err && err.message.match(/balance/));
-
-            cb();
-        });
-    });
-
-    it("should be able to upgrade when unlocked", function(cb) {
-        wallet.upgradeKeyIndex(10000, function(err) {
-            assert.ifError(err);
-
-            cb();
-        });
-    });
-
-    it("should be able to password change", function(cb) {
-        wallet.passwordChange("password2", function(err) {
-            assert.ifError(err);
-
+        it("should init", function(cb) {
             client.initWallet({
                 identifier: myIdentifier,
-                password: "password2"
+                readOnly: true
             }, function(err, _wallet) {
                 assert.ifError(err);
                 assert.ok(_wallet);
@@ -240,6 +184,80 @@ describe('test new blank wallet, v2', function() {
                 wallet = _wallet;
 
                 cb();
+            });
+        });
+
+        it("should have a 0 balance", function(cb) {
+            wallet.getBalance(function(err, confirmed, unconfirmed) {
+                assert.ifError(err);
+                assert.equal(confirmed, 0);
+                assert.equal(unconfirmed, 0);
+
+                cb();
+            });
+        });
+
+        it("shouldn't be able to pay when locked", function(cb) {
+            wallet.pay({
+                "2N6Fg6T74Fcv1JQ8FkPJMs8mYmbm9kitTxy": blocktrail.toSatoshi(0.001)
+            }, function(err, txHash) {
+                assert.ok(!!err && err.message.match(/unlocked/));
+                assert.ok(err instanceof blocktrail.WalletLockedError);
+
+                cb();
+            });
+        });
+
+        it("shouldn't be able to upgrade when locked", function(cb) {
+            wallet.upgradeKeyIndex(10000, function(err) {
+                assert.ok(!!err && err.message.match(/unlocked/));
+                assert.ok(err instanceof blocktrail.WalletLockedError);
+
+                cb();
+            });
+        });
+
+        it("should unlock", function(cb) {
+            wallet.unlock({password: "password"}, function(err) {
+                assert.ifError(err);
+
+                cb();
+            });
+        });
+
+        it("shouldn't be able to pay when unlocked (because of no balance)", function(cb) {
+            wallet.pay({
+                "2N6Fg6T74Fcv1JQ8FkPJMs8mYmbm9kitTxy": blocktrail.toSatoshi(0.001)
+            }, function(err, txHash) {
+                assert.ok(!!err && err.message.match(/balance/));
+
+                cb();
+            });
+        });
+
+        it("should be able to upgrade when unlocked", function(cb) {
+            wallet.upgradeKeyIndex(10000, function(err) {
+                assert.ifError(err);
+
+                cb();
+            });
+        });
+
+        it("should be able to password change", function(cb) {
+            wallet.passwordChange("password2", function(err) {
+                assert.ifError(err);
+
+                client.initWallet({
+                    identifier: myIdentifier,
+                    password: "password2"
+                }, function(err, _wallet) {
+                    assert.ifError(err);
+                    assert.ok(_wallet);
+
+                    wallet = _wallet;
+
+                    cb();
+                });
             });
         });
     });
