@@ -1,3 +1,6 @@
 [submodule "vendor/jsPDF"]
 	path = vendor/jsPDF
 	url = git://github.com/blocktrail/jsPDF.git
+[submodule "vendor/asmcrypto.js"]
+	path = vendor/asmcrypto.js
+	url = https://github.com/vibornoff/asmcrypto.js
