@@ -61,6 +61,10 @@ module.exports = function (grunt) {
             }
         },
 
+        exec: {
+            asmcryptobuild: 'cd ./vendor/asmcrypto.js; npm install; grunt --with pbkdf2-hmac-sha512'
+        },
+
         /*
          * Javascript concatenation
          */
@@ -80,7 +84,8 @@ module.exports = function (grunt) {
             sdkfull: {
                 src : [
                     '<%= concat.jsPDF.dest %>',
-                    '<%= browserify.sdk.dest %>'
+                    '<%= browserify.sdk.dest %>',
+                    'vendor/asmcrypto.js/asmcrypto.js'
                 ],
                 dest : 'build/blocktrail-sdk-full.js'
             }
@@ -158,8 +163,9 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-notify');
     grunt.loadNpmTasks('grunt-template');
+    grunt.loadNpmTasks('grunt-exec');
 
-    grunt.registerTask('build', ['browserify', 'concat', 'uglify']);
+    grunt.registerTask('build', ['browserify', 'exec:asmcryptobuild', 'concat', 'uglify']);
     grunt.registerTask('test-browser', ['template', 'connect', 'saucelabs-mocha']);
     grunt.registerTask('default', ['build']);
 };
