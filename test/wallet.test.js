@@ -154,6 +154,9 @@ var createRecoveryTestWallet = function(identifier, passphrase, cb) {
 
                 assert.deepEqual(progress, [
                     blocktrail.CREATE_WALLET_PROGRESS_START,
+                    blocktrail.CREATE_WALLET_PROGRESS_ENCRYPT_SECRET,
+                    blocktrail.CREATE_WALLET_PROGRESS_ENCRYPT_PRIMARY,
+                    blocktrail.CREATE_WALLET_PROGRESS_ENCRYPT_RECOVERY,
                     blocktrail.CREATE_WALLET_PROGRESS_PRIMARY,
                     blocktrail.CREATE_WALLET_PROGRESS_BACKUP,
                     blocktrail.CREATE_WALLET_PROGRESS_SUBMIT,
