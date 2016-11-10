@@ -1,17 +1,68 @@
 module.exports = function (grunt) {
 
     var browsers = [{
+        // latest chrome
         browserName: 'googlechrome',
-        platform: 'Win10'
+        platform: 'Linux',
+        version: 'latest'
     }, {
+        // latest chrome as of writing
         browserName: 'googlechrome',
-        platform: 'linux'
+        platform: 'Linux',
+        version: '48.0'
     }, {
+        // latest firefox
         browserName: 'firefox',
-        platform: 'Win10'
+        platform: 'Windows 10',
+        version: 'latest'
     }, {
+        // latest firefox as of writing
         browserName: 'firefox',
-        platform: 'linux'
+        platform: 'Windows 10',
+        version: '49.0'
+    }, {
+        // latest Safari
+        browserName: 'Safari',
+        version: 'latest'
+    }, {
+        // latest Safari as of writing
+        browserName: 'Safari',
+        version: '10.0'
+    }, {
+        // latest edge
+        browserName: 'MicrosoftEdge',
+        platform: 'Windows 10',
+        version: 'latest'
+    }, {
+        // latest edge as of writing
+        browserName: 'MicrosoftEdge',
+        platform: 'Windows 10',
+        version: '14.14393'
+    }, {
+        // latest IE (EOL)
+        browserName: 'internet explorer',
+        platform: 'Windows 10',
+        version: '11.103'
+    }, {
+        // android 5.0
+        browserName: 'android',
+        platform: 'Linux',
+        version: '5.0'
+    }, {
+        // android 4.4
+        browserName: 'android',
+        platform: 'Linux',
+        version: '4.4'
+    }, {
+        // iphone iOS 9.2
+        browserName: 'iphone',
+        platform: 'OS X 10.10',
+        version: '9.2'
+    }, {
+        // on FF < 48 there's no crypto.getRandomValues in webworkers
+        browserName: 'firefox',
+        platform: 'Linux',
+        version: '47'
     }];
 
     grunt.initConfig({
@@ -34,10 +85,10 @@ module.exports = function (grunt) {
                         'http://127.0.0.1:9999/test/run-tests.html'
                     ],
                     browsers: browsers,
-                    build: process.env.TRAVIS_JOB_ID,
+                    build: process.env.TRAVIS_JOB_ID || ('99' + ((new Date).getTime() / 1000).toFixed(0) + (Math.random() * 1000).toFixed(0)),
                     testname: 'mocha tests',
                     throttled: 2,
-                    statusCheckAttempts: 180,
+                    statusCheckAttempts: 180, // statusCheckAttempts * pollInterval = total time
                     pollInterval: 4000,
                     sauceConfig: {
                         'video-upload-on-pass': true
@@ -84,8 +135,7 @@ module.exports = function (grunt) {
             sdkfull: {
                 src : [
                     '<%= concat.jsPDF.dest %>',
-                    '<%= browserify.sdk.dest %>',
-                    'vendor/asmcrypto.js/asmcrypto.js'
+                    '<%= browserify.sdk.dest %>'
                 ],
                 dest : 'build/blocktrail-sdk-full.js'
             }
@@ -165,7 +215,9 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-template');
     grunt.loadNpmTasks('grunt-exec');
 
-    grunt.registerTask('build', ['browserify', 'exec:asmcryptobuild', 'concat', 'uglify']);
+    grunt.registerTask('dev', ['browserify', 'concat:sdkfull']);
+    grunt.registerTask('asmcrypto', ['exec:asmcryptobuild']);
+    grunt.registerTask('build', ['asmcrypto', 'browserify', 'concat', 'uglify']);
     grunt.registerTask('test-browser', ['template', 'connect', 'saucelabs-mocha']);
     grunt.registerTask('default', ['build']);
 };
