@@ -61,6 +61,10 @@ module.exports = function (grunt) {
             }
         },
 
+        exec: {
+            asmcryptobuild: 'cd ./vendor/asmcrypto.js; npm install; grunt --with pbkdf2-hmac-sha512'
+        },
+
         /*
          * Javascript concatenation
          */
@@ -79,10 +83,19 @@ module.exports = function (grunt) {
             },
             sdkfull: {
                 src : [
-                    '<%= concat.jsPDF.dest %>',
-                    '<%= browserify.sdk.dest %>'
+                    'build/jsPDF.js',
+                    'vendor/asmcrypto.js/asmcrypto.js',
+                    'build/blocktrail-sdk.js'
                 ],
                 dest : 'build/blocktrail-sdk-full.js'
+            },
+            sdkfullmin: {
+                src : [
+                    'build/jsPDF.min.js',
+                    'vendor/asmcrypto.js/asmcrypto.js',
+                    'build/blocktrail-sdk.min.js'
+                ],
+                dest : 'build/blocktrail-sdk-full.min.js'
             }
         },
 
@@ -98,8 +111,7 @@ module.exports = function (grunt) {
             dist : {
                 files : {
                     'build/jsPDF.min.js'                : ['<%= concat.jsPDF.dest %>'],
-                    'build/blocktrail-sdk.min.js'       : ['<%= browserify.sdk.dest %>'],
-                    'build/blocktrail-sdk-full.min.js'  : ['<%= concat.sdkfull.dest %>']
+                    'build/blocktrail-sdk.min.js'       : ['<%= browserify.sdk.dest %>']
                 }
             }
         },
@@ -158,8 +170,9 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-notify');
     grunt.loadNpmTasks('grunt-template');
+    grunt.loadNpmTasks('grunt-exec');
 
-    grunt.registerTask('build', ['browserify', 'concat', 'uglify']);
+    grunt.registerTask('build', ['browserify', 'exec:asmcryptobuild', 'concat:jsPDF', 'uglify', 'concat:sdkfull', 'concat:sdkfullmin']);
     grunt.registerTask('test-browser', ['template', 'connect', 'saucelabs-mocha']);
     grunt.registerTask('default', ['build']);
 };
