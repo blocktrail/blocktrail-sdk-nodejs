@@ -330,6 +330,59 @@ var createRecoveryTestWallet = function(identifier, passphrase, cb) {
     });
 });
 
+/**
+ * Test upgrade to V3 from V1 and V2
+ */
+[
+    blocktrail.Wallet.WALLET_VERSION_V1,
+    blocktrail.Wallet.WALLET_VERSION_V2
+].map(function(walletVersion) {
+    describe("upgrade to V3 from " + walletVersion, function() {
+        var myIdentifier = "nodejs-sdk-" + crypto.randomBytes(24).toString('hex');
+        var passphrase = "password";
+        var wallet;
+
+        after(function(cb) {
+            if (wallet) {
+                wallet.deleteWallet(true, function(err, result) {
+                    console.log(err, result);
+                    cb();
+                });
+            } else {
+                cb();
+            }
+        });
+
+        it("can upgrade", function() {
+            var addr;
+
+            return client.createNewWallet({
+                identifier: myIdentifier,
+                passphrase: passphrase,
+                walletVersion: walletVersion,
+                keyIndex: 9999
+            })
+                .then(function(r) {
+                    return r[0];
+                })
+                .then(function(wallet) {
+                    addr = wallet.getAddressByPath("M/9999'/0/0");
+
+                    return wallet;
+                })
+                .then(function(wallet) {
+                    return wallet.upgradeToV3(passphrase)
+                        .then(function() {
+                            return wallet;
+                        });
+                })
+                .then(function(wallet) {
+                    assert.equal(addr, wallet.getAddressByPath("M/9999'/0/0"));
+                });
+        });
+    });
+});
+
 describe('test new blank wallet, v1', function() {
     var myIdentifier = "nodejs-sdk-" + crypto.randomBytes(24).toString('hex');
     var wallet;
