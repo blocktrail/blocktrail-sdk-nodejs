@@ -11,6 +11,24 @@ at https://www.blocktrail.com/api/docs/lang/nodejs
 
 [![Sauce Test Status](https://saucelabs.com/browser-matrix/team_blocktrail.svg)](https://saucelabs.com/u/team_blocktrail)
 
+The Blocktrail SDK is tested against;  
+ - NodeJS:
+   - 0.11
+   - 0.12
+   - 5.11
+   - 6.3.0
+   - 7.1.0
+ - Browser:
+   - Google Chrome 48 / latest
+   - Firefox 49 / latest
+   - Safari 10.0 / latest
+   - Edge 14.14393
+   - IE 11.103
+   - Android 4.4
+   - Android 5.0
+   - iPhone OS X 10.10
+
+
 Upgrading from v1.x to v2.0.0
 -----------------------------
 **IMPORTANT** `v2.0.0` has a few BC breaks, please check [docs/CHANGELOG.md](docs/CHANGELOG.md)!!
