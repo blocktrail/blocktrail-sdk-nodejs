@@ -371,8 +371,14 @@ var createRecoveryTestWallet = function(identifier, passphrase, cb) {
                     return wallet;
                 })
                 .then(function(wallet) {
+                    var progress = [];
+
                     return wallet.upgradeToV3(passphrase)
+                        .progress(function(p) {
+                            progress.push(p);
+                        })
                         .then(function() {
+                            assert(progress.length);
                             return wallet;
                         });
                 })
