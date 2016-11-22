@@ -266,6 +266,70 @@ var createRecoveryTestWallet = function(identifier, passphrase, cb) {
     });
 });
 
+/**
+ * Test operations on v2 and v3 wallets.
+ */
+[
+    blocktrail.Wallet.WALLET_VERSION_V1,
+    blocktrail.Wallet.WALLET_VERSION_V2,
+    blocktrail.Wallet.WALLET_VERSION_V3
+].map(function(walletVersion) {
+    var primarySeed = bip39.mnemonicToSeed(TRANSACTION_TEST_WALLET_PRIMARY_MNEMONIC, TRANSACTION_TEST_WALLET_PASSWORD);
+
+    describe('test input errors, ' + walletVersion, function() {
+        it("shouldn't allow primaryPrivateKey in creation", function(cb) {
+            var myIdentifier = "nodejs-sdk-" + crypto.randomBytes(24).toString('hex');
+            var primaryPrivateKey = bitcoin.HDNode.fromSeedBuffer(primarySeed, bitcoin.networks.testnet);
+
+            client.createNewWallet({
+                identifier: myIdentifier,
+                passphrase: "password",
+                primaryPrivateKey: primaryPrivateKey,
+                walletVersion: walletVersion,
+                keyIndex: 9999
+            }, function(err, wallet) {
+                assert.ok(!!err, "should error");
+
+                cb();
+            });
+        });
+
+        it("shouldn't allow unlocking with primaryPrivateKey", function(cb) {
+            client.createNewWallet({
+                identifier: "unittest-transaction-inputerr-" + walletVersion,
+                primarySeed: primarySeed,
+                walletVersion: walletVersion,
+                keyIndex: 9999
+            }).then(function(r) {
+                var wallet = r[0];
+                wallet.lock();
+                return wallet;
+            }, function(err) {
+                assert.ok(err.message.match(/already exists/));
+
+                return client.initWallet({
+                    identifier: "unittest-transaction-inputerr-" + walletVersion,
+                    readOnly: true
+                });
+            }).then(function(wallet) {
+                assert.equal(wallet.getBlocktrailPublicKey("M/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
+
+                return wallet.unlock({primaryPrivateKey: bitcoin.HDNode.fromSeedBuffer(primarySeed, bitcoin.networks.testnet)})
+                    .then(function() {
+                        return;
+                    }, function(err) {
+                        return err;
+                    });
+            })
+                .then(function(err) {
+                    assert.ok(!!err, "should error");
+                    cb();
+                })
+                .done();
+        });
+    });
+});
+
 describe('test new blank wallet, v1', function() {
     var myIdentifier = "nodejs-sdk-" + crypto.randomBytes(24).toString('hex');
     var wallet;
@@ -433,7 +497,7 @@ describe('test new wallet, without mnemonics', function() {
     var myIdentifier = "nodejs-sdk-" + crypto.randomBytes(24).toString('hex');
     var wallet;
 
-    var primaryPrivateKey = bitcoin.HDNode.fromSeedBuffer(bip39.mnemonicToSeed(bip39.generateMnemonic(512), "password"), bitcoin.networks.testnet);
+    var primarySeed = bip39.mnemonicToSeed(bip39.generateMnemonic(512), "password");
     var backupPrivateKey = bitcoin.HDNode.fromSeedBuffer(bip39.mnemonicToSeed(bip39.generateMnemonic(512), ""), bitcoin.networks.testnet);
     var backupPublicKey = backupPrivateKey.neutered();
 
@@ -461,7 +525,7 @@ describe('test new wallet, without mnemonics', function() {
     it("should be created", function(cb) {
         client.createNewWallet({
                 identifier: myIdentifier,
-                primaryPrivateKey: primaryPrivateKey,
+                primarySeed: primarySeed,
                 backupPublicKey: backupPublicKey,
                 keyIndex: 9999
             }, function(err, _wallet) {
@@ -480,7 +544,7 @@ describe('test new wallet, without mnemonics', function() {
     it("should be initializable", function(cb) {
         client.initWallet({
                 identifier: myIdentifier,
-                primaryPrivateKey: primaryPrivateKey,
+                primarySeed: primarySeed,
                 keyIndex: 9999
             }, function(err, _wallet) {
                 assert.ifError(err);
@@ -706,12 +770,12 @@ describe('test wallet, do transaction', function() {
 describe('test wallet, do transaction, without mnemonics', function() {
     var wallet;
 
-    var primaryPrivateKey = bitcoin.HDNode.fromSeedBuffer(bip39.mnemonicToSeed(TRANSACTION_TEST_WALLET_PRIMARY_MNEMONIC, TRANSACTION_TEST_WALLET_PASSWORD), bitcoin.networks.testnet);
+    var primarySeed = bip39.mnemonicToSeed(TRANSACTION_TEST_WALLET_PRIMARY_MNEMONIC, TRANSACTION_TEST_WALLET_PASSWORD);
 
     it("should exists", function(cb) {
         client.initWallet({
                 identifier: "unittest-transaction",
-                primaryPrivateKey: primaryPrivateKey,
+                primarySeed: primarySeed,
                 primaryMnemonic: false // explicitly set false because we're reusing unittest-transaction which has a mnemonic stored
             }, function(err, _wallet) {
                 assert.ifError(err);
@@ -1178,11 +1242,11 @@ describe("APIClient", function() {
         client.resolvePrimaryPrivateKeyFromOptions({
             passphrase: "password",
             primaryMnemonic: "give pause forget seed dance crawl situate hole keen"
-        }, function(err, primaryPrivateKey) {
+        }, function(err, options) {
             assert.ifError(err);
-            assert.ok(primaryPrivateKey);
-            assert.ok(primaryPrivateKey instanceof bitcoin.HDNode);
-            assert.equal("tprv8ZgxMBicQKsPeR93md5eVTbLDgQ8kfV4CDNtrVXv5p29KXtx7VHKFQThGkFgC61sYeeeaVH1yFv4thcvxS9cYdFrYwTNmkGhkQEJycSzAhE", primaryPrivateKey.toBase58());
+            assert.ok(options.primaryPrivateKey);
+            assert.ok(options.primaryPrivateKey instanceof bitcoin.HDNode);
+            assert.equal("tprv8ZgxMBicQKsPeR93md5eVTbLDgQ8kfV4CDNtrVXv5p29KXtx7VHKFQThGkFgC61sYeeeaVH1yFv4thcvxS9cYdFrYwTNmkGhkQEJycSzAhE", options.primaryPrivateKey.toBase58());
 
             cb();
 
