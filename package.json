@@ -80,7 +80,7 @@
     "grunt-contrib-watch": "~0.6.1",
     "grunt-exec": "^1.0.1",
     "grunt-notify": "~0.2.17",
-    "grunt-saucelabs": "^9.0.0",
+    "grunt-saucelabs": "git://github.com/blocktrail/grunt-saucelabs.git#92615f964444a7f304bfee41cb13627b0457f85d",
     "grunt-template": "^1.0.0",
     "jscs": "~3.0.7",
     "jshint": "~2.9.1",
