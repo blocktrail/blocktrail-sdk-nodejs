@@ -12,11 +12,16 @@
     </script>
     <script type="text/javascript">
         window.onload = function(){
+            var scrollInterval = setInterval(function() {
+                window.scrollTo(0,document.body.scrollHeight);
+            }, 100);
+
             var runner = mocha.run();
             var failedTests = [];
             runner.on('end', function(){
                 window.mochaResults = runner.stats;
                 window.mochaResults.reports = failedTests;
+                clearInterval(scrollInterval);
             });
             runner.on('fail', logFailure);
             function logFailure(test, err){
