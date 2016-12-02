@@ -1296,6 +1296,37 @@ describe('test wallet list transactions and addresses', function() {
     });
 });
 
+describe("size estimation", function() {
+
+    it("should estimate proper size for 1 input 1 output TX", function() {
+        var txb = new bitcoin.TransactionBuilder();
+        txb.addInput('0000000000000000000000000000000000000000000000000000000000000000', 0);
+        txb.addOutput('2MzyKviSL6pnWxkbHV7ecFRE3hWKfzmT8WS', 1);
+
+        assert.equal(347, blocktrail.Wallet.estimateIncompleteTxSize(txb.buildIncomplete()));
+    });
+
+    it("should estimate proper size for 99 inputs 1 output TX", function() {
+        var txb = new bitcoin.TransactionBuilder();
+        for (var i = 0; i < 99; i++) {
+            txb.addInput('0000000000000000000000000000000000000000000000000000000000000000', i);
+        }
+        txb.addOutput('2MzyKviSL6pnWxkbHV7ecFRE3hWKfzmT8WS', 1);
+
+        assert.equal(29453, blocktrail.Wallet.estimateIncompleteTxSize(txb.buildIncomplete()));
+    });
+
+    it("should estimate proper size for 1 input 99 outputs TX", function() {
+        var txb = new bitcoin.TransactionBuilder();
+        txb.addInput('0000000000000000000000000000000000000000000000000000000000000000', 0);
+        for (var i = 0; i < 99; i++) {
+            txb.addOutput('2MzyKviSL6pnWxkbHV7ecFRE3hWKfzmT8WS', 1);
+        }
+
+        assert.equal(3679, blocktrail.Wallet.estimateIncompleteTxSize(txb.buildIncomplete()));
+    });
+});
+
 describe("APIClient", function() {
     it("resolvePrimaryPrivateKeyFromOptions", function(cb) {
         client.resolvePrimaryPrivateKeyFromOptions({
