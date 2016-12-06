@@ -49,11 +49,11 @@ module.exports = function (grunt) {
         platform: 'Linux',
         version: '5.0'
     }, {
-        // android 4.4
-        browserName: 'android',
-        platform: 'Linux',
-        version: '4.4'
-    }, {
+    //     // android 4.4
+    //     browserName: 'android',
+    //     platform: 'Linux',
+    //     version: '4.4'
+    // }, {
         // iphone iOS 9.2
         browserName: 'iphone',
         platform: 'OS X 10.10',
@@ -82,15 +82,19 @@ module.exports = function (grunt) {
                     // username: 'saucelabs-user-name', // if not provided it'll default to ENV SAUCE_USERNAME (if applicable)
                     // key: 'saucelabs-key', // if not provided it'll default to ENV SAUCE_ACCESS_KEY (if applicable)
                     urls: [
-                        'http://127.0.0.1:9999/test/run-tests.html'
+                        // subset of the tests to make sure it doesn't take forever and timeout (on IE and phone simulators)
+                        'http://127.0.0.1:9999/test/run-tests.html?grep=' + encodeURIComponent("test new blank wallet|test wallet, do transaction")
                     ],
                     browsers: browsers,
                     build: process.env.TRAVIS_JOB_ID || ('99' + ((new Date).getTime() / 1000).toFixed(0) + (Math.random() * 1000).toFixed(0)),
                     testname: 'mocha tests',
                     throttled: 2,
-                    statusCheckAttempts: 180, // statusCheckAttempts * pollInterval = total time
+                    statusCheckAttempts: 360, // statusCheckAttempts * pollInterval = total time
                     pollInterval: 4000,
                     sauceConfig: {
+                        'command-timeout': 600,
+                        'idle-timeout': 360,
+                        'max-duration': 900, // doesn't seem to take effect
                         'video-upload-on-pass': true
                     }
                 }

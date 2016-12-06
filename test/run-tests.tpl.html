@@ -7,8 +7,8 @@
     </script>
     <script type="text/javascript" src="../node_modules/mocha/mocha.js"></script>
     <script type="text/javascript">
-        mocha.setup('bdd')
-        mocha.setup({timeout: 50000})
+        mocha.setup('bdd');
+        mocha.setup({timeout: 100000, bail: true});
     </script>
     <script type="text/javascript">
         window.onload = function(){
