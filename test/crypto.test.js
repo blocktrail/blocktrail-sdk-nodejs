@@ -49,8 +49,8 @@ describe('mnemonic', function() {
         it('vector ' + key + ' can be encoded & decoded', function() {
             var data = new Buffer(vector.data, 'hex');
             var mnemonic = vector.mnemonic;
-            assert.equal(V3Crypt.Mnemonic.encode(data), mnemonic);
-            assert.equal(V3Crypt.Mnemonic.decode(mnemonic).toString(), data.toString());
+            assert.equal(V3Crypt.EncryptionMnemonic.encode(data), mnemonic);
+            assert.equal(V3Crypt.EncryptionMnemonic.decode(mnemonic).toString(), data.toString());
         });
     });
 });
@@ -67,7 +67,7 @@ describe('wallet', function() {
             var recoveryEncryptedSecret = f.recoveryEncryptedMnemonic;
             //  ^ the user keeps this
 
-            var decodedRS = V3Crypt.Mnemonic.decode(recoveryEncryptedSecret);
+            var decodedRS = V3Crypt.EncryptionMnemonic.decode(recoveryEncryptedSecret);
             var decryptedSecret = V3Crypt.Encryption.decrypt(decodedRS, recoverySecret);
             assert.equal(decryptedSecret.toString('hex'), expectedSecret.toString('hex'));
         });
@@ -81,10 +81,10 @@ describe('wallet', function() {
                 var encryptedSecretMnemonic = vector.encryptedSecret;
                 var primaryEncryptedSeedMnemonic = vector.primaryEncryptedSeed;
 
-                var decodedSecret = V3Crypt.Mnemonic.decode(encryptedSecretMnemonic);
+                var decodedSecret = V3Crypt.EncryptionMnemonic.decode(encryptedSecretMnemonic);
                 var decryptedSecret = V3Crypt.Encryption.decrypt(decodedSecret, passphrase);
 
-                var decodedPrimarySeed = V3Crypt.Mnemonic.decode(primaryEncryptedSeedMnemonic);
+                var decodedPrimarySeed = V3Crypt.EncryptionMnemonic.decode(primaryEncryptedSeedMnemonic);
                 var decryptedPrimarySeed = V3Crypt.Encryption.decrypt(decodedPrimarySeed, decryptedSecret);
 
                 var node = bitcoin.HDNode.fromSeedBuffer(decryptedPrimarySeed);
@@ -110,9 +110,9 @@ describe('wallet', function() {
         assert.equal(secret.toString(), V3Crypt.Encryption.decrypt(recoveryEncryptedSecret, recoverySecret).toString());
 
         var backupInfo = {
-            encryptedPrimarySeed: V3Crypt.Mnemonic.encode(encryptedPrimarySeed),
-            encryptedSecret: V3Crypt.Mnemonic.encode(encryptedSecret),
-            recoveryEncryptedSecret: V3Crypt.Mnemonic.encode(recoveryEncryptedSecret)
+            encryptedPrimarySeed: V3Crypt.EncryptionMnemonic.encode(encryptedPrimarySeed),
+            encryptedSecret: V3Crypt.EncryptionMnemonic.encode(encryptedSecret),
+            recoveryEncryptedSecret: V3Crypt.EncryptionMnemonic.encode(recoveryEncryptedSecret)
         };
 
         _.forEach(backupInfo, function(val, key) {
@@ -125,7 +125,7 @@ describe('wallet', function() {
                 cmp = recoveryEncryptedSecret;
             }
 
-            assert.equal(cmp.toString(), V3Crypt.Mnemonic.decode(val).toString());
+            assert.equal(cmp.toString(), V3Crypt.EncryptionMnemonic.decode(val).toString());
         });
     });
 });

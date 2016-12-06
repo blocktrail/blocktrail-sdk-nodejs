@@ -17,7 +17,7 @@ APIClient.BackupGenerator = require('./lib/backup_generator');
 APIClient.Request = require('./lib/request');
 APIClient.Encryption = require('./lib/encryption');
 APIClient.KeyDerivation = require('./lib/keyderivation');
-APIClient.Mnemonic = require('./lib/mnemonic');
+APIClient.EncryptionMnemonic = require('./lib/encryption_mnemonic');
 APIClient.useWebworker = require('./lib/use-webworker');
 
 APIClient.WalletSweeper = require('./lib/wallet_sweeper');
