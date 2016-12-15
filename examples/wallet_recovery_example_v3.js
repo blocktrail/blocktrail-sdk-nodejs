@@ -1,7 +1,6 @@
 var blocktrail = require('../');
-var crypto = require('crypto');
 
-var backupDataV2 = {
+var backupDataV3 = {
     walletVersion:                   3,
     encryptedPrimaryMnemonic:        "library fish steak unfair series jacket enhance unique witness session abandon ability hole spread black stuff gun country icon hair sugar mixture rib mansion neglect afraid unlock barrel today misery shift replace unusual ticket zone habit aspect globe glad find space tape remove priority describe smart annual sign direct regular can pear huge rather wish travel stomach mobile situate stand",
     backupMnemonic:                  "snap lyrics december view youth dynamic physical shed certain govern cigar top submit measure minute flight used glass tragic basket alarm scorpion wagon oblige",
@@ -51,18 +50,18 @@ var sweeperOptions = {
 var walletSweeper;
 if (recoverWithPassword) {
     console.log('Creating wallet keys using password method...');
-    walletSweeper = new blocktrail.WalletSweeper(backupDataV2, bitcoinDataClient, sweeperOptions);
+    walletSweeper = new blocktrail.WalletSweeper(backupDataV3, bitcoinDataClient, sweeperOptions);
 } else {
     /**
      * if the wallet password is forgotten for a V2 wallet, it is possible to use the "Encrypted Recovery Secret" on the backup pdf
      * along with a decryption key which must be obtained directly from Blocktrail.
      */
-    backupDataV2.password = null;
-    backupDataV2.encryptedRecoverySecretMnemonic = "library faint leopard present project pair census prison aisle session abandon achieve clay abandon light brave olympic profit liquid fan ribbon twist glance hold file wrestle unhappy wreck unveil shrug round record jump seven galaxy skate cattle hedgehog humble purity hair hand digital mixture else senior witness great art seat coach trend transfer negative general fruit bright order fresh festival";
-    backupDataV2.recoverySecretDecryptionKey = new Buffer("9e2eedf5716b0b1620fb8d2817d4760ef68419ea1ce6aca71845c71fe23e68f9", 'hex');
+    backupDataV3.password = null;
+    backupDataV3.encryptedRecoverySecretMnemonic = "library faint leopard present project pair census prison aisle session abandon achieve clay abandon light brave olympic profit liquid fan ribbon twist glance hold file wrestle unhappy wreck unveil shrug round record jump seven galaxy skate cattle hedgehog humble purity hair hand digital mixture else senior witness great art seat coach trend transfer negative general fruit bright order fresh festival";
+    backupDataV3.recoverySecretDecryptionKey = new Buffer("9e2eedf5716b0b1620fb8d2817d4760ef68419ea1ce6aca71845c71fe23e68f9", 'hex');
 
     console.log('Creating wallet keys using encrypted secret method...');
-    walletSweeper = new blocktrail.WalletSweeper(backupDataV2, bitcoinDataClient, sweeperOptions);
+    walletSweeper = new blocktrail.WalletSweeper(backupDataV3, bitcoinDataClient, sweeperOptions);
 }
 
 
