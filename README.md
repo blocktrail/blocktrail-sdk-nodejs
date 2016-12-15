@@ -29,6 +29,10 @@ The Blocktrail SDK is tested against;
    - iPhone OS X 10.10
 
 
+Upgrading from v2.x to v3.0.0
+-----------------------------
+**IMPORTANT** `v3.0.0` introduces a new **DEFAULT** wallet encryption, please make sure you upgrade the SDK everywhere you're using it!!
+
 Upgrading from v1.x to v2.0.0
 -----------------------------
 **IMPORTANT** `v2.0.0` has a few BC breaks, please check [docs/CHANGELOG.md](docs/CHANGELOG.md)!!

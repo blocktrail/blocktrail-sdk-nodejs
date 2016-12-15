@@ -1,5 +1,4 @@
 var blocktrail = require('../');
-var crypto = require('crypto');
 
 /**
  * backup data from a Wallet V1 Backup PDF (Developer wallets)
