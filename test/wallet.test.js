@@ -952,6 +952,55 @@ describe('test wallet, do opreturn transaction', function() {
     });
 });
 
+describe('test wallet, do forcefee transaction', function() {
+    var wallet;
+
+    it("should exists", function(cb) {
+        client.initWallet({
+            identifier: "unittest-transaction",
+            passphrase: TRANSACTION_TEST_WALLET_PASSWORD
+        }, function(err, _wallet) {
+            assert.ifError(err);
+            assert.ok(_wallet);
+
+            wallet = _wallet;
+
+            assert.equal(wallet.primaryMnemonic, "give pause forget seed dance crawl situate hole keen");
+            assert.equal(wallet.identifier, "unittest-transaction");
+            assert.equal(wallet.getBlocktrailPublicKey("M/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
+            cb();
+        });
+    });
+
+    it("should be able to do a payment with forced fee", function(cb) {
+        wallet.getNewAddress(function(err, address, path) {
+            assert.ifError(err);
+
+            var pay = {};
+            pay[address] = blocktrail.toSatoshi(0.001);
+            var forceFee = blocktrail.toSatoshi(0.00099999);
+
+            wallet.pay(pay, null, false, true, blocktrail.Wallet.FEE_STRATEGY_FORCE_FEE, null, {
+                forcefee: forceFee
+            }, function(err, txHash) {
+                assert.ifError(err);
+                assert.ok(txHash);
+
+
+                // 200ms timeout, for w/e this is neccesary now ... @TODO: figure out why ...
+                setTimeout(function() {
+                    client.transaction(txHash, function(err, tx) {
+                        assert.ifError(err);
+                        assert.ok(tx['total_fee'] === forceFee);
+
+                        cb();
+                    });
+                }, 200);
+            });
+        });
+    });
+});
+
 describe('test wallet discovery and upgrade key index', function() {
     var myIdentifier = "nodejs-sdk-" + crypto.randomBytes(24).toString('hex');
     var wallet;
