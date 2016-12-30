@@ -977,21 +977,23 @@ describe('test wallet, do forcefee transaction', function() {
             assert.ifError(err);
 
             var pay = {};
-            pay[address] = blocktrail.toSatoshi(0.001);
-            var forceFee = blocktrail.toSatoshi(0.00099999);
+            pay[address] = blocktrail.toSatoshi(0.01);
+            var forceFee = blocktrail.toSatoshi(0.00054321);
 
             wallet.pay(pay, null, false, true, blocktrail.Wallet.FEE_STRATEGY_FORCE_FEE, null, {
-                forcefee: forceFee
+                forcefee: forceFee,
+                checkFee: false
             }, function(err, txHash) {
                 assert.ifError(err);
                 assert.ok(txHash);
-
 
                 // 200ms timeout, for w/e this is neccesary now ... @TODO: figure out why ...
                 setTimeout(function() {
                     client.transaction(txHash, function(err, tx) {
                         assert.ifError(err);
-                        assert.ok(tx['total_fee'] === forceFee);
+                        // this could very occasionally fail if change < DUST because then it's added to fee, so adjusted check for that
+                        assert.ok(tx['total_fee'] >= forceFee && tx['total_fee'] <= forceFee + blocktrail.DUST,
+                            "fee [" + tx['total_fee'] + "] should be equal to forced fee [" +  forceFee + "] for tx [" + txHash + "]");
 
                         cb();
                     });
