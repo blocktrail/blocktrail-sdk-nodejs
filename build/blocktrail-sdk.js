@@ -127,14 +127,13 @@ var produceEncryptedDataV2 = function(options, notify) {
         });
 };
 
-var promisedEncrypt = function(pt, pw) {
+APIClient.prototype.promisedEncrypt = function(pt, pw, iter) {
     if (useWebWorker) {
         // generate randomness outside of webworker because many browsers don't have crypto.getRandomValues inside webworkers
-        var saltBuf = randomBytes(Encryption.defaultSaltLen);
-        var iv = randomBytes(Encryption.ivLenBits / 8);
-        var iterations = KeyDerivation.defaultIterations;
+        var saltBuf = Encryption.generateSalt();
+        var iv = Encryption.generateIV();
 
-        return webworkifier.workify(promisedEncrypt, function() {
+        return webworkifier.workify(APIClient.prototype.promisedEncrypt, function() {
             return require('./webworker');
         }, {
             method: 'Encryption.encryptWithSaltAndIV',
@@ -142,14 +141,35 @@ var promisedEncrypt = function(pt, pw) {
             pw: pw,
             saltBuf: saltBuf,
             iv: iv,
-            iterations: iterations
+            iterations: iter
         })
             .then(function(data) {
                 return Buffer.from(data.cipherText.buffer);
             });
     } else {
         try {
-            return q.when(Encryption.encrypt(pt, pw));
+            return q.when(Encryption.encrypt(pt, pw, iter));
+        } catch (e) {
+            return q.reject(e);
+        }
+    }
+};
+
+APIClient.prototype.promisedDecrypt = function(ct, pw) {
+    if (useWebWorker) {
+        return webworkifier.workify(APIClient.prototype.promisedDecrypt, function() {
+            return require('./webworker');
+        }, {
+            method: 'Encryption.decrypt',
+            ct: ct,
+            pw: pw
+        })
+            .then(function(data) {
+                return Buffer.from(data.plainText.buffer);
+            });
+    } else {
+        try {
+            return q.when(Encryption.decrypt(ct, pw));
         } catch (e) {
             return q.reject(e);
         }
@@ -157,6 +177,8 @@ var promisedEncrypt = function(pt, pw) {
 };
 
 APIClient.prototype.produceEncryptedDataV3 = function(options, notify) {
+    var self = this;
+
     return q.when(options)
         .then(function(options) {
             if (options.storeDataOnServer) {
@@ -173,7 +195,7 @@ APIClient.prototype.produceEncryptedDataV3 = function(options, notify) {
                             options.secret = randomBytes(Wallet.WALLET_ENTROPY_BITS / 8);
 
                             // -> now a buffer
-                            return promisedEncrypt(options.secret, new Buffer(options.passphrase))
+                            return self.promisedEncrypt(options.secret, new Buffer(options.passphrase), KeyDerivation.defaultIterations)
                                 .then(function(encryptedSecret) {
                                     options.encryptedSecret = encryptedSecret;
                                 });
@@ -186,7 +208,7 @@ APIClient.prototype.produceEncryptedDataV3 = function(options, notify) {
                     .then(function() {
                         notify(APIClient.CREATE_WALLET_PROGRESS_ENCRYPT_PRIMARY);
 
-                        return promisedEncrypt(options.primarySeed, options.secret)
+                        return self.promisedEncrypt(options.primarySeed, options.secret, KeyDerivation.subkeyIterations)
                             .then(function(encryptedPrimarySeed) {
                                 options.encryptedPrimarySeed = encryptedPrimarySeed;
                             });
@@ -202,7 +224,7 @@ APIClient.prototype.produceEncryptedDataV3 = function(options, notify) {
                             options.recoverySecret = randomBytes(Wallet.WALLET_ENTROPY_BITS / 8);
                         }
 
-                        return promisedEncrypt(options.secret, options.recoverySecret)
+                        return self.promisedEncrypt(options.secret, options.recoverySecret, KeyDerivation.defaultIterations)
                             .then(function(recoveryEncryptedSecret) {
                                 options.recoveryEncryptedSecret = recoveryEncryptedSecret;
                             });
@@ -2448,10 +2470,19 @@ var Encryption = {
     ivLenWords: 128 / 32
 };
 
-Encryption.encrypt = function(pt, pw) {
-    var salt = randomBytes(this.defaultSaltLen);
-    var iv = randomBytes(this.ivLenBits / 8);
-    var iterations = KeyDerivation.defaultIterations;
+Encryption.generateSalt = function() {
+    return randomBytes(this.defaultSaltLen);
+};
+
+Encryption.generateIV = function() {
+    return randomBytes(this.ivLenBits / 8);
+};
+
+Encryption.encrypt = function(pt, pw, iterations) {
+    var salt = this.generateSalt();
+    var iv = this.generateIV();
+
+    iterations = typeof iterations === 'undefined' ? KeyDerivation.defaultIterations : iterations;
     return this.encryptWithSaltAndIV(pt, pw, salt, iv, iterations);
 };
 
@@ -2616,6 +2647,7 @@ var assert = require('assert'),
 
 var KeyDerivation = {
     defaultIterations: 35000,
+    subkeyIterations: 1,
     keySizeBits: 256
 };
 
@@ -2625,7 +2657,7 @@ KeyDerivation.compute = function(pw, salt, iterations) {
     assert(salt instanceof Buffer, 'Salt must be provided as a Buffer');
     assert(salt.length > 0, 'Salt must not be empty');
     assert(typeof iterations === 'number', 'Iterations must be a number');
-    assert(iterations >= 512, 'Iteration count should be at least 512');
+    assert(iterations > 0, 'Iteration count should be at least 1');
 
     if (salt.length > 0x80) {
         throw new Error('Sanity check: Invalid salt, length can never be greater than 128');
@@ -3122,7 +3154,7 @@ var RestClient = function(options) {
     };
 
     self.defaultHeaders = {
-        'X-SDK-Version': 'blocktrail-sdk-nodejs/1.3.x'
+        'X-SDK-Version': 'blocktrail-sdk-nodejs/3.0.x'
     };
 };
 
@@ -3777,57 +3809,58 @@ Wallet.prototype.unlockV3 = function(options, cb) {
     deferred.promise.nodeify(cb);
 
     deferred.resolve(q.fcall(function() {
-        /* jshint -W071, -W074 */
-        options.encryptedPrimarySeed = typeof options.encryptedPrimarySeed !== "undefined" ? options.encryptedPrimarySeed : self.encryptedPrimarySeed;
-        options.encryptedSecret = typeof options.encryptedSecret !== "undefined" ? options.encryptedSecret : self.encryptedSecret;
+        return q.when()
+            .then(function() {
+                /* jshint -W071, -W074 */
+                options.encryptedPrimarySeed = typeof options.encryptedPrimarySeed !== "undefined" ? options.encryptedPrimarySeed : self.encryptedPrimarySeed;
+                options.encryptedSecret = typeof options.encryptedSecret !== "undefined" ? options.encryptedSecret : self.encryptedSecret;
 
-        if (options.secret) {
-            self.secret = options.secret;
-        }
-
-        if (options.primaryPrivateKey) {
-            throw new blocktrail.WalletInitError("specifying primaryPrivateKey has been deprecated");
-        }
-
-        if (options.primarySeed) {
-            self.primarySeed = options.primarySeed;
-        } else if (options.secret) {
-            try {
-                self.primarySeed = Encryption.decrypt(new Buffer(options.encryptedPrimarySeed), self.secret);
-                if (!self.primarySeed.length) {
-                    throw new Error();
+                if (options.secret) {
+                    self.secret = options.secret;
                 }
-            } catch (e) {
-                throw new blocktrail.WalletDecryptError("Failed to decrypt primarySeed");
-            }
 
-        } else {
-            // avoid conflicting options
-            if (options.passphrase && options.password) {
-                throw new blocktrail.WalletCreateError("Can't specify passphrase and password");
-            }
-            // normalize passphrase/password
-            options.passphrase = options.passphrase || options.password;
-
-            try {
-                self.secret = Encryption.decrypt(new Buffer(options.encryptedSecret, 'base64'), new Buffer(options.passphrase));
-                if (!self.secret.length) {
-                    throw new Error();
+                if (options.primaryPrivateKey) {
+                    throw new blocktrail.WalletInitError("specifying primaryPrivateKey has been deprecated");
                 }
-            } catch (e) {
-                throw new blocktrail.WalletDecryptError("Failed to decrypt secret");
-            }
-            try {
-                self.primarySeed = Encryption.decrypt(new Buffer(options.encryptedPrimarySeed, 'base64'), self.secret);
-                if (!self.primarySeed.length) {
-                    throw new Error();
-                }
-            } catch (e) {
-                throw new blocktrail.WalletDecryptError("Failed to decrypt primarySeed");
-            }
-        }
 
-        return bitcoin.HDNode.fromSeedBuffer(self.primarySeed, self.network);
+                if (options.primarySeed) {
+                    self.primarySeed = options.primarySeed;
+                } else if (options.secret) {
+                    return self.sdk.promisedDecrypt(new Buffer(options.encryptedPrimarySeed), self.secret)
+                        .then(function(primarySeed) {
+                            self.primarySeed = primarySeed;
+                        }, function() {
+                            throw new blocktrail.WalletDecryptError("Failed to decrypt primarySeed");
+                        });
+                } else {
+                    // avoid conflicting options
+                    if (options.passphrase && options.password) {
+                        throw new blocktrail.WalletCreateError("Can't specify passphrase and password");
+                    }
+                    // normalize passphrase/password
+                    options.passphrase = options.passphrase || options.password;
+                    delete options.password;
+
+                    return self.sdk.promisedDecrypt(new Buffer(options.encryptedSecret, 'base64'), new Buffer(options.passphrase))
+                        .then(function(secret) {
+                            self.secret = secret;
+                        }, function() {
+                            throw new blocktrail.WalletDecryptError("Failed to decrypt secret");
+                        })
+                        .then(function() {
+                            return self.sdk.promisedDecrypt(new Buffer(options.encryptedPrimarySeed, 'base64'), self.secret)
+                                .then(function(primarySeed) {
+                                    self.primarySeed = primarySeed;
+                                }, function() {
+                                    throw new blocktrail.WalletDecryptError("Failed to decrypt primarySeed");
+                                });
+                        });
+                }
+            })
+            .then(function() {
+                return bitcoin.HDNode.fromSeedBuffer(self.primarySeed, self.network);
+            })
+        ;
     }));
 
     return deferred.promise;
@@ -4285,7 +4318,6 @@ Wallet.prototype.deleteWallet = function(force, cb) {
  * @param pay                   array       {'address': (int)value}     coins to send
  * @param [changeAddress]       bool        change address to use (auto generated if NULL)
  * @param [allowZeroConf]       bool        allow zero confirmation unspent outputs to be used in coin selection
- * @param [randomizeChangeIdx]  bool        randomize the index of the change output (default TRUE, only disable if you have a good reason to)
  * @param [randomizeChangeIdx]  bool        randomize the index of the change output (default TRUE, only disable if you have a good reason to)
  * @param [feeStrategy]         string      defaults to Wallet.FEE_STRATEGY_OPTIMAL
  * @param [twoFactorToken]      string      2FA token
@@ -5696,6 +5728,26 @@ module.exports = function(self) {
                         var cipherText = Encryption.encryptWithSaltAndIV(pt,  pw, saltBuf, iv, iterations);
 
                         self.postMessage({id: data.id, cipherText: cipherText});
+                    } catch (e) {
+                        e.id = data.id;
+                        throw e;
+                    }
+                })();
+            break;
+
+            case 'Encryption.decrypt':
+                (function() {
+                    try {
+                        if (!data.ct || !data.pw) {
+                            throw new Error("Invalid input");
+                        }
+
+                        var ct = Buffer.from(data.ct.buffer);
+                        var pw = Buffer.from(data.pw.buffer);
+
+                        var plainText = Encryption.decrypt(ct,  pw);
+
+                        self.postMessage({id: data.id, plainText: plainText});
                     } catch (e) {
                         e.id = data.id;
                         throw e;
