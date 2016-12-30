@@ -228,6 +228,16 @@ var createRecoveryTestWallet = function(identifier, passphrase, cb) {
             });
         });
 
+        it("should be able to unlock with secret", function(cb) {
+            var secret = wallet.secret;
+
+            wallet.lock();
+            wallet.unlock({secret: secret}, function(err) {
+                assert.ifError(err);
+                cb();
+            });
+        });
+
         it("shouldn't be able to pay when unlocked (because of no balance)", function(cb) {
             wallet.pay({
                 "2N6Fg6T74Fcv1JQ8FkPJMs8mYmbm9kitTxy": blocktrail.toSatoshi(0.001)
