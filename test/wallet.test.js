@@ -375,7 +375,8 @@ var createRecoveryTestWallet = function(identifier, passphrase, cb) {
                 .then(function(r) {
                     return r[0];
                 })
-                .then(function(wallet) {
+                .then(function(_wallet) {
+                    wallet = _wallet;
                     addr = wallet.getAddressByPath("M/9999'/0/0");
 
                     return wallet;
@@ -395,6 +396,20 @@ var createRecoveryTestWallet = function(identifier, passphrase, cb) {
                 .then(function(wallet) {
                     assert.equal(addr, wallet.getAddressByPath("M/9999'/0/0"));
                 });
+        });
+
+        it("can unlock with secret", function() {
+            var secret = wallet.secret;
+            wallet.lock();
+            return wallet.unlock({secret: secret});
+        });
+
+        it("can init after upgrade", function() {
+            return client.initWallet({
+                identifier: myIdentifier,
+                passphrase: passphrase,
+                keyIndex: 9999
+            });
         });
     });
 });
