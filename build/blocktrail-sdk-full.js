@@ -7894,6 +7894,14 @@ BlocktrailBitcoinService.prototype.setPaginationLimit = function(limit) {
     this.settings.paginationLimit = limit;
 };
 
+BlocktrailBitcoinService.prototype.estimateFee = function() {
+    var self = this;
+
+    return self.client.feePerKB().then(function(r) {
+        return r['optimal'];
+    });
+};
+
 /**
  * gets unspent outputs for a batch of addresses, returning an array of outputs with hash, index,
  * value, and script pub hex mapped to each corresponding address
@@ -8048,7 +8056,53 @@ InsightBitcoinService.prototype.batchAddressHasTransactions = function(addresses
         .then(function(results) {
             return results.items.length > 0;
         })
+        ;
+};
+
+/**
+ * get estimated fee/kb
+ *
+ * @returns {q.Promise}
+ */
+InsightBitcoinService.prototype.estimateFee = function() {
+    var self = this;
+
+    var nBlocks = "2";
+
+    return self.getRequest("https://" + (self.settings.testnet ? 'test-' : '') + 'insight.bitpay.com/api/utils/estimatefee?nbBlocks=' + nBlocks)
+        .then(function(results) {
+            return parseInt(results[nBlocks] * 1e8, 10);
+        })
     ;
+};
+
+InsightBitcoinService.prototype.getRequest = function(url) {
+    var deferred = q.defer();
+    request
+        .get(url)
+        .end(function(error, res) {
+            if (error) {
+                deferred.reject(error);
+                return;
+            }
+            if (res.ok) {
+                if (res.headers['content-type'].indexOf('application/json') >= 0) {
+                    try {
+                        var body = JSON.parse(res.text);
+                        return deferred.resolve(body);
+
+                    } catch (e) {
+                        return deferred.reject(error);
+                    }
+                } else {
+                    return deferred.resolve(res.body);
+                }
+            } else {
+                return deferred.reject(res.text);
+            }
+        });
+
+    return deferred.promise;
 };
 
 InsightBitcoinService.prototype.postRequest = function(url, data) {
@@ -9525,13 +9579,19 @@ Wallet.sortMultiSigKeys = function(pubKeys) {
  *  this is an estimation, not a proper 100% correct calculation
  *
  * @param {bitcoin.Transaction} tx
+ * @param {int} feePerKb when not null use this feePerKb, otherwise use BASE_FEE legacy calculation
  * @returns {number}
  */
-Wallet.estimateIncompleteTxFee = function(tx) {
+Wallet.estimateIncompleteTxFee = function(tx, feePerKb) {
     var size = Wallet.estimateIncompleteTxSize(tx);
-    var sizeKB = Math.ceil(size / 1000);
+    var sizeKB = size / 1000;
+    var sizeKBCeil = Math.ceil(size / 1000);
 
-    return sizeKB * blocktrail.BASE_FEE;
+    if (feePerKb) {
+        return parseInt(sizeKB * feePerKb, 10);
+    } else {
+        return parseInt(sizeKBCeil * blocktrail.BASE_FEE, 10);
+    }
 };
 
 /**
@@ -10179,45 +10239,38 @@ WalletSweeper.prototype.sweepWallet = function(destinationAddress, cb) {
     var deferred = q.defer();
     deferred.promise.nodeify(cb);
 
-    if (this.settings.logging) {
+    if (self.settings.logging) {
         console.log("starting wallet sweeping to address " + destinationAddress);
     }
-    if (!this.sweepData) {
-        //do wallet fund discovery
-        this.discoverWalletFunds()
-            .progress(function(progress) {
-                deferred.notify(progress);
-            })
-            .done(function() {
-                if (self.sweepData['balance'] === 0) {
-                    //no funds found
-                    deferred.reject("No funds found after searching through " + self.sweepData['addressesSearched'] + " addresses");
-                    return deferred.promise;
-                }
 
-                //create and sign the transaction
-                try {
-                    var transaction = self.createTransaction(destinationAddress, null, deferred);
-                    deferred.resolve(transaction);
-                } catch (e) {
-                    deferred.reject(e);
-                }
-            });
-    } else {
-        if (this.sweepData['balance'] === 0) {
-            //no funds found
-            deferred.reject("No funds found after searching through " + self.sweepData['addressesSearched'] + " addresses");
-            return deferred.promise;
-        }
+    q.when(true)
+        .then(function() {
+            if (!self.sweepData) {
+                //do wallet fund discovery
+                return self.discoverWalletFunds()
+                    .progress(function(progress) {
+                        deferred.notify(progress);
+                    });
+            }
+        })
+        .then(function() {
+            return self.bitcoinDataClient.estimateFee();
+        })
+        .then(function(feePerKb) {
+            if (self.sweepData['balance'] === 0) {
+                //no funds found
+                deferred.reject("No funds found after searching through " + self.sweepData['addressesSearched'] + " addresses");
+                return deferred.promise;
+            }
 
-        //create and sign the transaction
-        try {
-            var transaction = self.createTransaction(destinationAddress, null, deferred);
-            deferred.resolve(transaction);
-        } catch (e) {
+            //create and sign the transaction
+            return self.createTransaction(destinationAddress, null, feePerKb, deferred);
+        })
+        .then(function(r) {
+            deferred.resolve(r);
+        }, function(e) {
             deferred.reject(e);
-        }
-    }
+        });
 
     return deferred.promise;
 };
@@ -10226,9 +10279,10 @@ WalletSweeper.prototype.sweepWallet = function(destinationAddress, cb) {
  * creates a raw transaction from the sweep data
  * @param destinationAddress        the destination address for the transaction
  * @param fee                       a specific transaction fee to use (optional: if null, fee will be estimated)
+ * @param feePerKb                  fee per kb (optional: if null, use default value)
  * @param deferred                  a deferred promise object, used for giving progress updates (optional)
  */
-WalletSweeper.prototype.createTransaction = function(destinationAddress, fee, deferred) {
+WalletSweeper.prototype.createTransaction = function(destinationAddress, fee, feePerKb, deferred) {
     var self = this;
     if (this.settings.logging) {
         console.log("Creating transaction to address destinationAddress");
@@ -10267,10 +10321,10 @@ WalletSweeper.prototype.createTransaction = function(destinationAddress, fee, de
         //estimate the fee and reduce it's value from the output
         if (deferred) {
             deferred.notify({
-                message: "estimating transaction fee"
+                message: "estimating transaction fee, based on " + blocktrail.toBTC(feePerKb) + " BTC/kb"
             });
         }
-        fee = walletSDK.estimateIncompleteTxFee(rawTransaction.tx);
+        fee = walletSDK.estimateIncompleteTxFee(rawTransaction.tx, feePerKb);
     }
     rawTransaction.tx.outs[outputIdx].value -= fee;
 
