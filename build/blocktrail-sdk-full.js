@@ -7761,9 +7761,11 @@ var RestClient = function(options) {
     self.port = options.port;
     self.endpoint = options.endpoint;
 
-    self.defaultParams = {
-        'api_key': self.apiKey
-    };
+    self.defaultParams = {};
+
+    if (self.apiKey) {
+        self.defaultParams['api_key'] = self.apiKey;
+    }
 
     self.defaultHeaders = {
         'X-SDK-Version': 'blocktrail-sdk-nodejs/3.0.x'
@@ -9338,7 +9340,7 @@ Wallet.prototype.buildTransaction = function(pay, changeAddress, allowZeroConf, 
                                 break;
 
                                 case Wallet.FEE_STRATEGY_OPTIMAL:
-                                    if (fee > estimatedFee * 20) {
+                                    if (fee > estimatedFee * 50) {
                                         return cb(new blocktrail.WalletFeeError("the fee suggested by the coin selection (" + fee + ") " +
                                             "seems awefully high (" + estimatedFee + ") for FEE_STRATEGY_OPTIMAL"));
                                     }
