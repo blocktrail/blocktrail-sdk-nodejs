@@ -151,7 +151,7 @@ module.exports = function (grunt) {
         uglify : {
             options: {
                 mangle: {
-                    except: ['Buffer', 'BitInteger', 'Point', 'Script', 'ECPubKey', 'ECKey', 'sha512_asm', 'asm']
+                    except: ['Buffer', 'BigInteger', 'Point', 'Script', 'ECPubKey', 'ECKey', 'sha512_asm', 'asm']
                 }
             },
             dist : {
