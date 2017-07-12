@@ -32,7 +32,7 @@ var _createTestWallet = function(identifier, passphrase, primaryMnemonic, backup
     var backupPrivateKey = bitcoin.HDNode.fromSeedBuffer(backupSeed, network);
     var backupPublicKey = backupPrivateKey.neutered();
 
-    var checksum = primaryPrivateKey.getAddress().toBase58Check();
+    var checksum = primaryPrivateKey.getAddress();
     var primaryPublicKey = primaryPrivateKey.deriveHardened(keyIndex).neutered();
 
     client.storeNewWalletV1(
@@ -365,7 +365,6 @@ var createRecoveryTestWallet = function(identifier, passphrase, cb) {
 
         it("can upgrade", function() {
             var addr;
-
             return client.createNewWallet({
                 identifier: myIdentifier,
                 passphrase: passphrase,
@@ -755,7 +754,7 @@ describe('test wallet, do transaction', function() {
         wallet.getNewAddress(function(err, address, path) {
             assert.ifError(err);
             assert.ok(path.indexOf("M/9999'/0/") === 0);
-            assert.ok(bitcoin.Address.fromBase58Check(address));
+            assert.ok(bitcoin.address.fromBase58Check(address));
 
             var pay = {};
             pay[address] = blocktrail.toSatoshi(0.001);
@@ -770,7 +769,7 @@ describe('test wallet, do transaction', function() {
                         assert.ifError(err);
 
                         tx.outs.forEach(function(output, idx) {
-                            var addr = bitcoin.Address.fromOutputScript(output.script, client.testnet ? bitcoin.networks.testnet : bitcoin.networks.bitcoin).toBase58Check();
+                            var addr = bitcoin.address.fromOutputScript(output.script, client.testnet ? bitcoin.networks.testnet : bitcoin.networks.bitcoin);
 
                             if (addr !== address) {
                                 changeIdxs.push(idx);
@@ -792,7 +791,7 @@ describe('test wallet, do transaction', function() {
             wallet.getNewAddress(function(err, address, path) {
                 assert.ifError(err);
                 assert.ok(path.indexOf("M/9999'/0/") === 0);
-                assert.ok(bitcoin.Address.fromBase58Check(address));
+                assert.ok(bitcoin.address.fromBase58Check(address));
 
                 var pay = {};
                 pay[address] = blocktrail.toSatoshi(0.001);
@@ -810,7 +809,7 @@ describe('test wallet, do transaction', function() {
         wallet.getNewAddress(function(err, address, path) {
             assert.ifError(err);
             assert.ok(path.indexOf("M/9999'/0/") === 0);
-            assert.ok(bitcoin.Address.fromBase58Check(address));
+            assert.ok(bitcoin.address.fromBase58Check(address));
 
             var pay = {};
             pay[address] = blocktrail.toSatoshi(0.001);
@@ -897,7 +896,7 @@ describe('test wallet, do transaction, without mnemonics', function() {
         wallet.getNewAddress(function(err, address, path) {
             assert.ifError(err);
             assert.ok(path.indexOf("M/9999'/0/") === 0);
-            assert.ok(bitcoin.Address.fromBase58Check(address));
+            assert.ok(bitcoin.address.fromBase58Check(address));
 
             var pay = {};
             pay[address] = blocktrail.toSatoshi(0.001);
@@ -1375,7 +1374,7 @@ describe('test wallet list transactions and addresses', function() {
 describe("size estimation", function() {
 
     it("should estimate proper size for 1 input 1 output TX", function() {
-        var txb = new bitcoin.TransactionBuilder();
+        var txb = new bitcoin.TransactionBuilder(bitcoin.networks.testnet);
         txb.addInput('0000000000000000000000000000000000000000000000000000000000000000', 0);
         txb.addOutput('2MzyKviSL6pnWxkbHV7ecFRE3hWKfzmT8WS', 1);
 
@@ -1383,7 +1382,7 @@ describe("size estimation", function() {
     });
 
     it("should estimate proper size for 99 inputs 1 output TX", function() {
-        var txb = new bitcoin.TransactionBuilder();
+        var txb = new bitcoin.TransactionBuilder(bitcoin.networks.testnet);
         for (var i = 0; i < 99; i++) {
             txb.addInput('0000000000000000000000000000000000000000000000000000000000000000', i);
         }
@@ -1393,7 +1392,7 @@ describe("size estimation", function() {
     });
 
     it("should estimate proper size for 1 input 99 outputs TX", function() {
-        var txb = new bitcoin.TransactionBuilder();
+        var txb = new bitcoin.TransactionBuilder(bitcoin.networks.testnet);
         txb.addInput('0000000000000000000000000000000000000000000000000000000000000000', 0);
         for (var i = 0; i < 99; i++) {
             txb.addOutput('2MzyKviSL6pnWxkbHV7ecFRE3hWKfzmT8WS', 1);
