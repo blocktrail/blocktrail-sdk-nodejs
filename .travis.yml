@@ -5,8 +5,6 @@ branches:
    - master
 
 node_js:
- - '0.11'
- - '0.12'
  - '5.11'
  - '6.3.0'
  - '7.1.0'
@@ -15,7 +13,7 @@ node_js:
 
 matrix:
   include:
-  - node_js: 0.12
+  - node_js: 5.11
     env: SAUCELABS=true
 
 before_install:
