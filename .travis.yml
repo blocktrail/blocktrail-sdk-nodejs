@@ -9,7 +9,6 @@ node_js:
  - '6.3.0'
  - '7.1.0'
  - 'node'
- - 'iojs'
 
 matrix:
   include:
