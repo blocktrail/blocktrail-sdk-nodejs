@@ -74,6 +74,7 @@
     "brfs": "*",
     "browserify": "*",
     "grunt": "~0.4.2",
+    "buffer": "^4.1.2",
     "grunt-browserify": "~5.0.0",
     "grunt-contrib-concat": "~0.5.1",
     "grunt-contrib-connect": "^0.7.1",
