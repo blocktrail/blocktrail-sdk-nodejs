@@ -6659,7 +6659,7 @@ BackupGenerator.prototype.generatePDF = function(callback) {
             function(callback) {
                 if (self.options.page1) {
                     pdf.FONT_SIZE_HEADER(function() {
-                        pdf.TEXT(self.network + "Wallet Recovery Data Sheet");
+                        pdf.TEXT(self.network + " Wallet Recovery Data Sheet");
                     });
 
                     pdf.TEXT(
@@ -10484,7 +10484,7 @@ WalletSweeper.prototype.createTransaction = function(destinationAddress, fee, fe
 
     // create raw transaction
     var rawTransaction = new bitcoin.TransactionBuilder(this.network);
-    if (this.setttings.bitcoinCash) {
+    if (this.settings.bitcoinCash) {
         rawTransaction.enableBitcoinCash();
     }
     var inputs = [];
@@ -10536,7 +10536,7 @@ WalletSweeper.prototype.signTransaction = function(rawTransaction, inputs) {
     }
 
     var sigHash = bitcoin.Transaction.SIGHASH_ALL;
-    if (this.setttings.bitcoinCash) {
+    if (this.settings.bitcoinCash) {
         sigHash |= bitcoin.Transaction.SIGHASH_BITCOINCASHBIP143;
     }
 
