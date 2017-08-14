@@ -1930,6 +1930,7 @@ var BackupGenerator = function(identifier, backupInfo, extraInfo, options) {
 
     backupInfo = backupInfo || {};
     extraInfo = extraInfo || {};
+    options = options || {};
 
     self.identifier = identifier;
     self.backupInfo = backupInfo;
