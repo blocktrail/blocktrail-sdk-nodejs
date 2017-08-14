@@ -23,7 +23,7 @@ var TRANSACTION_TEST_WALLET_PRIMARY_MNEMONIC = "give pause forget seed dance cra
 
 var _createTestWallet = function(identifier, passphrase, primaryMnemonic, backupMnemonic, cb) {
     var keyIndex = 9999;
-    var network = client.testnet ? bitcoin.networks.testnet : bitcoin.networks.bitcoin;
+    var network = client.network;
 
     var primarySeed = bip39.mnemonicToSeed(primaryMnemonic, passphrase);
     var primaryPrivateKey = bitcoin.HDNode.fromSeedBuffer(primarySeed, network);
@@ -63,7 +63,7 @@ var _createTestWallet = function(identifier, passphrase, primaryMnemonic, backup
                 blocktrailPublicKeys,
                 keyIndex,
                 0,
-                client.testnet,
+                client.network,
                 checksum
             );
 
