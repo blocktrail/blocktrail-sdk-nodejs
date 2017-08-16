@@ -3375,7 +3375,7 @@ BlocktrailBitcoinService.prototype.estimateFee = function() {
     var self = this;
 
     return self.client.feePerKB().then(function(r) {
-        return r['optimal'];
+        return Math.max(r['optimal'], r['min_relay_fee']);
     });
 };
 
