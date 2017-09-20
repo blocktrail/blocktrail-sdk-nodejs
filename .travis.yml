@@ -22,12 +22,15 @@ before_install:
  - npm install -g grunt-cli
 
 script:
- - sh -c 'if [ "$COVERAGE" != "true" ]; then mocha; fi';
- - sh -c 'if [ "$COVERAGE" = "true" ]; then node run-script coveralls; fi';
+ - sh -c 'if [ "$SAUCELABS" != "true" ]; then npm run coverage-test; fi';
+ - sh -c 'if [ "$COVERAGE" = "true" ]; then npm run coveralls; fi';
  - sh -c 'if [ "$SAUCELABS" = "false" ]; then node ./node_modules/jshint/bin/jshint main.js lib/ test/; fi';
  - sh -c 'if [ "$SAUCELABS" = "false" ]; then node ./node_modules/jscs/bin/jscs main.js lib/ test/; fi';
  - sh -c 'if [ "$SAUCELABS" = "true" ]; then grunt build; fi';
  - sh -c 'if [ "$SAUCELABS" = "true" ]; then grunt test-browser; fi';
+
+after_success: 
+ - if [ "$SAUCELABS" != "true" ]; then npm run coverage; fi
 
 env:
   global:

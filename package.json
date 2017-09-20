@@ -84,17 +84,17 @@
     "grunt-notify": "~0.2.17",
     "grunt-saucelabs": "git://github.com/blocktrail/grunt-saucelabs.git#92615f964444a7f304bfee41cb13627b0457f85d",
     "grunt-template": "^1.0.0",
-    "istanbul": "^0.4.5",
     "jscs": "~3.0.7",
     "jshint": "~2.9.1",
     "mocha": "*",
+    "nyc": "^11.2.1",
     "watchify": "*"
   },
   "scripts": {
     "test": "mocha",
+    "coverage-test": "nyc --reporter=html --reporter=text mocha",
     "browserify": "grunt build",
-    "coverage": "`npm bin`/istanbul cover ./node_modules/.bin/mocha",
-    "coveralls": "npm run-script coverage && node bin/coveralls.js < coverage/lcov.info",
+    "coverage": "nyc report --reporter=text-lcov | coveralls",
     "lint": "./node_modules/jscs/bin/jscs main.js lib/ test/ && ./node_modules/jscs/bin/jscs main.js main.js lib/ test/"
   }
 }
