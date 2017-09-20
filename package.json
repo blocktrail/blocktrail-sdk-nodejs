@@ -71,6 +71,7 @@
     "blocktrail-sdk-backup-generator": "0.1.0",
     "brfs": "*",
     "browserify": "*",
+    "coveralls": "^2.13.1",
     "grunt": "~0.4.2",
     "grunt-browserify": "git://github.com/jmreidy/grunt-browserify.git#4f96beb75d27fdebc4359e08e7db4c514f6265a8",
     "grunt-contrib-concat": "~0.5.1",
@@ -81,6 +82,7 @@
     "grunt-notify": "~0.2.17",
     "grunt-saucelabs": "git://github.com/blocktrail/grunt-saucelabs.git#92615f964444a7f304bfee41cb13627b0457f85d",
     "grunt-template": "^1.0.0",
+    "istanbul": "^0.4.5",
     "jscs": "~3.0.7",
     "jshint": "~2.9.1",
     "mocha": "*",
@@ -89,6 +91,8 @@
   "scripts": {
     "test": "mocha",
     "browserify": "grunt build",
+    "coverage": "`npm bin`/istanbul cover ./node_modules/.bin/mocha",
+    "coveralls": "npm run-script coverage && node bin/coveralls.js < coverage/lcov.info",
     "lint": "./node_modules/jscs/bin/jscs main.js lib/ test/ && ./node_modules/jscs/bin/jscs main.js main.js lib/ test/"
   }
 }
