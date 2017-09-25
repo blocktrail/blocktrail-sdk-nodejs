@@ -751,6 +751,21 @@ describe('test wallet, do transaction', function() {
         ], cb);
     });
 
+    it("should be able to build a transaction paying a bech32 address", function(cb) {
+        var address = "tb1qn08f8x0eamw66enrt497zu0v3u2danzey6asqs";
+        var wp = "00149bce9399f9eeddad66635d4be171ec8f14decc59";
+        var pay = {};
+        pay[address] = blocktrail.toSatoshi(0.001);
+
+        wallet.buildTransaction(pay, function(err, tx, utxos) {
+            assert.ifError(err);
+            assert.ok(tx);
+            assert.ok(tx.toHex());
+            assert.equal(wp, tx.outs[0].scriptPubKey);
+            cb();
+        });
+    });
+
     it("change should be randomized when building a transaction", function(cb) {
         wallet.getNewAddress(function(err, address, path) {
             assert.ifError(err);
@@ -809,7 +824,7 @@ describe('test wallet, do transaction', function() {
     it("should be able to do a payment", function(cb) {
         wallet.getNewAddress(function(err, address, path) {
             assert.ifError(err);
-            assert.ok(path.indexOf("M/9999'/0/") === 0);
+            assert.ok(path.indexOf("M/9999'/", wallet.chain, "/") === 0);
             assert.ok(bitcoin.address.fromBase58Check(address));
 
             var pay = {};
@@ -848,6 +863,49 @@ describe('test wallet, do transaction', function() {
                 progress.push(_progress);
             });
         });
+    });
+});
+
+describe('test wallet with segwit chain', function() {
+    var wallet
+
+    it("should exist and be setup", function (cb) {
+        client.initWallet({
+            identifier: "unittest-transaction",
+            passphrase: TRANSACTION_TEST_WALLET_PASSWORD
+        }, function (err, _wallet) {
+            assert.ifError(err);
+            assert.ok(_wallet);
+            assert.equal(_wallet.primaryMnemonic, "give pause forget seed dance crawl situate hole keen");
+            assert.equal(_wallet.identifier, "unittest-transaction");
+            assert.equal(_wallet.getBlocktrailPublicKey("M/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
+
+            _wallet.chain = 2;
+            wallet = _wallet;
+            cb()
+        })
+    });
+
+    it("getNewAddress produces P2SH addresses", function (cb) {
+        wallet.getNewAddress(function (err, address, path) {
+            assert.ifError(err);
+            assert.ok(path.indexOf("M/9999'/2/") === 0);
+            assert.ok(bitcoin.address.fromBase58Check(address));
+
+            cb();
+        })
+    });
+
+    it("getWalletScriptByPath produces P2SH addresses, and returns witnessScript", function (cb) {
+        var eAddress = "2N3j4Vx3D9LPumjtRbRe2RJpwVocvCCkHKh";
+
+        assert.equal(wallet.getAddressByPath("M/9999'/2/0"), eAddress);
+
+        var walletScript = wallet.getWalletScriptByPath("M/9999'/2/0");
+        assert.equal(walletScript.address, eAddress);
+        assert.ok(walletScript.witnessScript);
+        assert.ok(walletScript.redeemScript);
+        cb()
     });
 });
 
