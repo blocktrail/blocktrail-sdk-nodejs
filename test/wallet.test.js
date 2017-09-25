@@ -757,11 +757,11 @@ describe('test wallet, do transaction', function() {
         var pay = {};
         pay[address] = blocktrail.toSatoshi(0.001);
 
-        wallet.buildTransaction(pay, function(err, tx, utxos) {
+        wallet.buildTransaction(pay, null, false, false, function(err, tx, utxos) {
             assert.ifError(err);
             assert.ok(tx);
             assert.ok(tx.toHex());
-            assert.equal(wp, tx.outs[0].scriptPubKey);
+            assert.equal(wp, tx.outs[0].script.toString('hex'));
             cb();
         });
     });
