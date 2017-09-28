@@ -909,6 +909,92 @@ describe('test wallet with segwit chain', function() {
     });
 });
 
+describe('test wallet, do transaction, segwit spend', function() {
+    var wallets = [];
+    after(function(cb) {
+        if (wallets.length > 0) {
+            wallets.map(function(wallet){
+                wallet.deleteWallet(true);
+            })
+        }
+        cb();
+    });
+
+    var unitTestWallet;
+    var identifier = crypto.randomBytes(12).toString('hex');
+    var segwitWallet;
+    var receiveAddr;
+    var receiveBackAddr;
+    it("should setup the funding wallet", function (cb) {
+        client.initWallet({
+            identifier: "unittest-transaction",
+            passphrase: TRANSACTION_TEST_WALLET_PASSWORD
+        }, function (err, _wallet) {
+            assert.ifError(err);
+            assert.ok(_wallet);
+
+            _wallet.getNewAddress(function (err, address, path) {
+                assert.ifError(err);
+                assert.ok(address);
+                assert.ok(path);
+
+                unitTestWallet = _wallet;
+                receiveBackAddr = address;
+                cb()
+            })
+        })
+    });
+
+    it("should make the receiving segwit wallet ", function(cb) {
+        createTransactionTestWallet(identifier, function (err, newWallet) {
+            wallets.push(newWallet)
+            assert.ifError(err);
+            newWallet.chain = blocktrail.Wallet.CHAIN_BTC_SEGWIT;
+            newWallet.getNewAddress(function (err, address, path) {
+                assert.ifError(err);
+                assert.ok(bitcoin.address.fromBase58Check(address));
+                assert.ok(path.indexOf("M/9999'/2/") === 0);
+
+                var checkScript = newWallet.getWalletScriptByPath(path);
+                assert.ok(checkScript.address = address);
+                assert.ok(checkScript.redeemScript instanceof Buffer);
+                assert.ok(checkScript.witnessScript instanceof Buffer);
+
+                segwitWallet = newWallet;
+                receiveAddr = address;
+                cb()
+            })
+        })
+    });
+
+    var paymentHash;
+    it("should receive funds from unitTestWallet", function(cb) {
+        var pay = {};
+        pay[receiveAddr] = 30000;
+        unitTestWallet.pay(pay, null, true, function (err, txid) {
+            assert.ifError(err);
+            assert.ok(txid);
+            paymentHash = txid;
+            cb()
+        })
+    });
+
+    it("should return to unitTestWallet", function(cb) {
+        var pay = {};
+        pay[receiveBackAddr] = 20000;
+        segwitWallet.pay(pay, null, true, function (err, txid) {
+            assert.ifError(err);
+            assert.ok(txid);
+
+            client.transaction(txid, function (err, tx) {
+                assert.ifError(err);
+                assert.ok(tx);
+                cb()
+            });
+        })
+    })
+
+});
 describe('test wallet, do transaction, without mnemonics', function() {
     var wallet;
 
