@@ -96,6 +96,55 @@ var createRecoveryTestWallet = function(identifier, passphrase, cb) {
     return _createTestWallet(identifier, passphrase, primaryMnemonic, backupMnemonic, cb);
 };
 
+describe('Initialize with check_backup_key', function() {
+    it('rejects invalid inputs', function(cb) {
+        try {
+            client.initWallet({
+                identifier: "unittest-transaction",
+                password: "password",
+                check_backup_key: []
+            });
+            assert(false);
+        } catch (e) {
+            assert.equal("Invalid input, must provide the backup key as a string (the xpub)", e.message);
+        }
+        cb();
+    });
+
+    it('checks against the string', function(cb) {
+        client.initWallet({
+            identifier: "unittest-transaction",
+            password: "password",
+            check_backup_key: 'for demonstration purposes only'
+        }, function(err, _wallet) {
+            assert.ok(err);
+            assert.equal("Backup key returned from server didn't match our own copy", err.message);
+            cb();
+        });
+    });
+
+    it('allows if the backup key matches', function(cb) {
+        // You wouldn't keep your backup seed in your code,
+        // dump it from the wallet upon generation
+
+        var backupSeed = bip39.mnemonicToSeed(TRANSACTION_TEST_WALLET_BACKUP_MNEMONIC, "");
+        var backupPrivateKey = bitcoin.HDNode.fromSeedBuffer(backupSeed, bitcoin.networks.testnet);
+        var backupPublicKey = backupPrivateKey.neutered();
+        var xpub = backupPublicKey.toBase58();
+
+        // Would be saves as a string in code..
+        client.initWallet({
+            identifier: "unittest-transaction",
+            password: "password",
+            check_backup_key: xpub
+        }, function(err, _wallet) {
+            assert.ifError(err);
+            assert.ok(_wallet);
+            cb();
+        });
+    });
+});
+
 /**
  * Test operations on v2 and v3 wallets.
  * Also tests the default, encouraging to look at this test if it changes again.
