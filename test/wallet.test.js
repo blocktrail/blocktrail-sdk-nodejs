@@ -673,6 +673,7 @@ describe('test wallet, do transaction', function() {
             assert.ifError(err);
             assert.ok(_wallet);
 
+            _wallet.chain = blocktrail.Wallet.CHAIN_BTC_DEFAULT;
             wallet = _wallet;
 
             assert.equal(wallet.primaryMnemonic, "give pause forget seed dance crawl situate hole keen");
@@ -879,8 +880,7 @@ describe('test wallet with segwit chain', function() {
             assert.equal(_wallet.primaryMnemonic, "give pause forget seed dance crawl situate hole keen");
             assert.equal(_wallet.identifier, "unittest-transaction");
             assert.equal(_wallet.getBlocktrailPublicKey("M/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
-
-            _wallet.chain = 2;
+            assert.equal(blocktrail.Wallet.CHAIN_BTC_SEGWIT, _wallet.chain)
             wallet = _wallet;
             cb()
         })
@@ -1010,6 +1010,7 @@ describe('test wallet, do transaction, without mnemonics', function() {
                 assert.ok(_wallet);
 
                 wallet = _wallet;
+                wallet.chain = blocktrail.Wallet.CHAIN_BTC_DEFAULT;
 
                 assert.equal(wallet.identifier, "unittest-transaction");
                 assert.equal(wallet.getBlocktrailPublicKey("M/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
@@ -1190,7 +1191,7 @@ describe('test wallet discovery and upgrade key index', function() {
         createDiscoveryTestWallet(myIdentifier, "password", function(err, _wallet) {
             assert.ifError(err);
             assert.ok(_wallet);
-
+            _wallet.chain = blocktrail.Wallet.CHAIN_BTC_DEFAULT;
             wallet = _wallet;
 
             assert.equal(wallet.primaryMnemonic, "give pause forget seed dance crawl situate hole kingdom");
@@ -1283,6 +1284,7 @@ describe('test wallet with bad password', function() {
             assert.ifError(err);
             assert.ok(_wallet);
 
+            _wallet.chain = blocktrail.Wallet.CHAIN_BTC_DEFAULT;
             wallet = _wallet;
 
             assert.equal(wallet.primaryMnemonic, "give pause forget seed dance crawl situate hole kingdom");
