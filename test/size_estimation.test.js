@@ -2,6 +2,7 @@
 /* global window */
 var _ = require('lodash');
 var assert = require('assert');
+var bitcoin = require('bitcoinjs-lib');
 var SizeEstimation = require("../lib/size_estimation");
 
 var varIntFixtures = [
@@ -37,6 +38,38 @@ var scriptDataLenFixtures =  [
     [65536, 5]
 ];
 
+var multisigFixtures = (function () {
+    var u = ['5KW8Ymmu8gWManGggZZQJeX7U3pn5HtcqqsVrNUbc1SUmVPZbwp',
+        '5KCV94YBsrJWTdk6cQWJxEd25sH8h1cGTpJnCN6kLMLe4c3QZVr',
+        '5JUxGateMWVBsBQkAwSRQLxyaQXhsch4EStfC62cqdEf2zUheVT'
+    ];
+    var c = ['L1Tr4rPUi81XN1Dp48iuva5U9sWxU1eipgiAu8BhnB3xnSfGV5rd',
+        'KwUZpCvpAkUe1SZj3k3P2acta1V1jY8Dpuj71bEAukEKVrg8NEym',
+        'Kz2Lm2hzjPWhv3WW9Na5HUKi4qBxoTfv8fNYAU6KV6TZYVGdK5HW'
+    ];
+    var uncompressed = u.map(function (wif) {
+        return bitcoin.ECPair.fromWIF(wif, bitcoin.networks.bitcoin);
+    });
+    var compressed = c.map(function (wif) {
+        return bitcoin.ECPair.fromWIF(wif, bitcoin.networks.bitcoin);
+    });
+
+    var fixtures = [];
+    for (var i = 0; i < 3; i++) {
+        var keys = [];
+        for (var j = 0; j < i; j++) {
+            keys.push(uncompressed[j].getPublicKeyBuffer());
+        }
+        for (var j = i; j < 3; j++) {
+            keys.push(compressed[j].getPublicKeyBuffer());
+        }
+
+        fixtures.push([bitcoin.script.multisig.output.encode(2, keys)]);
+    }
+
+    return fixtures;
+})();
+
 varIntFixtures.map(function (fixture) {
     var inputLen = fixture[0];
     var expectSize = fixture[1];
@@ -58,5 +91,29 @@ scriptDataLenFixtures.map(function (fixture) {
             assert.equal(expectSize, result);
             cb()
         });
+    });
+});
+
+describe("estimateMultisigStackSize", function () {
+    multisigFixtures.map(function (fixture) {
+        it("works for multisig scripts with the keys", function () {
+            var script = fixture[0];
+            assert.ok(bitcoin.script.multisig.output.check(script));
+            var decoded = bitcoin.script.multisig.output.decode(script);
+            var estimation = SizeEstimation.estimateMultisigStackSize(decoded.m, decoded.pubKeys);
+
+            assert.equal("object", typeof estimation);
+            assert.equal(2, estimation.length);
+
+            var scriptSize = estimation[1];
+            assert.equal(script.length, scriptSize);
+
+            var stackSizes = estimation[0];
+            assert.equal(1+decoded.m, stackSizes.length)
+            assert.equal(0, stackSizes[0])
+            for (var i = 0; i < decoded.m; i++) {
+                assert.equal(SizeEstimation.SIZE_DER_SIGNATURE, stackSizes[1+i]);
+            }
+        })
     });
 });
