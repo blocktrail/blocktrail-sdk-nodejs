@@ -14,8 +14,8 @@ var varIntFixtures = [
     [65535, 5],
     [65536, 5],
     [Math.pow(2, 31), 5],
-    [Math.pow(2, 32)-2, 5],
-    [Math.pow(2, 32)-1, 9],
+    [Math.pow(2, 32) - 2, 5],
+    [Math.pow(2, 32) - 1, 9],
     [Math.pow(2, 32), 9],
 
     // don't go above this, is signed int territory, PHP complains
@@ -37,7 +37,7 @@ var scriptDataLenFixtures =  [
     [65536, 5]
 ];
 
-var multisigStackFixtures = (function () {
+var multisigStackFixtures = (function() {
     var u = ['5KW8Ymmu8gWManGggZZQJeX7U3pn5HtcqqsVrNUbc1SUmVPZbwp',
         '5KCV94YBsrJWTdk6cQWJxEd25sH8h1cGTpJnCN6kLMLe4c3QZVr',
         '5JUxGateMWVBsBQkAwSRQLxyaQXhsch4EStfC62cqdEf2zUheVT'
@@ -46,20 +46,21 @@ var multisigStackFixtures = (function () {
         'KwUZpCvpAkUe1SZj3k3P2acta1V1jY8Dpuj71bEAukEKVrg8NEym',
         'Kz2Lm2hzjPWhv3WW9Na5HUKi4qBxoTfv8fNYAU6KV6TZYVGdK5HW'
     ];
-    var uncompressed = u.map(function (wif) {
+    var uncompressed = u.map(function(wif) {
         return bitcoin.ECPair.fromWIF(wif, bitcoin.networks.bitcoin);
     });
-    var compressed = c.map(function (wif) {
+    var compressed = c.map(function(wif) {
         return bitcoin.ECPair.fromWIF(wif, bitcoin.networks.bitcoin);
     });
 
     var fixtures = [];
     for (var i = 0; i < 3; i++) {
         var keys = [];
-        for (var j = 0; j < i; j++) {
+        var j;
+        for (j = 0; j < i; j++) {
             keys.push(uncompressed[j].getPublicKeyBuffer());
         }
-        for (var j = i; j < 3; j++) {
+        for (j = i; j < 3; j++) {
             keys.push(compressed[j].getPublicKeyBuffer());
         }
 
@@ -70,16 +71,16 @@ var multisigStackFixtures = (function () {
 })();
 
 // test fixtures of every possible representation of multisig
-var multisigFormFixtures = (function () {
+var multisigFormFixtures = (function() {
     var c = ['L1Tr4rPUi81XN1Dp48iuva5U9sWxU1eipgiAu8BhnB3xnSfGV5rd',
         'KwUZpCvpAkUe1SZj3k3P2acta1V1jY8Dpuj71bEAukEKVrg8NEym',
         'Kz2Lm2hzjPWhv3WW9Na5HUKi4qBxoTfv8fNYAU6KV6TZYVGdK5HW'
     ];
-    var keys = c.map(function (wif) {
+    var keys = c.map(function(wif) {
         return bitcoin.ECPair.fromWIF(wif, bitcoin.networks.bitcoin).getPublicKeyBuffer();
     });
     var multisig = bitcoin.script.multisig.output.encode(2, keys);
-    var bareSize = 1/*op0*/ + 2*(1+SizeEstimation.SIZE_DER_SIGNATURE);
+    var bareSize = 1/*op0*/ + 2 * (1 + SizeEstimation.SIZE_DER_SIGNATURE);
 
     var bareSig = 1 + bareSize;
     var p2shSig = 3 + bareSize + 2 + multisig.length;
@@ -88,7 +89,7 @@ var multisigFormFixtures = (function () {
     var p2wshScript = bitcoin.script.witnessScriptHash.output.encode(p2wshHash);
 
     var nestedSig = 1 + 1 + p2wshScript.length;
-    var witSize = 1 + 2*(1+SizeEstimation.SIZE_DER_SIGNATURE);
+    var witSize = 1 + 2 * (1 + SizeEstimation.SIZE_DER_SIGNATURE);
     var nestedWit = witSize + 1 + 1 + multisig.length;
 
     return [
@@ -105,25 +106,25 @@ function makeUtxo(script, rs, ws) {
         value: 100000000
     };
     if (rs instanceof Buffer) {
-        utxo.redeem_script = rs.toString('hex')
+        utxo.redeem_script = rs.toString('hex');
     }
     if (ws instanceof Buffer) {
-        utxo.witness_script = ws.toString('hex')
+        utxo.witness_script = ws.toString('hex');
     }
     return utxo;
 }
 
 // test fixtures of every possible representation of multisig
-var multisigUtxoFixtures = (function () {
+var multisigUtxoFixtures = (function() {
     var c = ['L1Tr4rPUi81XN1Dp48iuva5U9sWxU1eipgiAu8BhnB3xnSfGV5rd',
         'KwUZpCvpAkUe1SZj3k3P2acta1V1jY8Dpuj71bEAukEKVrg8NEym',
         'Kz2Lm2hzjPWhv3WW9Na5HUKi4qBxoTfv8fNYAU6KV6TZYVGdK5HW'
     ];
-    var keys = c.map(function (wif) {
+    var keys = c.map(function(wif) {
         return bitcoin.ECPair.fromWIF(wif, bitcoin.networks.bitcoin).getPublicKeyBuffer();
     });
     var multisig = bitcoin.script.multisig.output.encode(2, keys);
-    var bareSize = 1/*op0*/ + 2*(1+SizeEstimation.SIZE_DER_SIGNATURE);
+    var bareSize = 1/*op0*/ + 2 * (1 + SizeEstimation.SIZE_DER_SIGNATURE);
 
     var bareSig = 1 + bareSize;
     var p2shSig = 3 + bareSize + 2 + multisig.length;
@@ -132,7 +133,7 @@ var multisigUtxoFixtures = (function () {
     var p2wshScript = bitcoin.script.witnessScriptHash.output.encode(p2wshHash);
 
     var nestedSig = 1 + 1 + p2wshScript.length;
-    var witSize = 1 + 2*(1+SizeEstimation.SIZE_DER_SIGNATURE);
+    var witSize = 1 + 2 * (1 + SizeEstimation.SIZE_DER_SIGNATURE);
     var nestedWit = witSize + 1 + 1 + multisig.length;
 
     var multisigHash160 = bitcoin.crypto.hash160(multisig);
@@ -157,33 +158,33 @@ var multisigUtxoFixtures = (function () {
     ];
 })();
 
-describe('getLengthForVarInt', function () {
-    varIntFixtures.map(function (fixture) {
+describe('getLengthForVarInt', function() {
+    varIntFixtures.map(function(fixture) {
         var inputLen = fixture[0];
         var expectSize = fixture[1];
-        it('works for `' + inputLen + '` (equals ' + expectSize + ')', function (cb) {
+        it('works for `' + inputLen + '` (equals ' + expectSize + ')', function(cb) {
             var result = SizeEstimation.getLengthForVarInt(inputLen);
             assert.equal(expectSize, result);
-            cb()
+            cb();
         });
     });
 });
 
-describe('getLengthForScriptPush', function () {
-    scriptDataLenFixtures.map(function (fixture) {
+describe('getLengthForScriptPush', function() {
+    scriptDataLenFixtures.map(function(fixture) {
         var inputLen = fixture[0];
         var expectSize = fixture[1];
-        it(' works for '+ inputLen + '` (equals '+ expectSize+')', function (cb) {
+        it(' works for ' + inputLen + '` (equals ' + expectSize + ')', function(cb) {
             var result = SizeEstimation.getLengthForScriptPush(inputLen);
             assert.equal(expectSize, result);
-            cb()
+            cb();
         });
     });
 });
 
-describe("estimateMultisigStackSize", function () {
-    multisigStackFixtures.map(function (fixture) {
-        it("works for multisig scripts with the keys", function () {
+describe("estimateMultisigStackSize", function() {
+    multisigStackFixtures.map(function(fixture) {
+        it("works for multisig scripts with the keys", function(cb) {
             var script = fixture[0];
             assert.ok(bitcoin.script.multisig.output.check(script));
             var decoded = bitcoin.script.multisig.output.decode(script);
@@ -196,16 +197,17 @@ describe("estimateMultisigStackSize", function () {
             assert.equal(script.length, scriptSize);
 
             var stackSizes = estimation[0];
-            assert.equal(1+decoded.m, stackSizes.length)
-            assert.equal(0, stackSizes[0])
+            assert.equal(1 + decoded.m, stackSizes.length);
+            assert.equal(0, stackSizes[0]);
             for (var i = 0; i < decoded.m; i++) {
-                assert.equal(SizeEstimation.SIZE_DER_SIGNATURE, stackSizes[1+i]);
+                assert.equal(SizeEstimation.SIZE_DER_SIGNATURE, stackSizes[1 + i]);
             }
-        })
+            cb();
+        });
     });
 
-    multisigFormFixtures.map(function (fixture) {
-        it("deals with different representations", function () {
+    multisigFormFixtures.map(function(fixture) {
+        it("deals with different representations", function(cb) {
             var script = fixture[0];
             var isWit = fixture[1];
             var rs = fixture[2];
@@ -228,11 +230,12 @@ describe("estimateMultisigStackSize", function () {
 
             assert.equal(foundSigSize, expectSig);
             assert.equal(foundWitSize, expectWit);
-        })
+            cb();
+        });
     });
 
-    multisigUtxoFixtures.map(function (fixture) {
-        it("deals with different representations", function () {
+    multisigUtxoFixtures.map(function(fixture) {
+        it("deals with different representations", function(cb) {
             var utxo = fixture[0];
             var expectSig = fixture[1];
             var expectWit = fixture[2];
@@ -241,6 +244,7 @@ describe("estimateMultisigStackSize", function () {
 
             assert.equal(estimate.scriptSig, expectSig);
             assert.equal(estimate.witness, expectWit);
-        })
+            cb();
+        });
     });
 });
