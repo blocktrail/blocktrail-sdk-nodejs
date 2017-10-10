@@ -1,5 +1,4 @@
 var m = require('./../lib/encryption_mnemonic.js');
-var q = require('q')
 var stdin = process.openStdin();
 
 stdin.addListener("data", function(EPS) {
