@@ -63,6 +63,7 @@ var _createTestWallet = function(identifier, passphrase, primaryMnemonic, backup
                 blocktrailPublicKeys,
                 keyIndex,
                 0,
+                false,
                 client.testnet,
                 checksum
             );
@@ -672,8 +673,6 @@ describe('test wallet, do transaction', function() {
         }, function(err, _wallet) {
             assert.ifError(err);
             assert.ok(_wallet);
-
-            _wallet.chain = blocktrail.Wallet.CHAIN_BTC_DEFAULT;
             wallet = _wallet;
 
             assert.equal(wallet.primaryMnemonic, "give pause forget seed dance crawl situate hole keen");
@@ -880,7 +879,13 @@ describe('test wallet with segwit chain', function() {
             assert.equal(_wallet.primaryMnemonic, "give pause forget seed dance crawl situate hole keen");
             assert.equal(_wallet.identifier, "unittest-transaction");
             assert.equal(_wallet.getBlocktrailPublicKey("M/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
-            assert.equal(blocktrail.Wallet.CHAIN_BTC_SEGWIT, _wallet.chain);
+
+            if (_wallet.isSegwit()) {
+                assert.equal(blocktrail.Wallet.CHAIN_BTC_SEGWIT, _wallet.chain);
+            } else {
+                assert.equal(blocktrail.Wallet.CHAIN_BTC_DEFAULT, _wallet.chain);
+            }
+
             wallet = _wallet;
             cb();
         });
@@ -889,7 +894,12 @@ describe('test wallet with segwit chain', function() {
     it("getNewAddress produces P2SH addresses", function(cb) {
         wallet.getNewAddress(function(err, address, path) {
             assert.ifError(err);
-            assert.ok(path.indexOf("M/9999'/2/") === 0);
+            if (wallet.isSegwit()) {
+                assert.ok(path.indexOf("M/9999'/2/") === 0);
+            } else {
+                assert.ok(path.indexOf("M/9999'/0/") === 0);
+            }
+
             assert.ok(bitcoin.address.fromBase58Check(address));
 
             cb();
@@ -949,16 +959,23 @@ describe('test wallet, do transaction, segwit spend', function() {
         createTransactionTestWallet(identifier, function(err, newWallet) {
             wallets.push(newWallet);
             assert.ifError(err);
-            newWallet.chain = blocktrail.Wallet.CHAIN_BTC_SEGWIT;
             newWallet.getNewAddress(function(err, address, path) {
                 assert.ifError(err);
                 assert.ok(bitcoin.address.fromBase58Check(address));
-                assert.ok(path.indexOf("M/9999'/2/") === 0);
+
+                if (newWallet.isSegwit()) {
+                    assert.ok(path.indexOf("M/9999'/2/") === 0);
+                } else {
+                    assert.ok(path.indexOf("M/9999'/0/") === 0);
+                }
 
                 var checkScript = newWallet.getWalletScriptByPath(path);
                 assert.ok(checkScript.address = address);
                 assert.ok(checkScript.redeemScript instanceof Buffer);
-                assert.ok(checkScript.witnessScript instanceof Buffer);
+                if (newWallet.isSegwit()) {
+                    assert.ok(checkScript.witnessScript instanceof Buffer);
+                }
+
 
                 segwitWallet = newWallet;
                 receiveAddr = address;
@@ -1009,7 +1026,6 @@ describe('test wallet, do transaction, without mnemonics', function() {
                 assert.ok(_wallet);
 
                 wallet = _wallet;
-                wallet.chain = blocktrail.Wallet.CHAIN_BTC_DEFAULT;
 
                 assert.equal(wallet.identifier, "unittest-transaction");
                 assert.equal(wallet.getBlocktrailPublicKey("M/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
