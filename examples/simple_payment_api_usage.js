@@ -1,8 +1,9 @@
 var blocktrail = require('../'); // require('blocktrail-sdk') when trying example from in your own project
 
 var client = blocktrail.BlocktrailSDK({
-    apiKey : "MY_APIKEY",
-    apiSecret : "MY_APISECRET",
+    network: 'B2X',
+    apiKey : "7907d2cad41586a7bbb5b77c6bb9ce13d25fd376",
+    apiSecret : "c003220bf4ebf89958631abe010777ef5e39e938",
     testnet : true
 });
 
@@ -31,7 +32,7 @@ var action = 'default';
 
 if (action === 'create') {
     client.createNewWallet({
-        identifier: "example-wallet",
+        identifier: "example-wallet1",
         passphrase: "example-strong-password",
         keyIndex: 9999
     }, function(err, wallet, primaryMnemonic, backupMnemonic, blocktrailPubKeys) {
@@ -56,7 +57,7 @@ if (action === 'create') {
     });
 } else {
     client.initWallet({
-        identifier: "example-wallet",
+        identifier: "example-wallet1",
         readOnly: true
     }, function(err, wallet) {
         if (err) {
