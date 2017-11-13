@@ -2,6 +2,7 @@
 /* global window */
 var _ = require('lodash');
 var blocktrail = require('../');
+var Wallet = blocktrail.Wallet;
 var assert = require('assert');
 var crypto = require('crypto');
 var async = require('async');
@@ -976,7 +977,6 @@ describe('test wallet, do transaction, segwit spend', function() {
                     assert.ok(checkScript.witnessScript instanceof Buffer);
                 }
 
-
                 segwitWallet = newWallet;
                 receiveAddr = address;
                 cb();
@@ -1465,6 +1465,318 @@ describe('test wallet webhook', function() {
                     });
 
                 });
+            });
+        });
+    });
+});
+
+describe("Wallet.getAddressAndType", function() {
+    var fixtures = [
+        {
+            address: "tb1qn08f8x0eamw66enrt497zu0v3u2danzey6asqs",
+            network: bitcoin.networks.testnet,
+            type: "bech32",
+            valid: true
+        },
+        {
+            address: "tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q0sl5k7",
+            network: bitcoin.networks.testnet,
+            type: "bech32",
+            valid: true
+        },
+        {
+            address: "muinVykhtZyonxQxk8zBptX6Lmri91bdNG",
+            network: bitcoin.networks.testnet,
+            type: "base58",
+            valid: true
+        },
+        {
+            address: "2N7T4CD6CEuNHJoGKpoJH3YexqektXjyy6L",
+            network: bitcoin.networks.testnet,
+            type: "base58",
+            valid: true
+        },
+        {
+            address: "16uf9UUBbUHdVAnETGZQnvXZcf9NPU1QR6",
+            network: bitcoin.networks.bitcoin,
+            type: "base58",
+            valid: true
+        },
+        {
+            address: "3CgSFohdEqd7pSxbDAJeJo6X5Qm2tBbby9",
+            network: bitcoin.networks.bitcoin,
+            type: "base58",
+            valid: true
+        },
+        {
+            address: "bc1qqy36hngpyw4u6qfr40xszgate5qj827dqy36hngpyw4u6qfr40xsp3an42",
+            network: bitcoin.networks.bitcoin,
+            type: "bech32",
+            valid: true
+        },
+        {
+            address: "bc1qn08f8x0eamw66enrt497zu0v3u2danzewuxrmr",
+            network: bitcoin.networks.bitcoin,
+            type: "bech32",
+            valid: true
+        },
+        {
+            address: "16uf9UUBbUHdVAnETGZQnvXZcf9NPU1QR6",
+            network: bitcoin.networks.testnet,
+            type: "base58",
+            error: "Address invalid on this network",
+            valid: false
+        },
+        {
+            address: "3CgSFohdEqd7pSxbDAJeJo6X5Qm2tBbby9",
+            network: bitcoin.networks.testnet,
+            type: "base58",
+            error: "Address invalid on this network",
+            valid: false
+        },
+        {
+            address: "bc1qqy36hngpyw4u6qfr40xszgate5qj827dqy36hngpyw4u6qfr40xsp3an42",
+            network: bitcoin.networks.testnet,
+            type: "bech32",
+            error: "Address invalid on this network",
+            valid: false
+        },
+        {
+            address: "bc1qn08f8x0eamw66enrt497zu0v3u2danzewuxrmr",
+            network: bitcoin.networks.testnet,
+            type: "bech32",
+            error: "Address invalid on this network",
+            valid: false
+        },
+        {
+            address: "bc1qqy36hngpyw4u6qfr40xszgate5qj827dqy36hngpyw4u6qfr40xsp3an42",
+            network: bitcoin.networks.bitcoincash,
+            error: "Non-base58 character",
+            type: "bech32",
+            valid: false
+        },
+        {
+            address: "bc1qn08f8x0eamw66enrt497zu0v3u2danzewuxrmr",
+            network: bitcoin.networks.bitcoincash,
+            error: "Non-base58 character",
+            type: "bech32",
+            valid: false
+        },
+        {
+            address: "tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q0sl5k7",
+            network: bitcoin.networks.bitcoincashtestnet,
+            error: "Non-base58 character",
+            type: "bech32",
+            valid: false
+        },
+        {
+            address: "tb1qn08f8x0eamw66enrt497zu0v3u2danzey6asqs",
+            network: bitcoin.networks.bitcoincashtestnet,
+            error: "Non-base58 character",
+            type: "bech32",
+            valid: false
+        },
+        {
+            address: "tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q0sl5k7",
+            network: bitcoin.networks.bitcoin,
+            error: "Address invalid on this network",
+            type: "bech32",
+            valid: false
+        },
+        {
+            address: "tb1qn08f8x0eamw66enrt497zu0v3u2danzey6asqs",
+            network: bitcoin.networks.bitcoin,
+            error: "Address invalid on this network",
+            type: "bech32",
+            valid: false
+        },
+        {
+            address: "bc1qqy36hngpyw4u6qfr40xszgate5qj827dqy36hngpyw4u6qfr40xsp3an42",
+            network: bitcoin.networks.testnet,
+            error: "Address invalid on this network",
+            type: "bech32",
+            valid: false
+        },
+        {
+            address: "bc1qn08f8x0eamw66enrt497zu0v3u2danzewuxrmr",
+            network: bitcoin.networks.testnet,
+            error: "Address invalid on this network",
+            type: "bech32",
+            valid: false
+        }
+    ];
+
+    fixtures.map(function(fixture) {
+        var description =
+            (fixture.valid ? "parses" : "fails to parse") +
+            " a " + fixture.type + " address: " + fixture.address;
+
+        it(description, function(cb) {
+            var addrAndType;
+            var err;
+            try {
+                addrAndType = Wallet.getAddressAndType(fixture.address, fixture.network);
+            } catch (e) {
+                err = e;
+            }
+
+            if (fixture.valid) {
+                assert.ifError(err);
+                assert.ok(Object.keys(addrAndType).indexOf("address") !== -1);
+                assert.ok(Object.keys(addrAndType).indexOf("decoded") !== -1);
+                assert.ok(Object.keys(addrAndType).indexOf("type") !== -1);
+                assert.equal(addrAndType.type, fixture.type);
+                assert.equal(addrAndType.address, fixture.address);
+            } else {
+                assert.ok(typeof err === "object");
+                assert.ok(typeof addrAndType === "undefined");
+                if (Object.keys(fixture).indexOf("error") !== -1) {
+                    assert.equal(err.message, fixture.error);
+                }
+            }
+            cb();
+        });
+    });
+});
+
+describe("Wallet.convertPayToOutputs", function() {
+    var network = bitcoin.networks.testnet;
+    var fixtures = [
+        {
+            description: "p2wpkh",
+            network: bitcoin.networks.testnet,
+            value: 12345,
+            address: "tb1qn08f8x0eamw66enrt497zu0v3u2danzey6asqs",
+            script: "00149bce9399f9eeddad66635d4be171ec8f14decc59"
+        },
+        {
+            description: "p2wsh",
+            network: bitcoin.networks.testnet,
+            value: 12345,
+            address: "tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q0sl5k7",
+            script: "00201863143c14c5166804bd19203356da136c985678cd4d27a1b8c6329604903262"
+        },
+        {
+            description: "p2pkh",
+            network: bitcoin.networks.testnet,
+            value: 12345,
+            address: "muinVykhtZyonxQxk8zBptX6Lmri91bdNG",
+            script: "76a9149bce9399f9eeddad66635d4be171ec8f14decc5988ac"
+        },
+        {
+            description: "p2sh",
+            network: bitcoin.networks.testnet,
+            value: 12345,
+            address: "2N7T4CD6CEuNHJoGKpoJH3YexqektXjyy6L",
+            script: "a9149bce9399f9eeddad66635d4be171ec8f14decc5987"
+        }
+    ];
+
+    fixtures.map(function(fixture, i) {
+
+        it(fixture.description + " converted to script, " + i, function(cb) {
+            var test = function(outputs) {
+                assert.ok(Array.isArray(outputs));
+                assert.equal(outputs[0].value, fixture.value);
+                assert.equal(outputs[0].scriptPubKey, fixture.script);
+                assert.equal(outputs[0].address, null);
+            };
+
+            // should accept some input of ours
+            var pay = [{
+                scriptPubKey: fixture.script,
+                value: fixture.value
+            }];
+
+            var outputs = Wallet.convertPayToOutputs(pay, network);
+            test(outputs);
+
+            pay = {};
+            pay[fixture.address] = fixture.value;
+
+            // should deal with simple mapping form
+            outputs = Wallet.convertPayToOutputs(pay, network);
+            test(outputs);
+
+            // repeating the procedure should pass the same test
+            outputs = Wallet.convertPayToOutputs(outputs, network);
+            test(outputs);
+
+            cb();
+        });
+    });
+});
+
+describe('test wallet coin selection forms', function() {
+    var wallet;
+
+    it("BTC testnet wallet should exist", function(cb) {
+        client.initWallet({
+            identifier: "unittest-transaction",
+            passphrase: "password"
+        }, function(err, _wallet) {
+            assert.ifError(err);
+            assert.ok(_wallet);
+
+            wallet = _wallet;
+
+            client.allWallets({page: 1}, function(err, wallets) {
+                assert.ifError(err);
+
+                assert.ok(wallets['data'].length > 0);
+
+                assert.equal(wallet.primaryMnemonic, "give pause forget seed dance crawl situate hole keen");
+                assert.equal(wallet.identifier, "unittest-transaction");
+                assert.equal(wallet.getBlocktrailPublicKey("M/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
+
+                cb();
+            });
+        });
+    });
+
+    it("shouldnt coin select for wrong network", function(cb) {
+        var pay = {};
+        pay["bc1qqy36hngpyw4u6qfr40xszgate5qj827dqy36hngpyw4u6qfr40xsp3an42"] = 10000;
+        wallet.coinSelection(pay, function(err, res) {
+            assert.ok(err);
+            cb();
+        });
+    });
+
+    var fixtures = [
+        {"tb1qn08f8x0eamw66enrt497zu0v3u2danzey6asqs": 10000},
+        {"tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q0sl5k7": 10000},
+        [
+            {
+                "address": "tb1qn08f8x0eamw66enrt497zu0v3u2danzey6asqs",
+                "value": 10000
+            },
+            {
+                "address": "tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q0sl5k7",
+                "value": 10000
+            }
+        ],
+        [
+            {
+                "scriptPubKey": "00149bce9399f9eeddad66635d4be171ec8f14decc59",
+                "value": 10000
+            },
+            {
+                "address": "tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q0sl5k7",
+                "value": 10000
+            }
+        ]
+    ];
+
+    fixtures.map(function(fixture) {
+        var type = "object";
+        if (Array.isArray(fixture)) {
+            type = "outputs array";
+        }
+        it("should coin select for " + type, function(cb) {
+            wallet.coinSelection(fixture, false, function(err, res) {
+                assert.ifError(err);
+                cb();
             });
         });
     });
