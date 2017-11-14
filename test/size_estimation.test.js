@@ -182,6 +182,29 @@ describe('getLengthForScriptPush', function() {
     });
 });
 
+describe("estimateWitnessPubKeyHash", function() {
+    it('should work', function(cb) {
+        var utxo = { hash: '4141414141414141414141414141414141414141414141414141414141414141',
+            idx: 2,
+            scriptpubkey_hex: '00140102030401020304010203040102030401020304',
+            value: 1,
+            confirmations: 1,
+            sign_mode: 'dont_sign',
+            address: '2N245vnpchbFYWm5hZ6hqF2zC8QbVpoHeSU',
+            path: null,
+            redeem_script: null,
+            witness_script: null,
+            green: null };
+
+        var estimation = SizeEstimation.estimateUtxo(utxo);
+
+        assert.equal(1, estimation.scriptSig);
+        assert.equal(108, estimation.witness);
+
+        cb();
+    });
+});
+
 describe("estimateMultisigStackSize", function() {
     multisigStackFixtures.map(function(fixture) {
         it("works for multisig scripts with the keys", function(cb) {
