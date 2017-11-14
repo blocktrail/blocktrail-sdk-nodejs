@@ -18,6 +18,29 @@ function makeUtxo(script, rs, ws) {
     return utxo;
 }
 
+function scriptUtxos(script) {
+    var hash160 = bitcoin.crypto.hash160(script);
+    var p2shSPK = bitcoin.script.scriptHash.output.encode(hash160);
+
+    var sha256 = bitcoin.crypto.sha256(script);
+    var p2wshSPK = bitcoin.script.witnessScriptHash.output.encode(sha256);
+
+    var p2wshHash160 = bitcoin.crypto.hash160(p2wshSPK);
+    var p2wshP2sh = bitcoin.script.scriptHash.output.encode(p2wshHash160);
+
+    var bareUtxo = makeUtxo(script, null, null);
+    var p2shUtxo = makeUtxo(p2shSPK, script, null);
+    var p2wshUtxo = makeUtxo(p2wshSPK, null, script);
+    var p2shP2wshUtxo = makeUtxo(p2wshP2sh, p2wshSPK, script);
+
+    return {
+        bareUtxo: bareUtxo,
+        p2shUtxo: p2shUtxo,
+        p2wshUtxo: p2wshUtxo,
+        p2shP2wshUtxo: p2shP2wshUtxo
+    };
+}
+
 function makeUtxoFixtures(script, scriptSizes, extra) {
     var utxos = scriptUtxos(script);
     var result = [
@@ -71,7 +94,7 @@ function p2pkScriptSizes(script) {
         p2wshScript: p2wshScript,
         nestedSig: nestedSig,
         nestedWit: nestedWit
-    }
+    };
 }
 
 function p2pkMakeScript(wif, network) {
@@ -98,24 +121,26 @@ function p2pkhScriptSizes(script, compressed) {
         p2wshScript: p2wshScript,
         nestedSig: nestedSig,
         nestedWit: nestedWit
-    }
+    };
 }
+
+function p2pkhMakeScript(wif, network) {
+    var eckey = bitcoin.ECPair.fromWIF(wif, network);
+    var hash160 = bitcoin.crypto.hash160(eckey.getPublicKeyBuffer());
+    return bitcoin.script.pubKeyHash.output.encode(hash160);
+}
+
 function p2pkhFormFixture(wif, network) {
     var keyHash = p2pkhMakeScript(wif, network);
     var compressed = bitcoin.ECPair.fromWIF(wif, network).compressed;
     var scriptSizes = p2pkhScriptSizes(keyHash, compressed);
     return makeFormFixtures(keyHash, scriptSizes, [compressed]);
 }
-function p2pkhMakeScript(wif, network) {
-    var eckey = bitcoin.ECPair.fromWIF(wif, network);
-    var hash160 = bitcoin.crypto.hash160(eckey.getPublicKeyBuffer());
-    return bitcoin.script.pubKeyHash.output.encode(hash160)
-}
 
 function p2pkMakeFormFixtures(wif, network) {
     var script = p2pkMakeScript(wif, network);
     var scriptSizes = p2pkScriptSizes(script);
-    return makeFormFixtures(script, scriptSizes)
+    return makeFormFixtures(script, scriptSizes);
 }
 function multisigMakeScript(m, wifs, network) {
     var keys = wifs.map(function(wif) {
@@ -142,30 +167,7 @@ function multisigScriptSizes(m, script) {
         p2wshScript: p2wshScript,
         nestedSig: nestedSig,
         nestedWit: nestedWit
-    }
-}
-
-function scriptUtxos(script) {
-    var hash160 = bitcoin.crypto.hash160(script);
-    var p2shSPK = bitcoin.script.scriptHash.output.encode(hash160);
-
-    var sha256 = bitcoin.crypto.sha256(script);
-    var p2wshSPK = bitcoin.script.witnessScriptHash.output.encode(sha256);
-
-    var p2wshHash160 = bitcoin.crypto.hash160(p2wshSPK);
-    var p2wshP2sh = bitcoin.script.scriptHash.output.encode(p2wshHash160);
-
-    var bareUtxo = makeUtxo(script, null, null);
-    var p2shUtxo = makeUtxo(p2shSPK, script, null);
-    var p2wshUtxo = makeUtxo(p2wshSPK, null, script);
-    var p2shP2wshUtxo = makeUtxo(p2wshP2sh, p2wshSPK, script);
-
-    return {
-        bareUtxo: bareUtxo,
-        p2shUtxo: p2shUtxo,
-        p2wshUtxo: p2wshUtxo,
-        p2shP2wshUtxo: p2shP2wshUtxo
-    }
+    };
 }
 
 var varIntFixtures = [
@@ -310,17 +312,17 @@ var multisigUtxoFixtures = (function() {
         [
             1,
             [
-                'L1Tr4rPUi81XN1Dp48iuva5U9sWxU1eipgiAu8BhnB3xnSfGV5rd',
+                'L1Tr4rPUi81XN1Dp48iuva5U9sWxU1eipgiAu8BhnB3xnSfGV5rd'
             ],
             bitcoin.networks.bitcoin
         ]
     ];
 
     var fixtures = [];
-    data.map(function (fixture) {
+    data.map(function(fixture) {
         var script = multisigMakeScript(fixture[0], fixture[1], fixture[2]);
         var msDetail = multisigScriptSizes(fixture[0], script);
-        makeUtxoFixtures(script, msDetail).map(function (fixture) {
+        makeUtxoFixtures(script, msDetail).map(function(fixture) {
             fixtures.push(fixture);
         });
     });
@@ -346,10 +348,10 @@ var p2pkUtxoFixtures = (function() {
     ];
 
     var fixtures = [];
-    data.map(function (fixture) {
+    data.map(function(fixture) {
         var script = p2pkMakeScript(fixture[0], fixture[1]);
         var msDetail = p2pkScriptSizes(script);
-        makeUtxoFixtures(script, msDetail).map(function (fixture) {
+        makeUtxoFixtures(script, msDetail).map(function(fixture) {
             fixtures.push(fixture);
         });
     });
@@ -363,15 +365,15 @@ var p2pkhUtxoFixtures = (function() {
         [
             'L1Tr4rPUi81XN1Dp48iuva5U9sWxU1eipgiAu8BhnB3xnSfGV5rd',
             bitcoin.networks.bitcoin
-        ],
+        ]
     ];
 
     var fixtures = [];
-    data.map(function (fixture) {
+    data.map(function(fixture) {
         var script = p2pkhMakeScript(fixture[0], fixture[1]);
         var compressed = bitcoin.ECPair.fromWIF(fixture[0], fixture[1]).compressed;
         var msDetail = p2pkhScriptSizes(script, compressed);
-        makeUtxoFixtures(script, msDetail, [compressed]).map(function (fixture) {
+        makeUtxoFixtures(script, msDetail, [compressed]).map(function(fixture) {
             fixtures.push(fixture);
         });
     });
@@ -379,7 +381,7 @@ var p2pkhUtxoFixtures = (function() {
     return fixtures;
 })();
 
-describe('getLengthForVarInt', function() {
+describe('SizeEstimation.getLengthForVarInt', function() {
     varIntFixtures.map(function(fixture) {
         var inputLen = fixture[0];
         var expectSize = fixture[1];
@@ -389,9 +391,22 @@ describe('getLengthForVarInt', function() {
             cb();
         });
     });
+
+    it('throws when too large an input is provided', function(cb) {
+        var err;
+        try {
+            SizeEstimation.getLengthForVarInt(0xffffffffffffffff + 1);
+        } catch (e) {
+            err = e;
+        }
+
+        assert.ok(typeof err === "object");
+        assert.equal(err.message, "Size of varint too large");
+        cb();
+    });
 });
 
-describe('getLengthForScriptPush', function() {
+describe('SizeEstimation.getLengthForScriptPush', function() {
     scriptDataLenFixtures.map(function(fixture) {
         var inputLen = fixture[0];
         var expectSize = fixture[1];
@@ -400,6 +415,19 @@ describe('getLengthForScriptPush', function() {
             assert.equal(expectSize, result);
             cb();
         });
+    });
+
+    it('throws when too large an input is provided', function(cb) {
+        var err;
+        try {
+            SizeEstimation.getLengthForScriptPush(0xffffffff + 1);
+        } catch (e) {
+            err = e;
+        }
+
+        assert.ok(typeof err === "object");
+        assert.equal(err.message, "Size of pushdata too large");
+        cb();
     });
 });
 
@@ -420,7 +448,7 @@ describe('estimateP2PKStackSize', function() {
             var stackSizes = estimation[0];
             assert.equal(1, stackSizes.length);
             assert.equal(SizeEstimation.SIZE_DER_SIGNATURE, stackSizes[0]);
-            cb()
+            cb();
         });
     });
 
@@ -471,7 +499,7 @@ describe('estimateP2PKHStackSize', function() {
 
             assert.equal(stackSizes[0], SizeEstimation.SIZE_DER_SIGNATURE);
             assert.equal(stackSizes[1], 33);
-            cb()
+            cb();
         });
     });
 
@@ -558,7 +586,181 @@ describe("estimateMultisigStackSize", function() {
 
 });
 
-describe("SizeEstimation.estimateUtxo", function () {
+describe("SizeEstimation.estimateInputFromScripts", function() {
+    it('throws on invalid script type', function(cb) {
+        var err;
+        try {
+            SizeEstimation.estimateInputFromScripts(Buffer.from('', 'hex'), null, null);
+        } catch (e) {
+            err = e;
+        }
+
+        assert.ok(typeof err === "object");
+        assert.equal(err.message, "Unsupported script type");
+        cb();
+    });
+});
+describe("SizeEstimation.estimateOutputs", function() {
+    [0, 1, 5, 9].map(function(size) {
+        it("estimates single output, for script size " + size, function(cb) {
+            var script = '';
+            for (var i = 0; i < size; i++) {
+                script = script + '6a';
+            }
+            var outputsSize = SizeEstimation.calculateOutputsSize([{
+                value: 1234,
+                script: script
+            }]);
+            assert.equal(outputsSize, 8 + 1 + size);
+            cb();
+        });
+    });
+});
+
+describe("SizeEstimation.estimateTxWeight", function() {
+    var wif = "5KW8Ymmu8gWManGggZZQJeX7U3pn5HtcqqsVrNUbc1SUmVPZbwp";
+    var key = bitcoin.ECPair.fromWIF(wif, bitcoin.networks.bitcoin);
+
+    var hash160 = bitcoin.crypto.hash160(key.getPublicKeyBuffer());
+    var p2wpkh = bitcoin.script.witnessPubKeyHash.output.encode(hash160);
+    var p2pkh = bitcoin.script.pubKeyHash.output.encode(hash160);
+
+    it("estimates p2wpkh weight", function(cb) {
+        var utxos = [
+            {
+                txid: "abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234",
+                vout: 0,
+                scriptpubkey_hex: p2wpkh
+            }
+        ];
+
+        var txb = new bitcoin.TransactionBuilder();
+        utxos.map(function(utxo) {
+            txb.addInput(utxo.txid, utxo.vout);
+        });
+
+        txb.addOutput(p2wpkh, 1234);
+        var tx = txb.buildIncomplete();
+
+        var size = SizeEstimation.estimateTxWeight(tx, utxos);
+        var vsize = SizeEstimation.estimateTxVsize(tx, utxos);
+
+        assert.equal(Math.ceil(size / 4), vsize);
+        cb();
+    });
+
+    it("weight for non-witness is 4x size", function(cb) {
+        var utxos = [
+            {
+                txid: "abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234",
+                vout: 0,
+                scriptpubkey_hex: p2pkh
+            }
+        ];
+
+        var txb = new bitcoin.TransactionBuilder();
+        utxos.map(function(utxo) {
+            txb.addInput(utxo.txid, utxo.vout);
+        });
+
+        txb.addOutput(p2wpkh, 1234);
+        var tx = txb.buildIncomplete();
+
+        var os = SizeEstimation.calculateOutputsSize(tx.outs);
+        var bs = 4 + 4 + SizeEstimation.estimateInputsSize(utxos, false) + 4 + os + 4;
+
+        var size = SizeEstimation.estimateTxWeight(tx, utxos);
+        assert.equal(size, bs * 4);
+
+        var vsize = SizeEstimation.estimateTxVsize(tx, utxos);
+        assert.equal(Math.ceil(size / 4), vsize);
+        cb();
+    });
+});
+
+describe("SizeEstimation.estimateInputsSize", function() {
+    var wif = "5KW8Ymmu8gWManGggZZQJeX7U3pn5HtcqqsVrNUbc1SUmVPZbwp";
+    var key = bitcoin.ECPair.fromWIF(wif, bitcoin.networks.bitcoin);
+
+    var hash160 = bitcoin.crypto.hash160(key.getPublicKeyBuffer());
+    var p2wpkh = bitcoin.script.witnessPubKeyHash.output.encode(hash160);
+
+    it("drops witness based on parameter", function(cb) {
+        var withWitness = SizeEstimation.estimateInputsSize([{
+            value: 1234,
+            scriptpubkey_hex: p2wpkh
+        }], true);
+
+        var noWitness = SizeEstimation.estimateInputsSize([{
+            value: 1234,
+            scriptpubkey_hex: p2wpkh
+        }], false);
+
+        assert.equal(noWitness, 32 + 4 + 4 + 1);
+        /*witness flags + witness vector*/
+
+        var assumeSize = noWitness + 2 + (1 + 1 + SizeEstimation.SIZE_DER_SIGNATURE + 1 + 33);
+
+        assert.ok(assumeSize === withWitness);
+
+        cb();
+    });
+});
+
+describe("SizeEstimation.estimateUtxo", function() {
+    it("throws if P2SH and redeemScript not provided", function(cb) {
+        var err;
+        try {
+            var hash160 = bitcoin.crypto.hash160(Buffer.from("42", "hex"));
+            var spk = bitcoin.script.scriptHash.output.encode(hash160);
+            SizeEstimation.estimateUtxo({
+                scriptpubkey_hex: spk,
+                redeem_script: null
+            });
+        } catch (e) {
+            err = e;
+        }
+
+        assert.ok(typeof err === "object");
+        assert.equal(err.message, "Cant estimate, missing redeem script");
+        cb();
+    });
+
+    it("throws if P2WSH and witnessScript not provided", function(cb) {
+        var err;
+        try {
+            var hash160 = bitcoin.crypto.sha256(Buffer.from("42", "hex"));
+            var spk = bitcoin.script.witnessScriptHash.output.encode(hash160);
+            SizeEstimation.estimateUtxo({
+                scriptpubkey_hex: spk,
+                witness_script: null
+            });
+        } catch (e) {
+            err = e;
+        }
+
+        assert.ok(typeof err === "object");
+        assert.equal(err.message, "Can't estimate, missing witness script");
+        cb();
+    });
+
+    it("throws if unsupported script type", function(cb) {
+        var err;
+        try {
+            var spk = Buffer.from('6a', 'hex');
+            SizeEstimation.estimateUtxo({
+                scriptpubkey_hex: spk,
+                witness_script: null
+            });
+        } catch (e) {
+            err = e;
+        }
+
+        assert.ok(typeof err === "object");
+        assert.equal(err.message, "Unsupported script type");
+        cb();
+    });
+
     []
         .concat(multisigUtxoFixtures)
         .concat(p2pkUtxoFixtures)
@@ -580,4 +782,28 @@ describe("SizeEstimation.estimateUtxo", function () {
                 cb();
             });
         });
+});
+
+
+describe("estimateWitnessPubKeyHash", function() {
+    it('should work', function(cb) {
+        var utxo = { hash: '4141414141414141414141414141414141414141414141414141414141414141',
+            idx: 2,
+            scriptpubkey_hex: '00140102030401020304010203040102030401020304',
+            value: 1,
+            confirmations: 1,
+            sign_mode: 'dont_sign',
+            address: '2N245vnpchbFYWm5hZ6hqF2zC8QbVpoHeSU',
+            path: null,
+            redeem_script: null,
+            witness_script: null,
+            green: null };
+
+        var estimation = SizeEstimation.estimateUtxo(utxo);
+
+        assert.equal(1, estimation.scriptSig);
+        assert.equal(108, estimation.witness);
+
+        cb();
+    });
 });
