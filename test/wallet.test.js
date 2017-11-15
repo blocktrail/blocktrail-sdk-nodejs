@@ -9,6 +9,8 @@ var async = require('async');
 var bitcoin = require('bitcoinjs-lib');
 var bip39 = require("bip39");
 
+var WAIT_FOR_TX_PROCESSED = process.env.BLOCKTRAIL_WAIT_FOR_TX || 300;
+
 /**
  * @type APIClient
  */
@@ -22,7 +24,7 @@ var TRANSACTION_TEST_WALLET_PRIMARY_MNEMONIC = "give pause forget seed dance cra
     TRANSACTION_TEST_WALLET_BACKUP_MNEMONIC = "give pause forget seed dance crawl situate hole give",
     TRANSACTION_TEST_WALLET_PASSWORD = "password";
 
-var _createTestWallet = function(identifier, passphrase, primaryMnemonic, backupMnemonic, cb) {
+var _createTestWallet = function(identifier, passphrase, primaryMnemonic, backupMnemonic, segwit, cb) {
     var keyIndex = 9999;
     var network = client.testnet ? bitcoin.networks.testnet : bitcoin.networks.bitcoin;
 
@@ -43,57 +45,63 @@ var _createTestWallet = function(identifier, passphrase, primaryMnemonic, backup
         primaryMnemonic,
         checksum,
         keyIndex,
-        function(err, result) {
-            if (err) {
-                return cb(err);
-            }
+        segwit
+    ).then(function(result) {
+        var blocktrailPublicKeys = _.mapValues(result.blocktrail_public_keys, function(blocktrailPublicKey) {
+            return bitcoin.HDNode.fromBase58(blocktrailPublicKey[0], network);
+        });
 
-            var blocktrailPublicKeys = _.mapValues(result.blocktrail_public_keys, function(blocktrailPublicKey) {
-                return bitcoin.HDNode.fromBase58(blocktrailPublicKey[0], network);
-            });
+        var wallet = new blocktrail.Wallet(
+            client,
+            identifier,
+            blocktrail.Wallet.WALLET_VERSION_V1,
+            primaryMnemonic,
+            null,
+            null,
+            {keyIndex: primaryPublicKey},
+            backupPublicKey,
+            blocktrailPublicKeys,
+            keyIndex,
+            result.chain || 0,
+            result.segwit || 0,
+            client.testnet,
+            checksum
+        );
 
-            var wallet = new blocktrail.Wallet(
-                client,
-                identifier,
-                blocktrail.Wallet.WALLET_VERSION_V1,
-                primaryMnemonic,
-                null,
-                null,
-                {keyIndex: primaryPublicKey},
-                backupPublicKey,
-                blocktrailPublicKeys,
-                keyIndex,
-                0,
-                false,
-                client.testnet,
-                checksum
-            );
+        wallet.unlock({
+            passphrase: passphrase
+        }, function(err) {
+            cb(err, wallet);
+        });
 
-            wallet.unlock({
-                passphrase: passphrase
-            }, function(err) {
-                cb(err, wallet);
-            });
-        }
-    );
+    }, function(err) {
+        return cb(err);
+    });
 };
 
 var createDiscoveryTestWallet = function(identifier, passphrase, cb) {
     var primaryMnemonic = "give pause forget seed dance crawl situate hole kingdom";
     var backupMnemonic = "give pause forget seed dance crawl situate hole course";
 
-    return _createTestWallet(identifier, passphrase, primaryMnemonic, backupMnemonic, cb);
+    return _createTestWallet(identifier, passphrase, primaryMnemonic, backupMnemonic, false, cb);
 };
 
-var createTransactionTestWallet = function(identifier, cb) {
-    return _createTestWallet(identifier, TRANSACTION_TEST_WALLET_PASSWORD, TRANSACTION_TEST_WALLET_PRIMARY_MNEMONIC, TRANSACTION_TEST_WALLET_BACKUP_MNEMONIC, cb);
+var createTransactionTestWallet = function(identifier, segwit, cb) {
+    return _createTestWallet(
+        identifier,
+        TRANSACTION_TEST_WALLET_PASSWORD,
+        TRANSACTION_TEST_WALLET_PRIMARY_MNEMONIC,
+        TRANSACTION_TEST_WALLET_BACKUP_MNEMONIC,
+        segwit,
+        cb
+    );
 };
 
 var createRecoveryTestWallet = function(identifier, passphrase, cb) {
     var primaryMnemonic = "give pause forget seed dance crawl situate hole join";
     var backupMnemonic = "give pause forget seed dance crawl situate hole crater";
 
-    return _createTestWallet(identifier, passphrase, primaryMnemonic, backupMnemonic, cb);
+    return _createTestWallet(identifier, passphrase, primaryMnemonic, backupMnemonic, false, cb);
 };
 
 describe('Initialize with check_backup_key', function() {
@@ -666,6 +674,8 @@ describe('test new wallet, without mnemonics', function() {
             }, function(err, _wallet) {
                 assert.ifError(err);
                 assert.ok(_wallet);
+                assert.ok(!_wallet.isSegwit());
+                assert.equal(blocktrail.Wallet.CHAIN_BTC_DEFAULT, _wallet.chain);
 
                 wallet = _wallet;
 
@@ -684,6 +694,8 @@ describe('test new wallet, without mnemonics', function() {
             }, function(err, _wallet) {
                 assert.ifError(err);
                 assert.ok(_wallet);
+                assert.ok(!_wallet.isSegwit());
+                assert.equal(blocktrail.Wallet.CHAIN_BTC_DEFAULT, _wallet.chain);
 
                 wallet = _wallet;
 
@@ -723,6 +735,8 @@ describe('test wallet, do transaction', function() {
         }, function(err, _wallet) {
             assert.ifError(err);
             assert.ok(_wallet);
+            assert.ok(!_wallet.isSegwit());
+            assert.equal(blocktrail.Wallet.CHAIN_BTC_DEFAULT, _wallet.chain);
             wallet = _wallet;
 
             assert.equal(wallet.primaryMnemonic, "give pause forget seed dance crawl situate hole keen");
@@ -908,7 +922,7 @@ describe('test wallet, do transaction', function() {
 
                         cb();
                     });
-                }, 200);
+                }, WAIT_FOR_TX_PROCESSED);
             }).progress(function(_progress) {
                 progress.push(_progress);
             });
@@ -921,20 +935,16 @@ describe('test wallet with segwit chain', function() {
 
     it("should exist and be setup", function(cb) {
         client.initWallet({
-            identifier: "unittest-transaction",
+            identifier: "unittest-transaction-sw",
             passphrase: TRANSACTION_TEST_WALLET_PASSWORD
         }, function(err, _wallet) {
             assert.ifError(err);
             assert.ok(_wallet);
             assert.equal(_wallet.primaryMnemonic, "give pause forget seed dance crawl situate hole keen");
-            assert.equal(_wallet.identifier, "unittest-transaction");
+            assert.equal(_wallet.identifier, "unittest-transaction-sw");
             assert.equal(_wallet.getBlocktrailPublicKey("M/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
-
-            if (_wallet.isSegwit()) {
-                assert.equal(blocktrail.Wallet.CHAIN_BTC_SEGWIT, _wallet.chain);
-            } else {
-                assert.equal(blocktrail.Wallet.CHAIN_BTC_DEFAULT, _wallet.chain);
-            }
+            assert.ok(_wallet.isSegwit());
+            assert.equal(blocktrail.Wallet.CHAIN_BTC_SEGWIT, _wallet.chain);
 
             wallet = _wallet;
             cb();
@@ -944,11 +954,7 @@ describe('test wallet with segwit chain', function() {
     it("getNewAddress produces P2SH addresses", function(cb) {
         wallet.getNewAddress(function(err, address, path) {
             assert.ifError(err);
-            if (wallet.isSegwit()) {
-                assert.ok(path.indexOf("M/9999'/2/") === 0);
-            } else {
-                assert.ok(path.indexOf("M/9999'/0/") === 0);
-            }
+            assert.ok(path.indexOf("M/9999'/2/") === 0);
 
             assert.ok(bitcoin.address.fromBase58Check(address));
 
@@ -1005,26 +1011,20 @@ describe('test wallet, do transaction, segwit spend', function() {
         });
     });
 
-    it("should make the receiving segwit wallet ", function(cb) {
-        createTransactionTestWallet(identifier, function(err, newWallet) {
+    it("should make the receiving segwit wallet", function(cb) {
+        createTransactionTestWallet(identifier, true, function(err, newWallet) {
             wallets.push(newWallet);
             assert.ifError(err);
             newWallet.getNewAddress(function(err, address, path) {
                 assert.ifError(err);
                 assert.ok(bitcoin.address.fromBase58Check(address));
-
-                if (newWallet.isSegwit()) {
-                    assert.ok(path.indexOf("M/9999'/2/") === 0);
-                } else {
-                    assert.ok(path.indexOf("M/9999'/0/") === 0);
-                }
+                assert.ok(newWallet.isSegwit());
+                assert.ok(path.indexOf("M/9999'/2/") === 0);
 
                 var checkScript = newWallet.getWalletScriptByPath(path);
                 assert.ok(checkScript.address = address);
                 assert.ok(checkScript.redeemScript instanceof Buffer);
-                if (newWallet.isSegwit()) {
-                    assert.ok(checkScript.witnessScript instanceof Buffer);
-                }
+                assert.ok(checkScript.witnessScript instanceof Buffer);
 
                 segwitWallet = newWallet;
                 receiveAddr = address;
@@ -1052,11 +1052,13 @@ describe('test wallet, do transaction, segwit spend', function() {
             assert.ifError(err);
             assert.ok(txid);
 
-            client.transaction(txid, function(err, tx) {
-                assert.ifError(err);
-                assert.ok(tx);
-                cb();
-            });
+            setTimeout(function() {
+                client.transaction(txid, function(err, tx) {
+                    assert.ifError(err);
+                    assert.ok(tx);
+                    cb();
+                });
+            }, WAIT_FOR_TX_PROCESSED);
         });
     });
 });
@@ -1123,7 +1125,7 @@ describe('test wallet, do transaction, without mnemonics', function() {
 
                         cb();
                     });
-                }, 200);
+                }, WAIT_FOR_TX_PROCESSED);
             });
         });
     });
@@ -1180,7 +1182,7 @@ describe('test wallet, do opreturn transaction', function() {
 
                         cb();
                     });
-                }, 200);
+                }, WAIT_FOR_TX_PROCESSED);
             });
         });
     });
@@ -1231,7 +1233,7 @@ describe('test wallet, do forcefee transaction', function() {
 
                         cb();
                     });
-                }, 200);
+                }, WAIT_FOR_TX_PROCESSED);
             });
         });
     });
