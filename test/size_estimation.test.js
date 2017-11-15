@@ -620,6 +620,7 @@ describe("SizeEstimation.estimateOutputs", function() {
 describe("SizeEstimation.estimateTxWeight", function() {
     var wif = "5KW8Ymmu8gWManGggZZQJeX7U3pn5HtcqqsVrNUbc1SUmVPZbwp";
     var key = bitcoin.ECPair.fromWIF(wif, bitcoin.networks.bitcoin);
+    key.compressed = true;
 
     var hash160 = bitcoin.crypto.hash160(key.getPublicKeyBuffer());
     var p2wpkh = bitcoin.script.witnessPubKeyHash.output.encode(hash160);
@@ -636,16 +637,59 @@ describe("SizeEstimation.estimateTxWeight", function() {
 
         var txb = new bitcoin.TransactionBuilder();
         utxos.map(function(utxo) {
-            txb.addInput(utxo.txid, utxo.vout);
+            txb.addInput(utxo.txid, utxo.vout, bitcoin.Transaction.DEFAULT_SEQUENCE, p2wpkh);
         });
 
         txb.addOutput(p2wpkh, 1234);
-        var tx = txb.buildIncomplete();
+        txb.sign(0, key, null, null, 0);
+        var tx = txb.build();
 
-        var size = SizeEstimation.estimateTxWeight(tx, utxos);
+        var weight = SizeEstimation.estimateTxWeight(tx, utxos);
         var vsize = SizeEstimation.estimateTxVsize(tx, utxos);
 
-        assert.equal(Math.ceil(size / 4), vsize);
+        assert.equal(vsize, 110);
+        assert.equal(weight, 438);
+        assert.equal(vsize, Math.ceil(weight / 4));
+        cb();
+    });
+
+    it("estimates p2wpkh weight 2", function(cb) {
+        var utxos = [
+            {
+                txid: "abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234",
+                vout: 0,
+                scriptpubkey_hex: p2wpkh
+            },
+            {
+                txid: "abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd123e",
+                vout: 0,
+                scriptpubkey_hex: p2wpkh
+            },
+            {
+                txid: "abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd123f",
+                vout: 0,
+                scriptpubkey_hex: p2wpkh
+            }
+        ];
+
+        var txb = new bitcoin.TransactionBuilder();
+        utxos.map(function(utxo) {
+            txb.addInput(utxo.txid, utxo.vout, bitcoin.Transaction.DEFAULT_SEQUENCE, p2wpkh);
+        });
+
+        txb.addOutput(p2wpkh, 1234);
+        txb.sign(0, key, null, null, 0);
+        txb.sign(1, key, null, null, 0);
+        txb.sign(2, key, null, null, 0);
+        var tx = txb.build();
+
+        var weight = SizeEstimation.estimateTxWeight(tx, utxos);
+        var vsize = SizeEstimation.estimateTxVsize(tx, utxos);
+
+        // NOTE; the REAL weight is 980, we overestimate by 1 byte because the signature is 1 byte shorter for the first 2 inputs
+        assert.equal(vsize, 246);
+        assert.equal(weight, 982);
+        assert.equal(vsize, Math.ceil(weight / 4));
         cb();
     });
 
@@ -653,6 +697,16 @@ describe("SizeEstimation.estimateTxWeight", function() {
         var utxos = [
             {
                 txid: "abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234",
+                vout: 0,
+                scriptpubkey_hex: p2pkh
+            },
+            {
+                txid: "abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd123e",
+                vout: 0,
+                scriptpubkey_hex: p2pkh
+            },
+            {
+                txid: "abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd123f",
                 vout: 0,
                 scriptpubkey_hex: p2pkh
             }
@@ -664,16 +718,23 @@ describe("SizeEstimation.estimateTxWeight", function() {
         });
 
         txb.addOutput(p2wpkh, 1234);
-        var tx = txb.buildIncomplete();
+        txb.addOutput(p2wpkh, 1234);
+        txb.addOutput(p2wpkh, 1234);
+        txb.sign(0, key);
+        txb.sign(1, key);
+        txb.sign(2, key);
+        var tx = txb.build();
 
         var os = SizeEstimation.calculateOutputsSize(tx.outs);
-        var bs = 4 + 4 + SizeEstimation.estimateInputsSize(utxos, false) + 4 + os + 4;
+        var bs = 4 + 1 + SizeEstimation.estimateInputsSize(utxos, false) + 1 + os + 4;
 
-        var size = SizeEstimation.estimateTxWeight(tx, utxos);
-        assert.equal(size, bs * 4);
+        var weight = SizeEstimation.estimateTxWeight(tx, utxos);
+        // NOTE; the REAL weight is 2180, we overestimate by 1 byte because the signature is 1 byte shorter for the first 2 inputs
+        assert.equal(weight, 2188);
+        assert.equal(weight, bs * 4);
 
         var vsize = SizeEstimation.estimateTxVsize(tx, utxos);
-        assert.equal(Math.ceil(size / 4), vsize);
+        assert.equal(Math.ceil(weight / 4), vsize);
         cb();
     });
 });
