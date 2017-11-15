@@ -609,7 +609,7 @@ describe("SizeEstimation.estimateOutputs", function() {
             }
             var outputsSize = SizeEstimation.calculateOutputsSize([{
                 value: 1234,
-                script: script
+                script: Buffer.from(script, 'hex')
             }]);
             assert.equal(outputsSize, 8 + 1 + size);
             cb();
