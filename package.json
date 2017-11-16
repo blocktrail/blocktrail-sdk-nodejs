@@ -29,7 +29,8 @@
   "main": "./main.js",
   "browser": {
     "./lib/backup_generator.js": "./lib/backup_generator-browser.js",
-    "./lib/pbkdf2_sha512.js": "./lib/pbkdf2_sha512-asm.js"
+    "./lib/pbkdf2_sha512.js": "./lib/pbkdf2_sha512-asm.js",
+    "./lib/pkginfo.js": "./lib/pkginfo-browser.js"
   },
   "dependencies": {
     "assert-plus": "0.1.5",
@@ -45,6 +46,7 @@
     "crypto-js": "^3.1.5",
     "debug": "0.8.1",
     "lodash": "~4.17.2",
+    "pkginfo": "^0.4.1",
     "promise": "^6.1.0",
     "q": "1.0.1",
     "randombytes": "^2.0.1",
@@ -71,6 +73,7 @@
     "blocktrail-sdk-backup-generator": "0.1.0",
     "brfs": "*",
     "browserify": "*",
+    "browserify-versionify": "^1.0.6",
     "coveralls": "^2.13.1",
     "grunt": "~0.4.2",
     "grunt-browserify": "git://github.com/jmreidy/grunt-browserify.git#4f96beb75d27fdebc4359e08e7db4c514f6265a8",
