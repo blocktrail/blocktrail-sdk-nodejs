@@ -62,7 +62,6 @@ var _createTestWallet = function(identifier, passphrase, primaryMnemonic, backup
             backupPublicKey,
             blocktrailPublicKeys,
             keyIndex,
-            result.chain || 0,
             result.segwit || 0,
             client.testnet,
             checksum
@@ -944,15 +943,27 @@ describe('test wallet with segwit chain', function() {
             assert.equal(_wallet.identifier, "unittest-transaction-sw");
             assert.equal(_wallet.getBlocktrailPublicKey("M/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
             assert.ok(_wallet.isSegwit());
-            assert.equal(blocktrail.Wallet.CHAIN_BTC_SEGWIT, _wallet.chain);
+            assert.equal(blocktrail.Wallet.CHAIN_BTC_DEFAULT, _wallet.chain);
+            assert.equal(blocktrail.Wallet.CHAIN_BTC_SEGWIT, _wallet.changeChain);
 
             wallet = _wallet;
             cb();
         });
     });
 
-    it("getNewAddress produces P2SH addresses", function(cb) {
+    it("getNewAddress produces plain P2SH addresses", function(cb) {
         wallet.getNewAddress(function(err, address, path) {
+            assert.ifError(err);
+            assert.ok(path.indexOf("M/9999'/0/") === 0);
+
+            assert.ok(bitcoin.address.fromBase58Check(address));
+
+            cb();
+        });
+    });
+
+    it("getNewAddress produces segwit P2SH addresses for change chain", function(cb) {
+        wallet.getNewAddress(wallet.changeChain, function(err, address, path) {
             assert.ifError(err);
             assert.ok(path.indexOf("M/9999'/2/") === 0);
 
@@ -1015,7 +1026,7 @@ describe('test wallet, do transaction, segwit spend', function() {
         createTransactionTestWallet(identifier, true, function(err, newWallet) {
             wallets.push(newWallet);
             assert.ifError(err);
-            newWallet.getNewAddress(function(err, address, path) {
+            newWallet.getNewAddress(newWallet.changeChain, function(err, address, path) {
                 assert.ifError(err);
                 assert.ok(bitcoin.address.fromBase58Check(address));
                 assert.ok(newWallet.isSegwit());
