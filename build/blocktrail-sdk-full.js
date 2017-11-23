@@ -6991,7 +6991,7 @@ module.exports = {
 }).call(this,require("buffer").Buffer)
 },{"../vendor/asmcrypto.js/asmcrypto.js":389,"buffer":125}],7:[function(require,module,exports){
 module.exports = exports = {
-    VERSION: '3.5.4'
+    VERSION: '3.5.5'
 };
 
 },{}],8:[function(require,module,exports){
@@ -8138,7 +8138,7 @@ var Wallet = function(
     self.bypassNewAddressCheck = !!bypassNewAddressCheck;
     self.bitcoinCash = self.sdk.bitcoinCash;
     self.segwit = !!segwit;
-    assert(self.segwit === 0 || !self.bitcoinCash);
+    assert(!self.segwit || !self.bitcoinCash);
 
     self.testnet = testnet;
     if (self.bitcoinCash) {
