@@ -4628,15 +4628,23 @@ var APIClient = function(options) {
     if (!(this instanceof APIClient)) {
         return new APIClient(options);
     }
+    self.bitcoinCash = options.network && options.network === "BCC";
 
     self.testnet = options.testnet = options.testnet || false;
-    if (self.testnet) {
-        self.network = bitcoin.networks.testnet;
+    if (self.bitcoinCash) {
+        if (self.testnet) {
+            self.network = bitcoin.networks.bitcoincashtestnet;
+        } else {
+            self.network = bitcoin.networks.bitcoincash;
+        }
     } else {
-        self.network = bitcoin.networks.bitcoin;
+        if (self.testnet) {
+            self.network = bitcoin.networks.testnet;
+        } else {
+            self.network = bitcoin.networks.bitcoin;
+        }
     }
 
-    self.bitcoinCash = options.network && options.network === "BCC";
     self.feeSanityCheck = typeof options.feeSanityCheck !== "undefined" ? options.feeSanityCheck : true;
     self.feeSanityCheckBaseFeeMultiplier = options.feeSanityCheckBaseFeeMultiplier || 200;
 
@@ -4873,11 +4881,9 @@ APIClient.prototype.mnemonicToPrivateKey = function(mnemonic, passphrase, cb) {
     var deferred = q.defer();
     deferred.promise.spreadNodeify(cb);
 
-    var network = self.testnet ? bitcoin.networks.testnet : bitcoin.networks.bitcoin;
-
     deferred.resolve(q.fcall(function() {
         return self.mnemonicToSeedHex(mnemonic, passphrase).then(function(seedHex) {
-            return bitcoin.HDNode.fromSeedHex(seedHex, network);
+            return bitcoin.HDNode.fromSeedHex(seedHex, self.network);
         });
     }));
 
@@ -4909,8 +4915,6 @@ APIClient.prototype.resolvePrimaryPrivateKeyFromOptions = function(options, cb) 
     var deferred = q.defer();
     deferred.promise.nodeify(cb);
 
-    var network = self.testnet ? bitcoin.networks.testnet : bitcoin.networks.bitcoin;
-
     try {
         // avoid conflicting options
         if (options.passphrase && options.password) {
@@ -4937,7 +4941,7 @@ APIClient.prototype.resolvePrimaryPrivateKeyFromOptions = function(options, cb) 
 
         if (options.primarySeed) {
             self.primarySeed = options.primarySeed;
-            options.primaryPrivateKey = bitcoin.HDNode.fromSeedBuffer(self.primarySeed, network);
+            options.primaryPrivateKey = bitcoin.HDNode.fromSeedBuffer(self.primarySeed, self.network);
             deferred.resolve(options);
         } else {
             if (!options.passphrase) {
@@ -4948,7 +4952,7 @@ APIClient.prototype.resolvePrimaryPrivateKeyFromOptions = function(options, cb) 
                 .then(function(seedHex) {
                     try {
                         options.primarySeed = new Buffer(seedHex, 'hex');
-                        options.primaryPrivateKey = bitcoin.HDNode.fromSeedBuffer(options.primarySeed, network);
+                        options.primaryPrivateKey = bitcoin.HDNode.fromSeedBuffer(options.primarySeed, self.network);
                         deferred.resolve(options);
                     } catch (e) {
                         deferred.reject(e);
@@ -4970,8 +4974,6 @@ APIClient.prototype.resolveBackupPublicKeyFromOptions = function(options, cb) {
     var deferred = q.defer();
     deferred.promise.nodeify(cb);
 
-    var network = self.testnet ? bitcoin.networks.testnet : bitcoin.networks.bitcoin;
-
     try {
         // avoid conflicting options
         if (options.backupMnemonic && options.backupPublicKey) {
@@ -4987,7 +4989,7 @@ APIClient.prototype.resolveBackupPublicKeyFromOptions = function(options, cb) {
             if (options.backupPublicKey instanceof bitcoin.HDNode) {
                 deferred.resolve(options);
             } else {
-                options.backupPublicKey = bitcoin.HDNode.fromBase58(options.backupPublicKey, network);
+                options.backupPublicKey = bitcoin.HDNode.fromBase58(options.backupPublicKey, self.network);
                 deferred.resolve(options);
             }
         } else {
@@ -5476,8 +5478,6 @@ APIClient.prototype.initWallet = function(options, cb) {
     var deferred = q.defer();
     deferred.promise.spreadNodeify(cb);
 
-    var network = self.testnet ? bitcoin.networks.testnet : bitcoin.networks.bitcoin;
-
     var identifier = options.identifier;
 
     if (!identifier) {
@@ -5495,7 +5495,7 @@ APIClient.prototype.initWallet = function(options, cb) {
                 throw new Error("Backup key returned from server didn't match our own copy");
             }
         }
-        var backupPublicKey = bitcoin.HDNode.fromBase58(result.backup_public_key[0], network);
+        var backupPublicKey = bitcoin.HDNode.fromBase58(result.backup_public_key[0], self.network);
         var blocktrailPublicKeys = _.mapValues(result.blocktrail_public_keys, function(blocktrailPublicKey) {
             return bitcoin.HDNode.fromBase58(blocktrailPublicKey[0], self.network);
         });
@@ -5749,8 +5749,6 @@ APIClient.prototype._createNewWalletV2 = function(options) {
     // avoid modifying passed options
     options = _.merge({}, options);
 
-    var network = self.testnet ? bitcoin.networks.testnet : bitcoin.networks.bitcoin;
-
     determineDataStorageV2_3(options)
         .then(function(options) {
             options.passphrase = options.passphrase || options.password;
@@ -5770,7 +5768,7 @@ APIClient.prototype._createNewWalletV2 = function(options) {
             return produceEncryptedDataV2(options, deferred.notify.bind(deferred));
         })
         .then(function(options) {
-            return doRemainingWalletDataV2_3(options, network, deferred.notify.bind(deferred));
+            return doRemainingWalletDataV2_3(options, self.network, deferred.notify.bind(deferred));
         })
         .then(function(options) {
             // create a checksum of our private key which we'll later use to verify we used the right password
@@ -5858,8 +5856,6 @@ APIClient.prototype._createNewWalletV3 = function(options) {
     // avoid modifying passed options
     options = _.merge({}, options);
 
-    var network = self.testnet ? bitcoin.networks.testnet : bitcoin.networks.bitcoin;
-
     determineDataStorageV2_3(options)
         .then(function(options) {
             options.passphrase = options.passphrase || options.password;
@@ -5879,7 +5875,7 @@ APIClient.prototype._createNewWalletV3 = function(options) {
             return self.produceEncryptedDataV3(options, deferred.notify.bind(deferred));
         })
         .then(function(options) {
-            return doRemainingWalletDataV2_3(options, network, deferred.notify.bind(deferred));
+            return doRemainingWalletDataV2_3(options, self.network, deferred.notify.bind(deferred));
         })
         .then(function(options) {
             // create a checksum of our private key which we'll later use to verify we used the right password
@@ -6991,7 +6987,7 @@ module.exports = {
 }).call(this,require("buffer").Buffer)
 },{"../vendor/asmcrypto.js/asmcrypto.js":389,"buffer":125}],7:[function(require,module,exports){
 module.exports = exports = {
-    VERSION: '3.5.5'
+    VERSION: '3.5.6'
 };
 
 },{}],8:[function(require,module,exports){
