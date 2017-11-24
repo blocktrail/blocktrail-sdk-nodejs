@@ -6991,7 +6991,7 @@ module.exports = {
 }).call(this,require("buffer").Buffer)
 },{"../vendor/asmcrypto.js/asmcrypto.js":389,"buffer":125}],7:[function(require,module,exports){
 module.exports = exports = {
-    VERSION: '3.5.5'
+    VERSION: '3.5.6'
 };
 
 },{}],8:[function(require,module,exports){
@@ -7605,6 +7605,11 @@ InsightBitcoinService.prototype.estimateFee = function() {
                 return 100000;
             }
 
+            // sanity check if reported fee is under 1 satoshi/byte
+            if (results[nBlocks] < 1000 / 1e8) {
+                return 1000;
+            }
+
             return parseInt(results[nBlocks] * 1e8, 10);
         })
     ;
@@ -7870,8 +7875,25 @@ SizeEstimation.estimateInputFromScripts = function(script, redeemScript, witness
 
 SizeEstimation.estimateUtxo = function(utxo, compressed) {
     var spk = Buffer.from(utxo.scriptpubkey_hex, 'hex');
-    var rs = typeof utxo.redeem_script === 'string' ? Buffer.from(utxo.redeem_script, 'hex') : null;
-    var ws = typeof utxo.witness_script === 'string' ? Buffer.from(utxo.witness_script, 'hex') : null;
+    var rs = null;
+    var ws = null;
+
+    if (utxo.redeem_script) {
+        if (typeof utxo.redeem_script === 'string') {
+          rs = Buffer.from(utxo.redeem_script, 'hex')
+        } else if (utxo.redeem_script instanceof Buffer) {
+          rs = utxo.redeem_script;
+        }
+    }
+
+    if (utxo.witness_script) {
+        if (typeof utxo.witness_script === 'string') {
+          ws = Buffer.from(utxo.witness_script, 'hex')
+        } else if (utxo.witness_script instanceof Buffer) {
+          ws = utxo.witness_script;
+        }
+    }
+
     var witness = false;
 
     var signScript = spk;
@@ -9887,6 +9909,7 @@ var WalletSweeper = function(backupData, bitcoinDataClient, options) {
         testnet: false,
         logging: false,
         bitcoinCash: false,
+        bitcoinGold: false,
         sweepBatchSize: 200
     };
     this.settings = _.merge({}, this.defaultSettings, options);
@@ -10452,6 +10475,8 @@ WalletSweeper.prototype.createTransaction = function(destinationAddress, fee, fe
     var rawTransaction = new bitcoin.TransactionBuilder(this.network);
     if (this.settings.bitcoinCash) {
         rawTransaction.enableBitcoinCash();
+    } else if (this.settings.bitcoinGold) {
+        rawTransaction.enableBitcoinGold();
     }
     var inputs = [];
     _.each(this.sweepData['utxos'], function(data, address) {
@@ -10483,19 +10508,20 @@ WalletSweeper.prototype.createTransaction = function(destinationAddress, fee, fe
                 message: "estimating transaction fee, based on " + blocktrail.toBTC(feePerKb) + " BTC/kb"
             });
         }
+
         var calcUtxos = inputs.map(function(input) {
             return {
                 txid: input.txid,
                 vout: input.vout,
-                address: input.vout,
-                scriptpubkey_hex: input.vout,
+                address: input.address,
+                scriptpubkey_hex: input.scriptPubKey,
                 redeem_script: input.redeemScript,
                 witness_script: input.witnessScript,
                 path: input.path,
                 value: input.value
             };
         });
-        fee = walletSDK.estimateVsizeFee(rawTransaction.tx, calcUtxos, feePerKb);
+        fee = walletSDK.estimateVsizeFee(rawTransaction.buildIncomplete(), calcUtxos, feePerKb);
     }
     rawTransaction.tx.outs[outputIdx].value -= fee;
 
@@ -10515,7 +10541,7 @@ WalletSweeper.prototype.signTransaction = function(rawTransaction, inputs) {
     }
 
     var sigHash = bitcoin.Transaction.SIGHASH_ALL;
-    if (this.settings.bitcoinCash) {
+    if (this.settings.bitcoinCash || this.settings.bitcoinGold) {
         sigHash |= bitcoin.Transaction.SIGHASH_BITCOINCASHBIP143;
     }
 
@@ -16954,10 +16980,13 @@ module.exports={
   "OP_CHECKMULTISIGVERIFY": 175,
 
   "OP_NOP1": 176,
+  
   "OP_NOP2": 177,
   "OP_CHECKLOCKTIMEVERIFY": 177,
 
   "OP_NOP3": 178,
+  "OP_CHECKSEQUENCEVERIFY": 178,
+  
   "OP_NOP4": 179,
   "OP_NOP5": 180,
   "OP_NOP6": 181,
@@ -18095,6 +18124,16 @@ module.exports = {
     scriptHash: 0xc4,
     wif: 0xef
   },
+  bitcoingold: {
+    messagePrefix: '\x18Bitcoin Gold Signed Message:\n',
+    bip32: {
+      public: 0x0488b21e,
+      private: 0x0488ade4
+    },
+    pubKeyHash: 0x26,
+    scriptHash: 0x17,
+    wif: 0x80
+  },
   bitcoin: {
     messagePrefix: '\x18Bitcoin Signed Message:\n',
     bech32: 'bc',
@@ -19180,6 +19219,8 @@ Transaction.SIGHASH_ANYONECANPAY = 0x80
 Transaction.SIGHASH_BITCOINCASHBIP143 = 0x40
 Transaction.ADVANCED_TRANSACTION_MARKER = 0x00
 Transaction.ADVANCED_TRANSACTION_FLAG = 0x01
+Transaction.FORKID_BTG = 0x4F // 79
+Transaction.FORKID_BCH = 0x00
 
 var EMPTY_SCRIPT = Buffer.allocUnsafe(0)
 var EMPTY_WITNESS = []
@@ -19572,6 +19613,33 @@ Transaction.prototype.hashForCashSignature = function (inIndex, prevOutScript, i
   }
 }
 
+/**
+ * Hash transaction for signing a specific input for Bitcoin Gold.
+ */
+Transaction.prototype.hashForGoldSignature = function (inIndex, prevOutScript, inAmount, hashType, sigVersion) {
+  typeforce(types.tuple(types.UInt32, types.Buffer, /* types.UInt8 */ types.Number, types.maybe(types.UInt53)), arguments)
+
+  // Bitcoin Gold also implements segregated witness
+  // therefore we can pull out the setting of nForkHashType
+  // and pass it into the functions.
+
+  var nForkHashType = hashType
+  var fUseForkId = (hashType & Transaction.SIGHASH_BITCOINCASHBIP143) > 0;
+  if (fUseForkId) {
+    nForkHashType |= Transaction.FORKID_BTG << 8
+  }
+
+  // BIP143 sighash activated in BitcoinCash via 0x40 bit
+  if (sigVersion || fUseForkId) {
+    if (types.Null(inAmount)) {
+      throw new Error('Bitcoin Cash sighash requires value of input to be signed.')
+    }
+    return this.hashForWitnessV0(inIndex, prevOutScript, inAmount, nForkHashType)
+  } else {
+    return this.hashForSignature(inIndex, prevOutScript, nForkHashType)
+  }
+}
+
 Transaction.prototype.getHash = function () {
   return bcrypto.hash256(this.__toBuffer(undefined, undefined, false))
 }
@@ -19838,7 +19906,7 @@ function expandInput (scriptSig, witnessStack) {
 }
 
 // could be done in expandInput, but requires the original Transaction for hashForSignature
-function fixMultisigOrder (input, transaction, vin, bitcoinCash) {
+function fixMultisigOrder (input, transaction, vin, value, forkId) {
   if (input.signType !== scriptTypes.MULTISIG || !input.signScript) return
   if (input.pubKeys.length === input.signatures.length) return
 
@@ -19856,15 +19924,20 @@ function fixMultisigOrder (input, transaction, vin, bitcoinCash) {
       // TODO: avoid O(n) hashForSignature
       var parsed = ECSignature.parseScriptSignature(signature)
       var hash
-
-      if (bitcoinCash) {
-        hash = transaction.hashForCashSignature(vin, input.signScript, input.value, parsed.hashType)
-      } else {
-        if (input.witness) {
-          hash = transaction.hashForWitnessV0(vin, input.signScript, input.value, parsed.hashType)
-        } else {
-          hash = transaction.hashForSignature(vin, input.signScript, parsed.hashType)
-        }
+      switch (forkId) {
+          case Transaction.FORKID_BCH:
+          hash = transaction.hashForCashSignature(vin, input.signScript, value, parsed.hashType)
+          break
+        case Transaction.FORKID_BTG:
+          hash = transaction.hashForGoldSignature(vin, input.signScript, value, parsed.hashType)
+          break
+        default:
+          if (input.witness) {
+            hash = transaction.hashForWitnessV0(vin, input.signScript, value, parsed.hashType)
+          } else {
+            hash = transaction.hashForSignature(vin, input.signScript, parsed.hashType)
+          }
+          break
       }
 
       // skip if signature does not match pubKey
@@ -20151,15 +20224,24 @@ function TransactionBuilder (network, maximumFeeRate) {
 
   this.inputs = []
   this.bitcoinCash = false
+  this.bitcoinGold = false
   this.tx = new Transaction()
 }
 
-TransactionBuilder.prototype.enableBitcoinCash = function (setting) {
-  if (typeof setting === 'undefined') {
-    setting = true
+TransactionBuilder.prototype.enableBitcoinCash = function (enable) {
+  if (typeof enable === 'undefined') {
+    enable = true
   }
 
-  this.bitcoinCash = setting
+  this.bitcoinCash = enable
+}
+
+TransactionBuilder.prototype.enableBitcoinGold = function (enable) {
+    if (typeof enable === 'undefined') {
+        enable = true
+    }
+
+    this.bitcoinGold = enable
 }
 
 TransactionBuilder.prototype.setLockTime = function (locktime) {
@@ -20184,9 +20266,16 @@ TransactionBuilder.prototype.setVersion = function (version) {
   this.tx.version = version
 }
 
-TransactionBuilder.fromTransaction = function (transaction, network, bitcoinCashTx) {
+TransactionBuilder.fromTransaction = function (transaction, network, forkId) {
   var txb = new TransactionBuilder(network)
-  txb.enableBitcoinCash(Boolean(bitcoinCashTx))
+
+  if (typeof forkId === "number") {
+    if (forkId === Transaction.FORKID_BTG) {
+      txb.enableBitcoinGold(true)
+    } else if (forkId === Transaction.FORKID_BCH) {
+      txb.enableBitcoinCash(true)
+    }
+  }
 
   // Copy transaction fields
   txb.setVersion(transaction.version)
@@ -20202,14 +20291,14 @@ TransactionBuilder.fromTransaction = function (transaction, network, bitcoinCash
     txb.__addInputUnsafe(txIn.hash, txIn.index, {
       sequence: txIn.sequence,
       script: txIn.script,
-      value: txIn.value,
-      witness: txIn.witness
+      witness: txIn.witness,
+      value: txIn.value
     })
   })
 
   // fix some things not possible through the public API
   txb.inputs.forEach(function (input, i) {
-    fixMultisigOrder(input, transaction, i, bitcoinCashTx)
+    fixMultisigOrder(input, transaction, i, input.value, forkId)
   })
 
   return txb
@@ -20285,6 +20374,7 @@ TransactionBuilder.prototype.__addInputUnsafe = function (txHash, vout, options)
   var vin = this.tx.addInput(txHash, vout, options.sequence, options.scriptSig)
   this.inputs[vin] = input
   this.prevTxMap[prevTxOut] = vin
+
   return vin
 }
 
@@ -20374,7 +20464,9 @@ TransactionBuilder.prototype.sign = function (vin, keyPair, redeemScript, hashTy
 
   // ready to sign
   var signatureHash
-  if (this.bitcoinCash) {
+  if (this.bitcoinGold) {
+    signatureHash = this.tx.hashForGoldSignature(vin, input.signScript, witnessValue, hashType, input.witness)
+  } else if (this.bitcoinCash) {
     signatureHash = this.tx.hashForCashSignature(vin, input.signScript, witnessValue, hashType)
   } else {
     if (input.witness) {
