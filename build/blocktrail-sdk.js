@@ -2396,7 +2396,7 @@ module.exports = {
 }).call(this,require("buffer").Buffer)
 },{"../vendor/asmcrypto.js/asmcrypto.js":365,"buffer":105}],7:[function(require,module,exports){
 module.exports = exports = {
-    VERSION: '3.5.6'
+    VERSION: '3.5.8'
 };
 
 },{}],8:[function(require,module,exports){
@@ -12268,10 +12268,13 @@ module.exports={
   "OP_CHECKMULTISIGVERIFY": 175,
 
   "OP_NOP1": 176,
+  
   "OP_NOP2": 177,
   "OP_CHECKLOCKTIMEVERIFY": 177,
 
   "OP_NOP3": 178,
+  "OP_CHECKSEQUENCEVERIFY": 178,
+  
   "OP_NOP4": 179,
   "OP_NOP5": 180,
   "OP_NOP6": 181,
@@ -38776,8 +38779,8 @@ function getCurveByName (name) {
 module.exports = getCurveByName
 
 },{"./curve":223,"./curves.json":224,"bigi":26}],227:[function(require,module,exports){
-(function (Buffer){
 var assert = require('assert')
+var Buffer = require('safe-buffer').Buffer
 var BigInteger = require('bigi')
 
 var THREE = BigInteger.valueOf(3)
@@ -38963,7 +38966,7 @@ Point.prototype.multiplyTwo = function (j, x, k) {
 
 Point.prototype.getEncoded = function (compressed) {
   if (compressed == null) compressed = this.compressed
-  if (this.curve.isInfinity(this)) return new Buffer('00', 'hex') // Infinity point encoded is simply '00'
+  if (this.curve.isInfinity(this)) return Buffer.alloc(1, 0) // Infinity point encoded is simply '00'
 
   var x = this.affineX
   var y = this.affineY
@@ -38972,12 +38975,12 @@ Point.prototype.getEncoded = function (compressed) {
 
   // 0x02/0x03 | X
   if (compressed) {
-    buffer = new Buffer(1 + byteLength)
+    buffer = Buffer.allocUnsafe(1 + byteLength)
     buffer.writeUInt8(y.isEven() ? 0x02 : 0x03, 0)
 
   // 0x04 | X | Y
   } else {
-    buffer = new Buffer(1 + byteLength + byteLength)
+    buffer = Buffer.allocUnsafe(1 + byteLength + byteLength)
     buffer.writeUInt8(0x04, 0)
 
     y.toBuffer(byteLength).copy(buffer, 1 + byteLength)
@@ -39021,8 +39024,7 @@ Point.prototype.toString = function () {
 
 module.exports = Point
 
-}).call(this,require("buffer").Buffer)
-},{"assert":20,"bigi":26,"buffer":105}],228:[function(require,module,exports){
+},{"assert":20,"bigi":26,"safe-buffer":311}],228:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
