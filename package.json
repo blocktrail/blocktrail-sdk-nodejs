@@ -29,7 +29,7 @@
   "main": "./main.js",
   "browser": {
     "./lib/backup_generator.js": "./lib/backup_generator-browser.js",
-    "./lib/pbkdf2_sha512.js": "./lib/pbkdf2_sha512-asm.js",
+    "./lib/pbkdf2_sha512.js": "./lib/pbkdf2_sha512-browser.js",
     "./lib/pkginfo.js": "./lib/pkginfo-browser.js"
   },
   "dependencies": {
