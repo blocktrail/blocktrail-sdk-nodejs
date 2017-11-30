@@ -38,6 +38,16 @@
         };
     </script>
 
+    <script type="text/javascript">
+        function onLoadWorkerLoadAsmCrypto(worker) {
+            worker.postMessage({
+                method: 'importScripts',
+                script: document.location.protocol + '//' + document.location.host + '/build/asmcrypto.min.js'
+            });
+        }
+    </script>
+
+    <script type="text/javascript" src="../build/asmcrypto.min.js"></script>
     <script type="text/javascript" src="../build/test.min.js"></script>
 
 </head>

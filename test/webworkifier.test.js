@@ -1,4 +1,4 @@
-/* global navigator */
+/* global navigator, onLoadWorkerLoadAsmCrypto */
 var blocktrailSDK = require('../');
 var webworkifier = require('../lib/webworkifier');
 var assert = require('assert');
@@ -32,6 +32,8 @@ describe('webworkifier', function() {
         it('can encrypt on webworker', function() {
             var self = {};
 
+            assert(typeof onLoadWorkerLoadAsmCrypto === "function");
+
             var pt = new Buffer("plaintextdata");
             var pw = new Buffer("passphrase");
             var saltBuf = randomBytes(blocktrailSDK.Encryption.defaultSaltLen);
@@ -40,7 +42,7 @@ describe('webworkifier', function() {
 
             return webworkifier.workify(self, function() {
                 return require('../lib/webworker');
-            }, {
+            }, onLoadWorkerLoadAsmCrypto, {
                 method: 'Encryption.encryptWithSaltAndIV',
                 pt: pt,
                 pw: pw,
