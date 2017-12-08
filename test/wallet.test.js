@@ -332,6 +332,21 @@ describe('Initialize with check_backup_key', function() {
                 });
             });
         });
+
+        [
+            ['', 'string'],
+            [false, 'string'],
+            [true, 'boolean']
+        ].map(function(fixture) {
+            var invalidInput = fixture[0];
+            var type = fixture[1];
+            it('refuses to derive with invalid chain index variable ' + type, function(cb) {
+                wallet.getNewAddress(invalidInput, function(err, res) {
+                    assert.ok(!!err && err.message.match(/chain index/));
+                    cb();
+                });
+            });
+        });
     });
 });
 
