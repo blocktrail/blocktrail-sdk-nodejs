@@ -36,7 +36,7 @@
     "assert-plus": "0.1.5",
     "async": "0.9.0",
     "bip39": "git://github.com/blocktrail/bip39.git#sjcl-browser-bip39",
-    "bitcoinjs-lib": "git://github.com/blocktrail/bitcoinjs-lib.git#f6a644a24afe83160969a9fb5da0cc6ffb74fd51",
+    "bitcoinjs-lib": "git://github.com/blocktrail/bitcoinjs-lib.git#afd447f4d472eb037b02517f552f904c5b9a1138",
     "bitcoinjs-message": "^1.0.1",
     "bops": "0.0.6",
     "bowser": "^0.7.2",

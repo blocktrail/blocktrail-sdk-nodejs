@@ -12,13 +12,25 @@ var bip39 = require("bip39");
 var WAIT_FOR_TX_PROCESSED = process.env.BLOCKTRAIL_WAIT_FOR_TX || 300;
 
 /**
+ *
+ * @param network
+ * @param testnet
+ * @returns {*}
+ * @private
+ */
+function _createApiClient(network, testnet) {
+    return blocktrail.BlocktrailSDK({
+        apiKey : process.env.BLOCKTRAIL_SDK_APIKEY || window.BLOCKTRAIL_SDK_APIKEY || "EXAMPLE_BLOCKTRAIL_SDK_NODEJS_APIKEY",
+        apiSecret : process.env.BLOCKTRAIL_SDK_APISECRET || window.BLOCKTRAIL_SDK_APISECRET || "EXAMPLE_BLOCKTRAIL_SDK_NODEJS_APISECRET",
+        network: network,
+        testnet : testnet
+    });
+}
+
+/**
  * @type APIClient
  */
-var client = blocktrail.BlocktrailSDK({
-    apiKey : process.env.BLOCKTRAIL_SDK_APIKEY || window.BLOCKTRAIL_SDK_APIKEY || "EXAMPLE_BLOCKTRAIL_SDK_NODEJS_APIKEY",
-    apiSecret : process.env.BLOCKTRAIL_SDK_APISECRET || window.BLOCKTRAIL_SDK_APISECRET || "EXAMPLE_BLOCKTRAIL_SDK_NODEJS_APISECRET",
-    testnet : true
-});
+var client = _createApiClient("BTC", true);
 
 var TRANSACTION_TEST_WALLET_PRIMARY_MNEMONIC = "give pause forget seed dance crawl situate hole keen",
     TRANSACTION_TEST_WALLET_BACKUP_MNEMONIC = "give pause forget seed dance crawl situate hole give",
@@ -735,6 +747,55 @@ describe('test new wallet, without mnemonics', function() {
             assert.ok(!!err);
 
             cb();
+        });
+    });
+});
+
+describe('test wallet, bitcoin cash mirror', function() {
+    var tbccClient = _createApiClient("BCC", true);
+
+    [
+        {useCashAddress: true,  addressType: "base32", description: "can opt into cash address"},
+        {useCashAddress: false, addressType: "base58", description: "false uses base58 address"}
+    ].map(function (fixture) {
+        var useCashAddress = fixture.useCashAddress;
+        var expectType = fixture.addressType;
+        var description = fixture.description;
+
+        var wallet;
+
+        it(description, function (cb) {
+            tbccClient.initWallet({
+                identifier: "unittest-transaction",
+                passphrase: TRANSACTION_TEST_WALLET_PASSWORD,
+                useCashAddress: useCashAddress
+            }, function (err, _wallet) {
+                assert.ifError(err);
+                assert.ok(_wallet);
+                assert.ok(!_wallet.isSegwit());
+                assert.equal(_wallet.chain, blocktrail.Wallet.CHAIN_BCC_DEFAULT);
+                wallet = _wallet;
+
+                assert.equal(useCashAddress, _wallet.useNewCashAddr);
+                assert.equal(wallet.primaryMnemonic, "give pause forget seed dance crawl situate hole keen");
+                assert.equal(wallet.identifier, "unittest-transaction");
+                assert.equal(wallet.getBlocktrailPublicKey("M/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
+                cb();
+            });
+        });
+
+        it("derives the right address (" + description + ")", function (cb) {
+            wallet.getNewAddress(function (err, serverAddress, path) {
+                assert.ifError(err);
+                assert.ok(serverAddress);
+                assert.ok(path);
+
+                var decoded = wallet.decodeAddress(serverAddress);
+                assert.ok(decoded);
+                assert.equal(serverAddress, decoded.address);
+                assert.equal(expectType, decoded.type);
+                cb();
+            });
         });
     });
 });
@@ -1717,11 +1778,11 @@ describe("Wallet.getAddressAndType", function() {
 });
 
 describe("Wallet.convertPayToOutputs", function() {
-    var network = bitcoin.networks.testnet;
     var fixtures = [
         {
             description: "p2wpkh",
             network: bitcoin.networks.testnet,
+            cashaddr: false,
             value: 12345,
             address: "tb1qn08f8x0eamw66enrt497zu0v3u2danzey6asqs",
             script: "00149bce9399f9eeddad66635d4be171ec8f14decc59"
@@ -1730,6 +1791,7 @@ describe("Wallet.convertPayToOutputs", function() {
             description: "p2wsh",
             network: bitcoin.networks.testnet,
             value: 12345,
+            cashaddr: false,
             address: "tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q0sl5k7",
             script: "00201863143c14c5166804bd19203356da136c985678cd4d27a1b8c6329604903262"
         },
@@ -1737,6 +1799,7 @@ describe("Wallet.convertPayToOutputs", function() {
             description: "p2pkh",
             network: bitcoin.networks.testnet,
             value: 12345,
+            cashaddr: false,
             address: "muinVykhtZyonxQxk8zBptX6Lmri91bdNG",
             script: "76a9149bce9399f9eeddad66635d4be171ec8f14decc5988ac"
         },
@@ -1744,13 +1807,22 @@ describe("Wallet.convertPayToOutputs", function() {
             description: "p2sh",
             network: bitcoin.networks.testnet,
             value: 12345,
+            cashaddr: false,
             address: "2N7T4CD6CEuNHJoGKpoJH3YexqektXjyy6L",
             script: "a9149bce9399f9eeddad66635d4be171ec8f14decc5987"
+        },
+        {
+            description: "p2sh",
+            network: bitcoin.networks.bitcoincash,
+            value: 12345,
+            cashaddr: true,
+            address: "bitcoincash:ppm2qsznhks23z7629mms6s4cwef74vcwvn0h829pq",
+            script: "a91476a04053bda0a88bda5177b86a15c3b29f55987387"
         }
     ];
 
     fixtures.map(function(fixture, i) {
-
+        var network = fixture.network;
         it(fixture.description + " converted to script, " + i, function(cb) {
             var test = function(outputs) {
                 assert.ok(Array.isArray(outputs));
@@ -1765,18 +1837,18 @@ describe("Wallet.convertPayToOutputs", function() {
                 value: fixture.value
             }];
 
-            var outputs = Wallet.convertPayToOutputs(pay, network);
+            var outputs = Wallet.convertPayToOutputs(pay, network, fixture.cashaddr);
             test(outputs);
 
             pay = {};
             pay[fixture.address] = fixture.value;
 
             // should deal with simple mapping form
-            outputs = Wallet.convertPayToOutputs(pay, network);
+            outputs = Wallet.convertPayToOutputs(pay, network, fixture.cashaddr);
             test(outputs);
 
             // repeating the procedure should pass the same test
-            outputs = Wallet.convertPayToOutputs(outputs, network);
+            outputs = Wallet.convertPayToOutputs(outputs, network, fixture.cashaddr);
             test(outputs);
 
             cb();
