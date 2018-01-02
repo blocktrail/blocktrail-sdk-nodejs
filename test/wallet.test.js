@@ -757,19 +757,19 @@ describe('test wallet, bitcoin cash mirror', function() {
     [
         {useCashAddress: true,  addressType: "base32", description: "can opt into cash address"},
         {useCashAddress: false, addressType: "base58", description: "false uses base58 address"}
-    ].map(function (fixture) {
+    ].map(function(fixture) {
         var useCashAddress = fixture.useCashAddress;
         var expectType = fixture.addressType;
         var description = fixture.description;
 
         var wallet;
 
-        it(description, function (cb) {
+        it(description, function(cb) {
             tbccClient.initWallet({
                 identifier: "unittest-transaction",
                 passphrase: TRANSACTION_TEST_WALLET_PASSWORD,
                 useCashAddress: useCashAddress
-            }, function (err, _wallet) {
+            }, function(err, _wallet) {
                 assert.ifError(err);
                 assert.ok(_wallet);
                 assert.ok(!_wallet.isSegwit());
@@ -784,8 +784,8 @@ describe('test wallet, bitcoin cash mirror', function() {
             });
         });
 
-        it("derives the right address (" + description + ")", function (cb) {
-            wallet.getNewAddress(function (err, serverAddress, path) {
+        it("derives the right address (" + description + ")", function(cb) {
+            wallet.getNewAddress(function(err, serverAddress, path) {
                 assert.ifError(err);
                 assert.ok(serverAddress);
                 assert.ok(path);
@@ -1829,7 +1829,7 @@ describe("Wallet.convertPayToOutputs", function() {
         }];
         var payAddressOutputs = [{
             address: fixture.address,
-            value: fixture.value,
+            value: fixture.value
         }];
         var payKeyedObject = {};
         payKeyedObject[fixture.address] = fixture.value;
@@ -1853,7 +1853,7 @@ describe("Wallet.convertPayToOutputs", function() {
                 desc: "deals with a flat output array",
                 pay: payFlatArray
             }
-        ].map(function (f) {
+        ].map(function(f) {
             it(fixture.description + " converted to script, " + f.desc, function(cb) {
                 var test = function(outputs) {
                     assert.ok(Array.isArray(outputs));
@@ -1870,9 +1870,9 @@ describe("Wallet.convertPayToOutputs", function() {
                 var outputs2 = Wallet.convertPayToOutputs(outputs, network, fixture.cashaddr);
                 test(outputs2);
 
-                outputs.map(function (output, i) {
-                    assert.equal(outputs[i].scriptPubKey, outputs2[i].scriptPubKey)
-                    assert.equal(outputs[i].value, outputs2[i].value)
+                outputs.map(function(output, i) {
+                    assert.equal(outputs[i].scriptPubKey, outputs2[i].scriptPubKey);
+                    assert.equal(outputs[i].value, outputs2[i].value);
                 });
 
                 cb();
