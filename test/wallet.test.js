@@ -1812,7 +1812,7 @@ describe("Wallet.convertPayToOutputs", function() {
             script: "a9149bce9399f9eeddad66635d4be171ec8f14decc5987"
         },
         {
-            description: "p2sh",
+            description: "p2sh cashaddr",
             network: bitcoin.networks.bitcoincash,
             value: 12345,
             cashaddr: true,
@@ -1821,37 +1821,62 @@ describe("Wallet.convertPayToOutputs", function() {
         }
     ];
 
-    fixtures.map(function(fixture, i) {
+    fixtures.map(function(fixture) {
         var network = fixture.network;
-        it(fixture.description + " converted to script, " + i, function(cb) {
-            var test = function(outputs) {
-                assert.ok(Array.isArray(outputs));
-                assert.equal(outputs[0].value, fixture.value);
-                assert.equal(outputs[0].scriptPubKey, fixture.script);
-                assert.equal(outputs[0].address, null);
-            };
+        var payScriptOutputs = [{
+            scriptPubKey: fixture.script,
+            value: fixture.value
+        }];
+        var payAddressOutputs = [{
+            address: fixture.address,
+            value: fixture.value,
+        }];
+        var payKeyedObject = {};
+        payKeyedObject[fixture.address] = fixture.value;
+        var payFlatArray = [
+            [fixture.address, fixture.value]
+        ];
+        [
+            {
+                desc: "deals with script outputs",
+                pay: payScriptOutputs
+            },
+            {
+                desc: "deals with address outputs",
+                pay: payAddressOutputs
+            },
+            {
+                desc: "deals with object keyed by address",
+                pay: payKeyedObject
+            },
+            {
+                desc: "deals with a flat output array",
+                pay: payFlatArray
+            }
+        ].map(function (f) {
+            it(fixture.description + " converted to script, " + f.desc, function(cb) {
+                var test = function(outputs) {
+                    assert.ok(Array.isArray(outputs));
+                    assert.equal(outputs[0].value, fixture.value);
+                    assert.equal(outputs[0].scriptPubKey, fixture.script);
+                    assert.equal(outputs[0].address, null);
+                };
 
-            // should accept some input of ours
-            var pay = [{
-                scriptPubKey: fixture.script,
-                value: fixture.value
-            }];
+                // should accept some input of ours
+                var outputs = Wallet.convertPayToOutputs(f.pay, network, fixture.cashaddr);
+                test(outputs);
 
-            var outputs = Wallet.convertPayToOutputs(pay, network, fixture.cashaddr);
-            test(outputs);
+                // repeating the procedure should pass the same test
+                var outputs2 = Wallet.convertPayToOutputs(outputs, network, fixture.cashaddr);
+                test(outputs2);
 
-            pay = {};
-            pay[fixture.address] = fixture.value;
+                outputs.map(function (output, i) {
+                    assert.equal(outputs[i].scriptPubKey, outputs2[i].scriptPubKey)
+                    assert.equal(outputs[i].value, outputs2[i].value)
+                });
 
-            // should deal with simple mapping form
-            outputs = Wallet.convertPayToOutputs(pay, network, fixture.cashaddr);
-            test(outputs);
-
-            // repeating the procedure should pass the same test
-            outputs = Wallet.convertPayToOutputs(outputs, network, fixture.cashaddr);
-            test(outputs);
-
-            cb();
+                cb();
+            });
         });
     });
 });
