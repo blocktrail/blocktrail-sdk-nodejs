@@ -755,14 +755,16 @@ describe('test wallet, bitcoin cash mirror', function() {
     var tbccClient = _createApiClient("BCC", true);
 
     [
-        {useCashAddress: true,  addressType: "base32", description: "can opt into cash address"},
-        {useCashAddress: false, addressType: "base58", description: "false uses base58 address"}
+        {useCashAddress: false, addressType: "base58", description: "false uses base58 address"},
+        {useCashAddress: true,  addressType: "cashaddr", description: "can opt into cash address"}
+
     ].map(function(fixture) {
         var useCashAddress = fixture.useCashAddress;
         var expectType = fixture.addressType;
         var description = fixture.description;
 
         var wallet;
+        var address;
 
         it(description, function(cb) {
             tbccClient.initWallet({
@@ -794,6 +796,20 @@ describe('test wallet, bitcoin cash mirror', function() {
                 assert.ok(decoded);
                 assert.equal(serverAddress, decoded.address);
                 assert.equal(expectType, decoded.type);
+
+                address = serverAddress;
+                cb();
+            });
+        });
+
+        it("can coin select address (" + expectType + ")", function(cb) {
+            var pay = {};
+            pay[address] = 12345;
+            wallet.coinSelection(pay, function(err, utxos) {
+                assert.ifError(err);
+                assert.ok(utxos);
+                assert.ok(utxos.length > 0);
+
                 cb();
             });
         });
