@@ -2432,7 +2432,7 @@ module.exports = {
 }).call(this,require("buffer").Buffer)
 },{"buffer":105}],7:[function(require,module,exports){
 module.exports = exports = {
-    VERSION: '3.6.4'
+    VERSION: '3.6.5'
 };
 
 },{}],8:[function(require,module,exports){
@@ -4803,9 +4803,7 @@ Wallet.prototype.buildTransaction = function(pay, changeAddress, allowZeroConf, 
                          */
                         function(cb) {
                             send.forEach(function(_send) {
-                                if (_send.address) {
-                                    outputs.push({address: _send.address, value: _send.value});
-                                } else if (_send.scriptPubKey) {
+                                if (_send.scriptPubKey) {
                                     outputs.push({scriptPubKey: new Buffer(_send.scriptPubKey, 'hex'), value: _send.value});
                                 } else {
                                     throw new Error("Invalid send");
@@ -4847,13 +4845,14 @@ Wallet.prototype.buildTransaction = function(pay, changeAddress, allowZeroConf, 
                          */
                         function(cb) {
                             if (change > 0) {
+                                var changeOutput = {
+                                    scriptPubKey: bitcoin.address.toOutputScript(changeAddress, self.network, self.useNewCashAddr),
+                                    value: change
+                                };
                                 if (randomizeChangeIdx) {
-                                    outputs.splice(_.random(0, outputs.length), 0, {
-                                        address: changeAddress,
-                                        value: change
-                                    });
+                                    outputs.splice(_.random(0, outputs.length), 0, changeOutput);
                                 } else {
-                                    outputs.push({address: changeAddress, value: change});
+                                    outputs.push(changeOutput);
                                 }
                             }
 
@@ -4866,7 +4865,7 @@ Wallet.prototype.buildTransaction = function(pay, changeAddress, allowZeroConf, 
                          */
                         function(cb) {
                             outputs.forEach(function(outputInfo) {
-                                txb.addOutput(outputInfo.scriptPubKey || outputInfo.address, outputInfo.value);
+                                txb.addOutput(outputInfo.scriptPubKey, outputInfo.value);
                             });
 
                             cb();
