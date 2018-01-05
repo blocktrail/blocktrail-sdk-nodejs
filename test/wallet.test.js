@@ -2082,3 +2082,48 @@ describe("APIClient", function() {
         });
     });
 });
+
+describe("APIClient.getLegacyBitcoinCashAddress", function() {
+
+    describe("doesnt work with BTC", function() {
+        it("fails", function(cb) {
+            var tbtcNetwork = _createApiClient("BTC", true);
+            var err;
+            try {
+                tbtcNetwork.getLegacyBitcoinCashAddress("1BpEi6DfDAUFd7GtittLSdBeYJvcoaVggu");
+            } catch (e) {
+                err = e;
+            }
+
+            assert.ok(err);
+            assert.ok("Legacy addresses only work on bitcoin cash" === err.message);
+            cb();
+        });
+    });
+
+    function test(network, testnet, legacy, cash) {
+        var bccNetwork = _createApiClient(network, testnet);
+
+        it("returns base58 address if that was given", function(cb) {
+            assert.ok(legacy === bccNetwork.getLegacyBitcoinCashAddress(legacy));
+            cb();
+        });
+
+        it("returns legacy address for cashaddress", function(cb) {
+            assert.ok(legacy === bccNetwork.getLegacyBitcoinCashAddress(cash));
+            cb();
+        });
+    }
+
+    describe ("works with BCC testnet (P2SH)", function() {
+        test("BCC", true, "2N44ThNe8NXHyv4bsX8AoVCXquBRW94Ls7W", "bchtest:ppm2qsznhks23z7629mms6s4cwef74vcwvhanqgjxu");
+    });
+
+    describe ("works with BCC (P2SH)", function() {
+        test("BCC", false, "3LDsS579y7sruadqu11beEJoTjdFiFCdX4", "bitcoincash:pr95sy3j9xwd2ap32xkykttr4cvcu7as4yc93ky28e");
+    });
+
+    describe ("works with BCC (P2PKH)", function() {
+        test("BCC", false, "1BpEi6DfDAUFd7GtittLSdBeYJvcoaVggu", "bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a");
+    });
+});
