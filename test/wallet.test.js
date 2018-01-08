@@ -2096,7 +2096,7 @@ describe("bitcoin cash address switching", function() {
                 }
 
                 assert.ok(err);
-                assert.ok("Legacy addresses only work on bitcoin cash" === err.message);
+                assert.ok("Cash addresses only work on bitcoin cash" === err.message);
                 cb();
             });
         });
@@ -2170,4 +2170,54 @@ describe("bitcoin cash address switching", function() {
         });
     });
 
+    var wallet;
+
+    describe("wallet send", function() {
+        /**
+         * @type APIClient
+         */
+        var tbccClient = _createApiClient("BCC", true);
+        var legacyAddress;
+        var cashAddress;
+        it("should exists", function(cb) {
+            tbccClient.initWallet({
+                identifier: "unittest-transaction",
+                passphrase: "password",
+                useCashAddress: true
+            }, function(err, _wallet) {
+                assert.ifError(err);
+                assert.ok(_wallet);
+
+                wallet = _wallet;
+                cb();
+            });
+        });
+
+        it("generates an address", function(cb) {
+            wallet.getNewAddress(function(err, result) {
+                assert.ifError(err);
+                legacyAddress = tbccClient.getLegacyBitcoinCashAddress(result);
+                cashAddress = result;
+                cb();
+            });
+        });
+
+        it("sends to legacy address", function(cb) {
+            var pay = {};
+            pay[legacyAddress] = 100000;
+            wallet.pay(pay, null, false, false, function(err, result) {
+                assert.ifError(err);
+                cb();
+            });
+        });
+
+        it("sends to casah address", function(cb) {
+            var pay = {};
+            pay[cashAddress] = 100000;
+            wallet.pay(pay, null, false, false, function(err, result) {
+                assert.ifError(err);
+                cb();
+            });
+        });
+    });
 });
