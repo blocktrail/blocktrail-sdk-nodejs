@@ -6,11 +6,22 @@ var assert = require('assert');
  * @type APIClient
  */
 var client = blocktrail.BlocktrailSDK({
-    apiKey : process.env.BLOCKTRAIL_SDK_APIKEY || "EXAMPLE_BLOCKTRAIL_SDK_NODEJS_APIKEY",
-    apiSecret : process.env.BLOCKTRAIL_SDK_APISECRET || "EXAMPLE_BLOCKTRAIL_SDK_NODEJS_APISECRET"
+    apiKey: process.env.BLOCKTRAIL_SDK_APIKEY || "EXAMPLE_BLOCKTRAIL_SDK_NODEJS_APIKEY",
+    apiSecret: process.env.BLOCKTRAIL_SDK_APISECRET || "EXAMPLE_BLOCKTRAIL_SDK_NODEJS_APISECRET",
+    btccom: typeof process.env.BLOCKTRAIL_SDK_BTCCOM !== "undefined" ? JSON.parse(process.env.BLOCKTRAIL_SDK_BTCCOM) : true
 });
 
 describe("using promises", function() {
+    it('test block by hash', function(cb) {
+        client.block("000000000000034a7dedef4a161fa058a2d67a173a90155f3a2fe6fc132e0ebf").then(function(block) {
+            assert.ok(block['hash']);
+            assert.equal(block['hash'], '000000000000034a7dedef4a161fa058a2d67a173a90155f3a2fe6fc132e0ebf');
+
+            cb();
+        })
+        .done();
+    });
+
     it ("should work for address request", function(cb) {
         client.address("1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp").then(function(address) {
             assert.ok(address['address']);
@@ -19,15 +30,5 @@ describe("using promises", function() {
             cb();
         })
         .done();
-    });
-
-    it("should work for verify address request", function(cb) {
-        client.verifyAddress("16dwJmR4mX5RguGrocMfN9Q9FR2kZcLw2z", "HPMOHRgPSMKdXrU6AqQs/i9S7alOakkHsJiqLGmInt05Cxj6b/WhS7kJxbIQxKmDW08YKzoFnbVZIoTI2qofEzk=")
-            .then(function(result) {
-                assert.ok(result);
-
-                cb();
-            })
-            .done();
     });
 });
