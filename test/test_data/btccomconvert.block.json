@@ -1,0 +1,32 @@
+{
+  "data": {
+    "height": 200000,
+    "version": 2,
+    "mrkl_root": "a08f8101f50fd9c9b3e5252aff4c1c1bd668f878fffaf3d0dbddeb029c307e88",
+    "timestamp": 1348310759,
+    "bits": 436591499,
+    "nonce": 4158183488,
+    "hash": "000000000000034a7dedef4a161fa058a2d67a173a90155f3a2fe6fc132e0ebf",
+    "prev_block_hash": "00000000000003a20def7a05a77361b9657ff954b2f2080e135ea6f5970da215",
+    "next_block_hash": "00000000000002e3269b8a00caf315115297c626f954770e8398470d7f387e1c",
+    "size": 247533,
+    "pool_difficulty": 5097877,
+    "difficulty": 2864140.5078109736,
+    "tx_count": 388,
+    "reward_block": 5000000000,
+    "reward_fees": 63517500,
+    "created_at": 1492101215,
+    "confirmations": 310251,
+    "is_orphan": false,
+    "curr_max_timestamp": 1348310759,
+    "is_sw_block": false,
+    "stripped_size": 247533,
+    "weight": 990132,
+    "extras": {
+      "pool_name": "unknown",
+      "pool_link": ""
+    }
+  },
+  "err_no": 0,
+  "err_msg": null
+}

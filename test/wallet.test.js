@@ -1,5 +1,5 @@
-/* jshint -W101, -W098 */
 /* global window */
+/* jshint -W101, -W098 */
 var _ = require('lodash');
 var blocktrail = require('../');
 var Wallet = blocktrail.Wallet;
@@ -11,6 +11,8 @@ var bip39 = require("bip39");
 
 var WAIT_FOR_TX_PROCESSED = process.env.BLOCKTRAIL_WAIT_FOR_TX || 300;
 
+var window = window || {};
+
 /**
  *
  * @param network
@@ -20,10 +22,11 @@ var WAIT_FOR_TX_PROCESSED = process.env.BLOCKTRAIL_WAIT_FOR_TX || 300;
  */
 function _createApiClient(network, testnet) {
     return blocktrail.BlocktrailSDK({
-        apiKey : process.env.BLOCKTRAIL_SDK_APIKEY || window.BLOCKTRAIL_SDK_APIKEY || "EXAMPLE_BLOCKTRAIL_SDK_NODEJS_APIKEY",
-        apiSecret : process.env.BLOCKTRAIL_SDK_APISECRET || window.BLOCKTRAIL_SDK_APISECRET || "EXAMPLE_BLOCKTRAIL_SDK_NODEJS_APISECRET",
+        apiKey: process.env.BLOCKTRAIL_SDK_APIKEY || window.BLOCKTRAIL_SDK_APIKEY || "EXAMPLE_BLOCKTRAIL_SDK_NODEJS_APIKEY",
+        apiSecret: process.env.BLOCKTRAIL_SDK_APISECRET || window.BLOCKTRAIL_SDK_APISECRET || "EXAMPLE_BLOCKTRAIL_SDK_NODEJS_APISECRET",
         network: network,
-        testnet : testnet
+        testnet: testnet,
+        btccom: false
     });
 }
 
