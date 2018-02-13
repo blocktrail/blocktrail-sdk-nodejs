@@ -27,6 +27,18 @@
     "node": ">= 5.10.0"
   },
   "main": "./main.js",
+  "files": [
+    "bower.json",
+    "README.md",
+    "LICENSE.md",
+    "main.js",
+    "main-with-backup-generator.js",
+    "lib/",
+    "vendor/",
+    "examples/",
+    "doc/",
+    "build/"
+  ],
   "browser": {
     "./lib/backup_generator.js": "./lib/backup_generator-browser.js",
     "./lib/pbkdf2_sha512.js": "./lib/pbkdf2_sha512-browser.js",
