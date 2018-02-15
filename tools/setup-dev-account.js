@@ -5,10 +5,16 @@ var async = require('async');
 var bitcoin = require('bitcoinjs-lib');
 var bip39 = require("bip39");
 
+var network = "BTC";
+if (process.env.NETWORK) {
+    network = process.env.NETWORK
+}
+
 /**
  * @type APIClient
  */
 var client = blocktrail.BlocktrailSDK({
+    network: network,
     apiKey : process.env.BLOCKTRAIL_SDK_APIKEY || "EXAMPLE_BLOCKTRAIL_SDK_NODEJS_APIKEY",
     apiSecret : process.env.BLOCKTRAIL_SDK_APISECRET || "EXAMPLE_BLOCKTRAIL_SDK_NODEJS_APISECRET",
     testnet : true
@@ -67,6 +73,7 @@ var _createTestWallet = function(identifier, passphrase, primaryMnemonic, backup
             cb(err, wallet);
         });
     }, function(err) {
+
         cb(err);
     });
 };
@@ -78,39 +85,61 @@ var createDiscoveryTestWallet = function(identifier, passphrase, cb) {
     return _createTestWallet(identifier, passphrase, primaryMnemonic, backupMnemonic, cb);
 };
 
-var createTransactionTestWallet = function(identifier, segwit, cb) {
-    return _createTestWallet(identifier, TRANSACTION_TEST_WALLET_PASSWORD, TRANSACTION_TEST_WALLET_PRIMARY_MNEMONIC, TRANSACTION_TEST_WALLET_BACKUP_MNEMONIC, segwit, cb);
+var discoverWallet = function(identifier, passphrase) {
+    client.initWallet({
+        identifier: identifier,
+        passphrase: passphrase
+    }).then(function(_wallet) {
+        _wallet.doDiscovery(50, function(err, result) {
+            if (err) {
+                console.log(err);
+                return;
+            }
+
+            console.log(result);
+        });
+    }, function(err) {
+        console.log(err)
+        cb(err);
+    });
 };
 
-createTransactionTestWallet("unittest-transaction", false, function(err, wallet) {
-    if (err) {
-        console.log(err);
-        return;
-    }
+if (process.env.DISCOVER_ONLY) {
+    discoverWallet("unittest-transaction", TRANSACTION_TEST_WALLET_PASSWORD);
+} else {
+    var createTransactionTestWallet = function(identifier, segwit, cb) {
+        return _createTestWallet(identifier, TRANSACTION_TEST_WALLET_PASSWORD, TRANSACTION_TEST_WALLET_PRIMARY_MNEMONIC, TRANSACTION_TEST_WALLET_BACKUP_MNEMONIC, segwit, cb);
+    };
 
-    wallet.doDiscovery(50, function(err, result) {
+    createTransactionTestWallet("unittest-transaction", false, function(err, wallet) {
         if (err) {
             console.log(err);
             return;
         }
 
-        console.log(result);
+        wallet.doDiscovery(50, function(err, result) {
+            if (err) {
+                console.log(err);
+                return;
+            }
+
+            console.log(result);
+        });
     });
-});
 
-createTransactionTestWallet("unittest-transaction-sw", true, function(err, wallet) {
-    if (err) {
-        console.log(err);
-        return;
-    }
-
-    wallet.doDiscovery(50, function(err, result) {
+    createTransactionTestWallet("unittest-transaction-sw", true, function(err, wallet) {
         if (err) {
             console.log(err);
             return;
         }
 
-        console.log(result);
-    });
-});
+        wallet.doDiscovery(50, function(err, result) {
+            if (err) {
+                console.log(err);
+                return;
+            }
 
+            console.log(result);
+        });
+    });
+}
