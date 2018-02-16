@@ -313,7 +313,7 @@ describe('Initialize with check_backup_key', function() {
             wallet.pay({
                 "2N6Fg6T74Fcv1JQ8FkPJMs8mYmbm9kitTxy": blocktrail.toSatoshi(0.001)
             }, function(err, txHash) {
-                assert.ok(!!err && err.message.match(/balance/));
+                assert.ok(!!err && (err.message.match(/balance/) || err.message.match(/failed/i)));
 
                 cb();
             });
@@ -1165,6 +1165,7 @@ describe('test wallet, do transaction, segwit spend', function() {
         });
     });
 });
+
 describe('test wallet, do transaction, without mnemonics', function() {
     var wallet;
 
