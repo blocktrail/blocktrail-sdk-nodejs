@@ -90,7 +90,7 @@ var _createTestWallet = function(identifier, passphrase, primaryMnemonic, backup
     });
 };
 
-var createDiscoveryTestWallet = function(identifier, passphrase, cb) {
+var createUpgradeKeyIndexTestWallet = function(identifier, passphrase, cb) {
     var primaryMnemonic = "give pause forget seed dance crawl situate hole kingdom";
     var backupMnemonic = "give pause forget seed dance crawl situate hole course";
 
@@ -1342,7 +1342,7 @@ describe('test wallet, do forcefee transaction', function() {
     });
 });
 
-describe('test wallet discovery and upgrade key index', function() {
+describe('test wallet upgrade key index', function() {
     var myIdentifier = "nodejs-sdk-" + crypto.randomBytes(24).toString('hex');
     var wallet;
 
@@ -1357,7 +1357,7 @@ describe('test wallet discovery and upgrade key index', function() {
     });
 
     it("should be created", function(cb) {
-        createDiscoveryTestWallet(myIdentifier, "password", function(err, _wallet) {
+        createUpgradeKeyIndexTestWallet(myIdentifier, "password", function(err, _wallet) {
             assert.ifError(err);
             assert.ok(_wallet);
             _wallet.chain = blocktrail.Wallet.CHAIN_BTC_DEFAULT;
@@ -1400,16 +1400,6 @@ describe('test wallet discovery and upgrade key index', function() {
         ], cb);
     });
 
-    it("should have a balance after discovery", function(cb) {
-        this.timeout(0);
-
-        wallet.doDiscovery(50, function(err, confirmed, unconfirmed) {
-            assert.ok(confirmed + unconfirmed > 0);
-
-            cb();
-        });
-    });
-
     it("should be upgraded and have expected addresses", function(cb) {
         // set upgrade
         wallet.upgradeToKeyIndex = 10000;
@@ -1449,7 +1439,7 @@ describe('test wallet with bad password', function() {
     });
 
     it("should be created", function(cb) {
-        createDiscoveryTestWallet(myIdentifier, "badpassword", function(err, _wallet) {
+        createUpgradeKeyIndexTestWallet(myIdentifier, "badpassword", function(err, _wallet) {
             assert.ifError(err);
             assert.ok(_wallet);
 
@@ -1485,16 +1475,6 @@ describe('test wallet with bad password', function() {
                 });
             }
         ], cb);
-    });
-
-    it("shouldn't have a balance after discovery", function(cb) {
-        this.timeout(0);
-
-        wallet.doDiscovery(50, function(err, confirmed, unconfirmed) {
-            assert.ok(confirmed + unconfirmed === 0);
-
-            cb();
-        });
     });
 });
 
