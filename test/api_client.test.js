@@ -66,7 +66,7 @@ describe('data api', function() {
         });
     });
     it('test addressUnspentOutputs', function(cb) {
-        client.addressUnspentOutputs("1DarkStrRagcDjWtsPGxkav4WG3poLXzDS", {limit: 23}, function(err, address_utxo) {
+        client.addressUnspentOutputs("16dwJmR4mX5RguGrocMfN9Q9FR2kZcLw2z", {limit: 23}, function(err, address_utxo) {
             assert.ifError(err);
             assert.ok('data' in address_utxo);
             assert.ok('total' in address_utxo);
@@ -76,7 +76,7 @@ describe('data api', function() {
         });
     });
     it('test batchAddressUnspentOutputs', function(cb) {
-        client.batchAddressUnspentOutputs(["1DarkStrRagcDjWtsPGxkav4WG3poLXzDS", "16fVUD4yCuabS153FJGtmLL8tgydsrf6vu"], {limit: 23}, function(err, address_utxo) {
+        client.batchAddressUnspentOutputs(["16dwJmR4mX5RguGrocMfN9Q9FR2kZcLw2z", "16fVUD4yCuabS153FJGtmLL8tgydsrf6vu"], {limit: 23}, function(err, address_utxo) {
             assert.ifError(err);
             assert.ok('data' in address_utxo);
             assert.ok('total' in address_utxo);
