@@ -76,6 +76,7 @@ var _createTestWallet = function(identifier, passphrase, primaryMnemonic, backup
             keyIndex,
             result.segwit || 0,
             client.testnet,
+            client.regtest,
             checksum
         );
 
