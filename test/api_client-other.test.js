@@ -9,7 +9,7 @@ var crypto = require('crypto');
 var client = blocktrail.BlocktrailSDK({
     apiKey: process.env.BLOCKTRAIL_SDK_APIKEY || "EXAMPLE_BLOCKTRAIL_SDK_NODEJS_APIKEY",
     apiSecret: process.env.BLOCKTRAIL_SDK_APISECRET || "EXAMPLE_BLOCKTRAIL_SDK_NODEJS_APISECRET",
-    btccom: false
+    btccom: typeof process.env.BLOCKTRAIL_SDK_BTCCOM !== "undefined" ? JSON.parse(process.env.BLOCKTRAIL_SDK_BTCCOM) : true
 });
 
 describe('SDK general', function() {

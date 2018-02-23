@@ -26,7 +26,7 @@ function _createApiClient(network, testnet) {
         apiSecret: process.env.BLOCKTRAIL_SDK_APISECRET || window.BLOCKTRAIL_SDK_APISECRET || "EXAMPLE_BLOCKTRAIL_SDK_NODEJS_APISECRET",
         network: network,
         testnet: testnet,
-        btccom: false
+        btccom: typeof process.env.BLOCKTRAIL_SDK_BTCCOM !== "undefined" ? JSON.parse(process.env.BLOCKTRAIL_SDK_BTCCOM) : true
     });
 }
 
