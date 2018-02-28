@@ -17,7 +17,7 @@ describe("btccom.convert", function() {
         it("works", function(cb) {
             var input = require('./test_data/btccomconvert.block');
 
-            var output = converter.convertBlock(input);
+            var output = converter.convertBlock(input.data);
 
             // assert fields match
             [

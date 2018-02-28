@@ -123,7 +123,7 @@ describe('data api', function() {
         });
     });
     it('test addressUnspentOutputs', function(cb) {
-        client.addressUnspentOutputs("16dwJmR4mX5RguGrocMfN9Q9FR2kZcLw2z", {limit: 23}, function(err, address_utxo) {
+        client.addressUnspentOutputs("3EU8LRmo5PgcSwnkn6Msbqc8BKNoQ7Xief", {limit: 23}, function(err, address_utxo) {
             assert.ifError(err);
             assert.ok('data' in address_utxo);
             assert.ok('total' in address_utxo);
@@ -133,9 +133,8 @@ describe('data api', function() {
         });
     });
     it('test batchAddressUnspentOutputs', function(cb) {
-        this.skip();
-
-        client.batchAddressUnspentOutputs(["16dwJmR4mX5RguGrocMfN9Q9FR2kZcLw2z", "16fVUD4yCuabS153FJGtmLL8tgydsrf6vu"], {limit: 23}, function(err, address_utxo) {
+        client.batchAddressUnspentOutputs(["16dwJmR4mX5RguGrocMfN9Q9FR2kZcLw2z", "3EU8LRmo5PgcSwnkn6Msbqc8BKNoQ7Xief"], {limit: 23}, function(err, address_utxo) {
+            console.log(address_utxo);
             assert.ifError(err);
             assert.ok('data' in address_utxo);
             assert.ok('total' in address_utxo);
@@ -187,15 +186,12 @@ describe('data api', function() {
         });
     });
     it('test allBlocks', function(cb) {
-        this.skip(); // @TODO
-
         client.allBlocks({page: 2, limit: 23, sort_dir: 'asc'}, function(err, blocks) {
             assert.ifError(err);
+
             assert.ok(blocks['data']);
             assert.ok(blocks['total']);
             assert.ok(blocks['data'].length === 23);
-            assert.equal(blocks['data'][0]['hash'], '000000000cd339982e556dfffa9de94744a4135c53eeef15b7bcc9bdeb9c2182');
-            assert.equal(blocks['data'][1]['hash'], '00000000fc051fbbce89a487e811a5d4319d209785ea4f4b27fc83770d1e415f');
 
             cb();
         });
@@ -240,8 +236,7 @@ describe('data api', function() {
             "356210d6b8143e23d0cf4d0dae0ac686015a13fe3b2b46b1cc43a71a36c73355",
             "a40d1eee0cec3d963d8df2870bd642bd3fd07163e864aeb90fa5efe9ea91c998",
             "1c7e3c9823baa9bb70b09ed666e8a6b3120b07f84429ed41f05d5504bd58f188",
-            "1f0a168f0fceb6e48208b23ffb1ad528acfc11c30ab302d447743f2a0fc5fe80",
-            "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" // not found
+            "1f0a168f0fceb6e48208b23ffb1ad528acfc11c30ab302d447743f2a0fc5fe80"
         ], function(err, txs) {
             assert.ifError(err);
 

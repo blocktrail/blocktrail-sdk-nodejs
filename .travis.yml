@@ -33,10 +33,13 @@ after_success:
 
 env:
   global:
+   - BLOCKTRAIL_SDK_THROTTLE_BTCCOM=20
    - secure: NE2he5OpsNa9PGxCupBpYJ/+B7n5CfHlGAs6dE/Zc7gDVCykTDxOsQUzykc2CBSKknlzlZZXfjLr3CfVcQCFGxx1Sy3ngSztCyv3zQm3yex8DlKLL1vjpI8dHejYaF801fS1BUkGKOG7g8omcGtQDz8uI0eVAkm3PjnWnQRGJ+4=
    - secure: "echRP+/qe3wm+mQZH+HbsFQBCbO/M78NR0MAjyAwSyi+0F0Wbh4B+gjHWL8oitzChahF1UVNdLX0QgRke4buBKzEKF+0dmctg1eqSTNn3sghK4Tg5G5RQwD26+k3aW4WUo3u5Rte36R3OC4msb221RC3MIo8CNGMzuq7lkp8dx4="
    - secure: "Lhdu+nqYD1Cmi23mLlmE3gS3Gm9NLLudNdpfJGKSkAuLI0tEgaWgmnL0t4icVelDl1CMQTk1X9xjePjQHhq+UeBlfjS/4egVQX7i8woYKiGBjmWebLT+6enq1TUSyC24RfM24AH0IyLGwkrpFBhvKfEycFssqReqIGyTycrw+n4="
    - secure: "YiEEOJHjwIf26XqE7e10N+eQb7Ns96Lj6oIxENBaa+5NYWU32F2Pjq+T5f3t15C0/OC0VOnXd1CnRhjzsKq31tAdhK9xN5jSKd8/MiiwpCg6Gq98ZWkmic0NKyEgwziU5WaAYxnFEGfrlyC6QF1JUE0UQhTdmYsFJ8xnf/Obbaw="
+   # BLOCKTRAIL_SDK_BTCCOM_API_ENDPOINT
+   - secure: "Q7sTMNWh0WcaoRQGTptTbBN5TaLsLNjHUTRMXC/ha3p5ekQGX1A9pPLTUPPI/piGFszzNAN5iTiIJudKM0PCc61rpmi8IrHypqfEvIVdbCCETnnvOWW2X/9LCWOiZ+qsXdgLzmAyDZwDIqxfTdjGlIo06pcm6fbhf46eXoUnk5k="
   matrix:
    - SAUCELABS=false
 
