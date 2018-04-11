@@ -3332,7 +3332,7 @@ module.exports = {
 }).call(this,require("buffer").Buffer)
 },{"buffer":127}],9:[function(require,module,exports){
 module.exports = exports = {
-    VERSION: '3.6.9'
+    VERSION: '3.7.0'
 };
 
 },{}],10:[function(require,module,exports){
