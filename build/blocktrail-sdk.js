@@ -220,7 +220,7 @@ APIClient.updateHostOptions = function(options) {
 
     if (options.btccom) {
         if (!options.host) {
-            options.host = 'chain.api.btc.com';
+            options.host = options.network === 'BCC' ? 'bch-chain.api.btc.com' : 'chain.api.btc.com';
         }
 
         if (options.testnet && !options.host.match(/tchain/)) {
@@ -3332,7 +3332,7 @@ module.exports = {
 }).call(this,require("buffer").Buffer)
 },{"buffer":107}],9:[function(require,module,exports){
 module.exports = exports = {
-    VERSION: '3.7.0'
+    VERSION: '3.7.1'
 };
 
 },{}],10:[function(require,module,exports){
