@@ -201,6 +201,28 @@ APIClient.updateHostOptions = function(options) {
         options.throttleRequestsTimeout = process.env.BLOCKTRAIL_SDK_THROTTLE_BTCCOM;
     }
 
+    if (options.btccom) {
+        if (!options.host) {
+            options.host = options.btccomhost || (options.network === 'BCC' ? 'bch-chain.api.btc.com' : 'chain.api.btc.com');
+        }
+
+        if (options.testnet && !options.host.match(/tchain/)) {
+            options.host = options.host.replace(/chain/, 'tchain');
+        }
+
+        if (!options.endpoint) {
+            options.endpoint = options.btccomendpoint || ("/" + (options.apiVersion || "v3"));
+        }
+    } else {
+        if (!options.host) {
+            options.host = 'api.blocktrail.com';
+        }
+
+        if (!options.endpoint) {
+            options.endpoint = "/" + (options.apiVersion || "v1") + (options.apiNetwork ? ("/" + options.apiNetwork) : "");
+        }
+    }
+
     // trim off leading https?://
     if (options.host && options.host.indexOf("https://") === 0) {
         options.https = true;
@@ -216,28 +238,6 @@ APIClient.updateHostOptions = function(options) {
 
     if (!options.port) {
         options.port = options.https ? 443 : 80;
-    }
-
-    if (options.btccom) {
-        if (!options.host) {
-            options.host = options.network === 'BCC' ? 'bch-chain.api.btc.com' : 'chain.api.btc.com';
-        }
-
-        if (options.testnet && !options.host.match(/tchain/)) {
-            options.host = options.host.replace(/chain/, 'tchain');
-        }
-
-        if (!options.endpoint) {
-            options.endpoint = "/" + (options.apiVersion || "v3");
-        }
-    } else {
-        if (!options.host) {
-            options.host = 'api.blocktrail.com';
-        }
-
-        if (!options.endpoint) {
-            options.endpoint = "/" + (options.apiVersion || "v1") + (options.apiNetwork ? ("/" + options.apiNetwork) : "");
-        }
     }
 
     return options;
@@ -3332,7 +3332,7 @@ module.exports = {
 }).call(this,require("buffer").Buffer)
 },{"buffer":107}],9:[function(require,module,exports){
 module.exports = exports = {
-    VERSION: '3.7.1'
+    VERSION: '3.7.2'
 };
 
 },{}],10:[function(require,module,exports){
