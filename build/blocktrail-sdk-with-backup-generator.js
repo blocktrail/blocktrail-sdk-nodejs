@@ -3551,14 +3551,7 @@ Request.handleFailure = function(body, statusCode) {
     }
 
     if (data) {
-        var msg = data.msg || "";
-        if (!msg) {
-            if (statusCode === 429) {
-                msg = "Too Many Request";
-            }
-        }
-
-        error = new Error(msg);
+        error = new Error(data.msg ? data.msg : null);
 
         Object.keys(data).forEach(function(k) {
             if (k !== "msg") {
