@@ -2196,13 +2196,22 @@ describe("bitcoin cash address switching", function() {
             });
         });
 
-        it("sends to casah address", function(cb) {
+        it("sends to cash address", function(cb) {
             var pay = {};
             pay[cashAddress] = 100000;
             wallet.pay(pay, null, false, false, function(err, result) {
                 assert.ifError(err);
                 cb();
             });
+        });
+
+        it("parse cash address without prefix", function(cb) {
+            var net = bitcoin.networks.bitcoincash;
+            var decoded = Wallet.getAddressAndType("qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a", net, true);
+            assert.ok(decoded);
+            assert.equal('cashaddr', decoded.type);
+            assert.equal('bitcoincash', decoded.decoded.prefix);
+            cb();
         });
     });
 });
