@@ -4710,7 +4710,8 @@ var APIClient = function(options) {
     /**
      * @type RestClient
      */
-    self.dataClient = APIClient.initRestClient(_.merge({}, options));
+    var dataOptions = _.omit(options, 'host');
+    self.dataClient = APIClient.initRestClient(dataOptions);
     /**
      * @type RestClient
      */
@@ -7923,7 +7924,7 @@ module.exports = {
 }).call(this,require("buffer").Buffer)
 },{"buffer":124}],9:[function(require,module,exports){
 module.exports = exports = {
-    VERSION: '3.7.3'
+    VERSION: '3.7.4'
 };
 
 },{}],10:[function(require,module,exports){
