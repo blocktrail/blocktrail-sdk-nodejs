@@ -3333,7 +3333,7 @@ module.exports = {
 }).call(this,require("buffer").Buffer)
 },{"buffer":124}],9:[function(require,module,exports){
 module.exports = exports = {
-    VERSION: '3.7.4'
+    VERSION: '3.7.5'
 };
 
 },{}],10:[function(require,module,exports){
@@ -5475,6 +5475,7 @@ function readBech32Address(address, network) {
 function readCashAddress(address, network) {
     var addr;
     var err;
+    address = address.toLowerCase();
     try {
         addr = bitcoin.address.fromCashAddress(address);
         err = null;
