@@ -2213,5 +2213,23 @@ describe("bitcoin cash address switching", function() {
             assert.equal('bitcoincash', decoded.decoded.prefix);
             cb();
         });
+
+        it("parse cash address (CAPITAL) without prefix", function(cb) {
+            var net = bitcoin.networks.bitcoincash;
+            var decoded = Wallet.getAddressAndType("qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a".toUpperCase(), net, true);
+            assert.ok(decoded);
+            assert.equal('cashaddr', decoded.type);
+            assert.equal('bitcoincash', decoded.decoded.prefix);
+            cb();
+        });
+
+        it("parse cash address (CAPITAL) with prefix", function(cb) {
+            var net = bitcoin.networks.bitcoincash;
+            var decoded = Wallet.getAddressAndType("bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a".toUpperCase(), net, true);
+            assert.ok(decoded);
+            assert.equal('cashaddr', decoded.type);
+            assert.equal('bitcoincash', decoded.decoded.prefix);
+            cb();
+        });
     });
 });
