@@ -7924,7 +7924,7 @@ module.exports = {
 }).call(this,require("buffer").Buffer)
 },{"buffer":127}],9:[function(require,module,exports){
 module.exports = exports = {
-    VERSION: '3.7.6'
+    VERSION: '3.7.7'
 };
 
 },{}],10:[function(require,module,exports){
@@ -11592,14 +11592,26 @@ WalletSweeper.prototype.createTransaction = function(destinationAddress, fee, fe
                 message: "estimating transaction fee, based on " + blocktrail.toBTC(feePerKb) + " BTC/kb"
             });
         }
+
+        var toHexString = function(byteArray) {
+            return Array.prototype.map.call(byteArray, function(byte) {
+                return ('0' + (byte & 0xFF).toString(16)).slice(-2);
+            }).join('');
+        };
+
         var calcUtxos = inputs.map(function(input) {
+            var rs = (typeof input.redeemScript === "string" || !input.redeemScript)
+                ? input.redeemScript : toHexString(input.redeemScript);
+            var ws = (typeof input.witnessScript === "string" || !input.witnessScript)
+                ? input.witnessScript : toHexString(input.witnessScript);
+
             return {
                 txid: input.txid,
                 vout: input.vout,
-                address: input.vout,
-                scriptpubkey_hex: input.vout,
-                redeem_script: input.redeemScript,
-                witness_script: input.witnessScript,
+                address: input.address,
+                scriptpubkey_hex: input.scriptPubKey,
+                redeem_script: rs,
+                witness_script: ws,
                 path: input.path,
                 value: input.value
             };
