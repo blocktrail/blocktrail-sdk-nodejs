@@ -3333,7 +3333,7 @@ module.exports = {
 }).call(this,require("buffer").Buffer)
 },{"buffer":127}],9:[function(require,module,exports){
 module.exports = exports = {
-    VERSION: '3.7.7'
+    VERSION: '3.7.8'
 };
 
 },{}],10:[function(require,module,exports){
@@ -3967,7 +3967,8 @@ InsightBitcoinService.prototype.getBatchUnspentOutputs = function(addresses) {
                 'hash': utxo['txid'],
                 'index': utxo['vout'],
                 'value': blocktrail.toSatoshi(utxo['amount']),
-                'script_hex': utxo['scriptPubKey']
+                'script_hex': utxo['scriptPubKey'],
+                'confirmations': utxo['confirmations']
             });
         });
         deferred.resolve(batchResults);
@@ -6722,13 +6723,27 @@ WalletSweeper.prototype.createBatchAddresses = function(start, count, keyIndex, 
     });
 };
 
-WalletSweeper.prototype.discoverWalletFunds = function(increment, cb) {
+WalletSweeper.prototype.discoverWalletFunds = function(increment, options, cb) {
     var self = this;
     var totalBalance = 0;
     var totalUTXOs = 0;
     var totalAddressesGenerated = 0;
+
+    if (typeof increment === "function") {
+        cb = increment;
+        increment = null;
+    } else if (typeof options === "function") {
+        cb = options;
+        options = {};
+    }
+
+    if(options && !(typeof options === "object")) {
+        console.warn("Wallet Sweeper discovery options is not an object, ignoring");
+        options = {};
+    }
+
     var addressUTXOs = {};    //addresses and their utxos, paths and redeem scripts
-    if (typeof increment === "undefined") {
+    if (typeof increment === "undefined" || !increment) {
         increment = this.settings.sweepBatchSize;
     }
 
@@ -6801,12 +6816,35 @@ WalletSweeper.prototype.discoverWalletFunds = function(increment, cb) {
 
                                             //get the unspent outputs for this batch of addresses
                                             return self.utxoFinder.getUTXOs(_.keys(batch)).then(function(utxos) {
+                                                if (options.excludeZeroConf) {
+                                                    // Do not evaluate 0-confirmation UTXOs
+                                                    // This would include double spends and other things Insight happily accepts
+                                                    // (and keeps in mempool - even when the parent UTXO gets spent otherwise)
+                                                    for (var address in utxos) {
+                                                        if (utxos.hasOwnProperty(address) && Array.isArray(utxos[address])) {
+                                                            var utxosPerAddress = utxos[address];
+                                                            // Iterate over utxos per address
+                                                            for (var idx = 0; idx < utxosPerAddress.length; idx++) {
+                                                                if (utxosPerAddress[idx] &&
+                                                                    'confirmations' in utxosPerAddress[idx]
+                                                                    && utxosPerAddress[idx]['confirmations'] === 0) {
+                                                                    // Delete if unconfirmed
+                                                                    delete utxos[address][idx];
+                                                                    utxos[address].length--;
+                                                                    if (utxos[address].length <= 0) {
+                                                                        delete utxos[address];
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+
                                                 // save the address utxos, along with relevant path and redeem script
                                                 _.each(utxos, function(outputs, address) {
                                                     var witnessScript = null;
                                                     if (typeof batch[address]['witness'] !== 'undefined') {
                                                         witnessScript = batch[address]['witness'];
-
                                                     }
                                                     addressUTXOs[address] = {
                                                         path: batch[address]['path'],
@@ -6930,6 +6968,11 @@ WalletSweeper.prototype.sweepWallet = function(destinationAddress, cb) {
             return self.bitcoinDataClient.estimateFee();
         })
         .then(function(feePerKb) {
+            // Insight reports 1000 sat/kByte, but this is too low
+            if (self.settings.bitcoinCash && feePerKb < 5000) {
+                feePerKb = 5000;
+            }
+
             if (self.sweepData['balance'] === 0) {
                 //no funds found
                 deferred.reject("No funds found after searching through " + self.sweepData['addressesSearched'] + " addresses");
