@@ -13,7 +13,7 @@
     "multi-signature",
     "transaction"
   ],
-  "version": "3.7.8",
+  "version": "3.7.9",
   "homepage": "https://www.blocktrail.com/api/docs/lang/nodejs",
   "license": "MIT",
   "repository": {
