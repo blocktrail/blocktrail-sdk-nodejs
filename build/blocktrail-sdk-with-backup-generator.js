@@ -2697,7 +2697,7 @@ function convertBtccomOutputScriptType(scriptType) {
             return "scripthash";
         case "P2WSH_V0":
             return "witnessscripthash";
-        case "P2WPKH":
+        case "P2WPKH_V0":
             return "witnesspubkeyhash";
         case "NULL_DATA":
             return "op_return";
@@ -3333,7 +3333,7 @@ module.exports = {
 }).call(this,require("buffer").Buffer)
 },{"buffer":127}],9:[function(require,module,exports){
 module.exports = exports = {
-    VERSION: '3.7.8'
+    VERSION: '3.7.9'
 };
 
 },{}],10:[function(require,module,exports){
