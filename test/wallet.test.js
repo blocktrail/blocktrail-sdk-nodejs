@@ -1039,7 +1039,7 @@ describe('test wallet with segwit chain', function() {
             assert.equal(_wallet.identifier, "unittest-transaction-sw");
             assert.equal(_wallet.getBlocktrailPublicKey("M/9999'").toBase58(), "tpubD9q6vq9zdP3gbhpjs7n2TRvT7h4PeBhxg1Kv9jEc1XAss7429VenxvQTsJaZhzTk54gnsHRpgeeNMbm1QTag4Wf1QpQ3gy221GDuUCxgfeZ");
             assert.ok(_wallet.isSegwit());
-            assert.equal(blocktrail.Wallet.CHAIN_BTC_DEFAULT, _wallet.chain);
+            assert.equal(blocktrail.Wallet.CHAIN_BTC_SEGWIT, _wallet.chain);
             assert.equal(blocktrail.Wallet.CHAIN_BTC_SEGWIT, _wallet.changeChain);
 
             wallet = _wallet;
