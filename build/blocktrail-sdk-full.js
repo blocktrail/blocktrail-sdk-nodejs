@@ -7924,7 +7924,7 @@ module.exports = {
 }).call(this,require("buffer").Buffer)
 },{"buffer":127}],9:[function(require,module,exports){
 module.exports = exports = {
-    VERSION: '3.7.9'
+    VERSION: '3.7.10'
 };
 
 },{}],10:[function(require,module,exports){
@@ -9187,7 +9187,7 @@ var Wallet = function(
 
     if (!self.bitcoinCash) {
         if (self.segwit) {
-            self.chain = Wallet.CHAIN_BTC_DEFAULT;
+            self.chain = Wallet.CHAIN_BTC_SEGWIT;
             self.changeChain = Wallet.CHAIN_BTC_SEGWIT;
         } else {
             self.chain = Wallet.CHAIN_BTC_DEFAULT;
