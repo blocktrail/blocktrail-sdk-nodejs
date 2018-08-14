@@ -2106,19 +2106,18 @@ APIClient.prototype.sendTransaction = function(identifier, txHex, paths, checkFe
         prioboost: prioboost ? 1 : 0
     };
 
-    var bip70 = null;
+    var bip70 = false;
     if (options.bip70PaymentUrl) {
-        bip70.paymentUrl = options.bip70PaymentUrl;
-    }
+        bip70 = true;
+        postOptions.bip70PaymentUrl = options.bip70PaymentUrl;
 
-    if (options.bip70MerchantData && typeof options.bip70MerchantData == "Uint8Array") {
-        // Encode merchant data to base64
-        var decoder = new TextDecoder('utf8');
-        bip70.merchantData = btoa(decoder.decode(options.bip70MerchantData));
-    }
+        if (options.bip70MerchantData && options.bip70MerchantData instanceof Uint8Array) {
+            // Encode merchant data to base64
+            var decoder = new TextDecoder('utf8');
+            var bip70MerchantData = btoa(decoder.decode(options.bip70MerchantData));
 
-    if (bip70 !== null) {
-        postOptions.bip70 = bip70
+            postOptions.bip70MerchantData = bip70MerchantData;
+        }
     }
 
     return self.blocktrailClient.post(
@@ -3363,7 +3362,7 @@ module.exports = {
 }).call(this,require("buffer").Buffer)
 },{"buffer":127}],9:[function(require,module,exports){
 module.exports = exports = {
-    VERSION: '3.7.11'
+    VERSION: '3.7.12'
 };
 
 },{}],10:[function(require,module,exports){
