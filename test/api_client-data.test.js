@@ -134,7 +134,6 @@ describe('data api', function() {
     });
     it('test batchAddressUnspentOutputs', function(cb) {
         client.batchAddressUnspentOutputs(["16dwJmR4mX5RguGrocMfN9Q9FR2kZcLw2z", "3EU8LRmo5PgcSwnkn6Msbqc8BKNoQ7Xief"], {limit: 23}, function(err, address_utxo) {
-            console.log(address_utxo);
             assert.ifError(err);
             assert.ok('data' in address_utxo);
             assert.ok('total' in address_utxo);

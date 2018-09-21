@@ -103,7 +103,7 @@ describe('webhooks api', function() {
         });
     });
 
-    it('get a single webhook', function(done) {
+    it('get webhook 1', function(done) {
         client.getWebhook(createdWebhooks[0], function(err, response) {
             assert.ifError(err);
             assert.ok('url' in response, "'url' key not in response");
@@ -114,7 +114,19 @@ describe('webhooks api', function() {
         });
     });
 
-    it('delete a webhook', function(done) {
+    it('get webhook 2', function(done) {
+        client.getWebhook(createdWebhooks[1], function(err, response) {
+            assert.ifError(err);
+            assert.ok('url' in response, "'url' key not in response");
+            assert.ok('identifier' in response, "'identifier' key not in response");
+            assert.equal(response['url'], "https://www.blocktrail.com/webhook-test", "'url' does not match expected value");
+            assert.ok('identifier' in response, "'identifier' key not in response");
+            // identifier is randomly generated
+            done();
+        });
+    });
+
+    it('delete webhook 1', function(done) {
         client.deleteWebhook(createdWebhooks[0], function(err, response) {
             assert.ifError(err);
             assert.ok(response);
@@ -122,7 +134,7 @@ describe('webhooks api', function() {
         });
     });
 
-    it('update a webhook', function(done) {
+    it('update webhook 2', function(done) {
         var newIdentifier = crypto.randomBytes(24).toString('hex');
         var newUrl = "https://www.blocktrail.com/new-webhook-url";
         client.updateWebhook(createdWebhooks[1], {identifier: newIdentifier, url: newUrl}, function(err, response) {
@@ -131,7 +143,6 @@ describe('webhooks api', function() {
             assert.ok('identifier' in response, "'identifier' key not in response");
             assert.equal(response['url'], newUrl, "'url' does not match expected value");
             assert.equal(response['identifier'], newIdentifier, "'identifier' does not match expected value");
-
             createdWebhooks[1] = newIdentifier;
             done();
         });
