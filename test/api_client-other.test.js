@@ -35,6 +35,15 @@ describe('SDK general', function() {
             cb();
         });
     });
+    it('test wallet api block latest', function(cb) {
+        client.getWalletLatestBlock(function(err, res) {
+            assert.ifError(err);
+            assert.ok(res)
+            assert.ok(res.height)
+            assert.ok(res.hash)
+            cb();
+        });
+    });
 });
 
 describe('webhooks api', function() {
