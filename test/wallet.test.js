@@ -981,6 +981,7 @@ describe('test wallet, do transaction', function() {
     });
 
     it("should be able to do a payment", function(cb) {
+        console.log("BEGIN TEST")
         wallet.getNewAddress(function(err, address, path) {
             assert.ifError(err);
             assert.ok(path.indexOf("M/9999'/", wallet.chain, "/") === 0);
