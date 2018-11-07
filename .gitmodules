@@ -4,3 +4,6 @@
 [submodule "vendor/asmcrypto.js"]
 	path = vendor/asmcrypto.js
 	url = https://github.com/vibornoff/asmcrypto.js
+[submodule "vendor/ethereumjs-wallet"]
+	path = vendor/ethereumjs-wallet
+	url = https://github.com/ethereumjs/ethereumjs-wallet/
