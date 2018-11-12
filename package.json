@@ -84,7 +84,7 @@
     }
   ],
   "devDependencies": {
-    "blocktrail-sdk-backup-generator": "0.2.0",
+    "blocktrail-sdk-backup-generator": "^0.2.0",
     "brfs": "*",
     "browserify": "*",
     "browserify-versionify": "^1.0.6",
