@@ -67,6 +67,7 @@
     "superagent": "^3.8.1",
     "superagent-http-signature": "0.1.3",
     "superagent-promise": "^0.2.0",
+    "text-encoding": "^0.7.0",
     "webworkify": "^1.4.0"
   },
   "author": {
