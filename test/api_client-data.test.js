@@ -63,6 +63,25 @@ var cleanBlock = function(block) {
     delete block.value;
 };
 
+describe('uint8array to b64', function () {
+    var a = new Uint8Array([123, 34, 105, 110, 118, 111, 105, 99, 101, 73, 100, 34, 58, 34, 88, 67, 84, 88, 67, 82, 112, 55, 97, 66, 72, 122, 55, 122, 76, 50, 117, 82, 115, 106, 102, 53, 34, 44, 34, 109, 101, 114, 99, 104, 97, 110, 116, 73, 100, 34, 58, 34, 76, 120, 70, 66, 99, 121, 111, 86, 90, 122, 106, 76, 80, 72, 74, 87, 78, 120, 65, 78, 82, 72, 34, 125]);
+    var e = "e1yJpbnZvaWNlSWQiOiJYQ1RYQ1JwN2FCSHo3ekwydVJzamY1IiwibWVyY2hhbnRJZCI6Ikx4RkJjeW9WWnpqTFBISldOeEFOUkgifQ==";
+    // not there in nodejs?
+    if (typeof TextDecoder != "undefined") {
+        it('works with TextDecoder', function () {
+            var decoder = new TextDecoder('utf8');
+            assert.ok(btoa(decoder.decode(a)) == e)
+        })
+    }
+
+    it('works with native code', function () {
+        var result = Buffer.from(Array.prototype.map.call(a, function (ch) {
+            return String.fromCharCode(ch);
+        }).join(''));
+        assert.ok(result.toString('base64') == e);
+    });
+});
+
 describe('data api', function() {
     it('test address', function(cb) {
         client.address("3EU8LRmo5PgcSwnkn6Msbqc8BKNoQ7Xief", function(err, address) {
