@@ -3361,7 +3361,7 @@ module.exports = {
 }).call(this,require("buffer").Buffer)
 },{"buffer":111}],9:[function(require,module,exports){
 module.exports = exports = {
-    VERSION: '3.7.20'
+    VERSION: '3.7.21'
 };
 
 },{}],10:[function(require,module,exports){
@@ -6914,6 +6914,15 @@ WalletSweeper.prototype.getBitcoinNetwork =  function(network, testnet, regtest)
                 return bitcoin.networks.bitcoincashtestnet;
             } else {
                 return bitcoin.networks.bitcoincash;
+            }
+        case 'btg':
+        case 'bitcoingold':
+            if (regtest) {
+                return bitcoin.networks.regtest;
+            } else if (testnet) {
+                return bitcoin.networks.testnet;
+            } else {
+                return bitcoin.networks.bitcoin;
             }
         default:
             throw new Error("Unknown network " + network);
