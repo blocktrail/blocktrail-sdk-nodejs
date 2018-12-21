@@ -3361,7 +3361,7 @@ module.exports = {
 }).call(this,require("buffer").Buffer)
 },{"buffer":131}],9:[function(require,module,exports){
 module.exports = exports = {
-    VERSION: '3.7.19'
+    VERSION: '3.7.20'
 };
 
 },{}],10:[function(require,module,exports){
@@ -4047,6 +4047,11 @@ InsightBitcoinService.prototype.estimateFee = function() {
                 return 100000;
             }
 
+            // sanity check if reported fee is under 1 satoshi/byte
+            if (results[nBlocks] < 1000 / 1e8) {
+                return 1000;
+            }
+
             return parseInt(results[nBlocks] * 1e8, 10);
         })
     ;
@@ -4534,8 +4539,25 @@ SizeEstimation.estimateInputFromScripts = function(script, redeemScript, witness
 
 SizeEstimation.estimateUtxo = function(utxo, compressed) {
     var spk = Buffer.from(utxo.scriptpubkey_hex, 'hex');
-    var rs = typeof utxo.redeem_script === 'string' ? Buffer.from(utxo.redeem_script, 'hex') : null;
-    var ws = typeof utxo.witness_script === 'string' ? Buffer.from(utxo.witness_script, 'hex') : null;
+    var rs = null;
+    var ws = null;
+
+    if (utxo.redeem_script) {
+        if (typeof utxo.redeem_script === 'string') {
+          rs = Buffer.from(utxo.redeem_script, 'hex')
+        } else if (utxo.redeem_script instanceof Buffer) {
+          rs = utxo.redeem_script;
+        }
+    }
+
+    if (utxo.witness_script) {
+        if (typeof utxo.witness_script === 'string') {
+          ws = Buffer.from(utxo.witness_script, 'hex')
+        } else if (utxo.witness_script instanceof Buffer) {
+          ws = utxo.witness_script;
+        }
+    }
+
     var witness = false;
 
     var signScript = spk;
@@ -6659,6 +6681,7 @@ var WalletSweeper = function(backupData, bitcoinDataClient, options) {
         logging: false,
         bitcoinCash: false,
         cashAddr: false,
+        bitcoinGold: false,
         sweepBatchSize: 200
     };
     this.settings = _.merge({}, this.defaultSettings, options);
@@ -7285,6 +7308,8 @@ WalletSweeper.prototype.createTransaction = function(destinationAddress, fee, fe
     var rawTransaction = new bitcoin.TransactionBuilder(this.network);
     if (this.settings.bitcoinCash) {
         rawTransaction.enableBitcoinCash();
+    } else if (this.settings.bitcoinGold) {
+        rawTransaction.enableBitcoinGold();
     }
     var inputs = [];
     _.each(this.sweepData['utxos'], function(data, address) {
@@ -7340,7 +7365,7 @@ WalletSweeper.prototype.createTransaction = function(destinationAddress, fee, fe
                 value: input.value
             };
         });
-        fee = walletSDK.estimateVsizeFee(rawTransaction.tx, calcUtxos, feePerKb);
+        fee = walletSDK.estimateVsizeFee(rawTransaction.buildIncomplete(), calcUtxos, feePerKb);
     }
     rawTransaction.tx.outs[outputIdx].value -= fee;
 
@@ -7360,7 +7385,7 @@ WalletSweeper.prototype.signTransaction = function(rawTransaction, inputs) {
     }
 
     var sigHash = bitcoin.Transaction.SIGHASH_ALL;
-    if (this.settings.bitcoinCash) {
+    if (this.settings.bitcoinCash || this.settings.bitcoinGold) {
         sigHash |= bitcoin.Transaction.SIGHASH_BITCOINCASHBIP143;
     }
 
