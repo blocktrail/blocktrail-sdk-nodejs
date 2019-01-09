@@ -82,7 +82,7 @@ function callbackify(promise, cb) {
  * @param options       object{
  *                          apiKey: 'API_KEY',
  *                          apiSecret: 'API_SECRET',
- *                          host: 'defaults to api.blocktrail.com',
+ *                          host: 'defaults to wallet-api.btc.com',
  *                          network: 'BTC|LTC',
  *                          testnet: true|false
  *                      }
@@ -216,7 +216,7 @@ APIClient.updateHostOptions = function(options) {
         }
     } else {
         if (!options.host) {
-            options.host = 'api.blocktrail.com';
+            options.host = 'wallet-api.btc.com';
         }
 
         if (!options.endpoint) {
@@ -3361,7 +3361,7 @@ module.exports = {
 }).call(this,require("buffer").Buffer)
 },{"buffer":131}],9:[function(require,module,exports){
 module.exports = exports = {
-    VERSION: '3.7.21'
+    VERSION: '3.7.22'
 };
 
 },{}],10:[function(require,module,exports){
