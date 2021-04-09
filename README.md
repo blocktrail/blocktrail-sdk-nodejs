@@ -58,7 +58,7 @@ console.log("123456789 Satoshi to BTC: ", blocktrail.toBTC(123456789));
 console.log("1.23456789 BTC to Satoshi: ", blocktrail.toSatoshi(1.23456789));
 ```
 
-A bit more about this can be found [in our documentation](https://www.blocktrail.com/api/docs/lang/nodejs#api_coin_format).
+A bit more about this can be found [in our documentation](https://dev.btc.com/docs/php#getting-started).
 
 Installation
 ------------
@@ -69,7 +69,7 @@ npm install blocktrail-sdk
 
 Usage
 -----
-Please visit our official documentation at https://www.blocktrail.com/api/docs/lang/nodejs for the usage.
+Please visit our official documentation at https://dev.btc.com/docs/php#getting-started for the usage.
 
 Promises vs Callbacks
 ---------------------
@@ -78,14 +78,14 @@ but to make everyone happy the SDK functions accept a callback argument and retu
 
 Support and Feedback
 --------------------
-Be sure to visit the BlockTrail API official [documentation website](https://www.blocktrail.com/api/docs/lang/nodejs)
+Be sure to visit the BlockTrail API official [documentation website](https://dev.btc.com/docs/php#getting-started)
 for additional information about our API.
 
 If you find a bug, please submit the issue in Github directly.
 [BlockTrail-NodeJS-SDK Issues](https://github.com/blocktrail/blocktrail-sdk-nodejs/issues)
 
 As always, if you need additional assistance, drop us a note at
-[support@blocktrail.com](mailto:support@blocktrail.com).
+[support@btc.com](mailto:support@btc.com).
 
 Unit Tests
 ----------
