@@ -653,6 +653,109 @@ describe("SizeEstimation.estimateTxWeight", function() {
         cb();
     });
 
+    it("estimates p2sh p2wpkh weight", function(cb) {
+        var wif = "L58TinpdSF52WNbKx7Jnyj5UohzDWxYupeiBd4FrnuPmPvBkLUzW";
+        var testPriv = bitcoin.ECPair.fromWIF(wif, bitcoin.networks.bitcoin);
+        var pkHash160 = bitcoin.crypto.hash160(testPriv.getPublicKeyBuffer());
+        var wp = bitcoin.script.witnessPubKeyHash.output.encode(pkHash160);
+        var wpHash160 = bitcoin.crypto.hash160(wp);
+        var spk = bitcoin.script.scriptHash.output.encode(wpHash160);
+
+        var utxos = [
+            {
+                txid: "d37f2a922c3e03d5c8e3bbb5e8f704d4eb221e4c9e1e3165201e58ddea54b440",
+                vout: 0,
+                value: 100000,
+                scriptpubkey_hex: spk,
+                redeem_script: wp.toString('hex')
+            }
+        ];
+
+        var txb = new bitcoin.TransactionBuilder();
+        utxos.map(function(utxo) {
+            txb.addInput(utxo.txid, utxo.vout, bitcoin.Transaction.DEFAULT_SEQUENCE, utxo.scriptpubkey_hex);
+        });
+
+        txb.addOutput(Buffer.from("0020916ff972855bf7589caf8c46a31f7f33b07d0100d953fde95a8354ac36e98165", "hex"), 86591);
+        txb.sign(0, testPriv, Buffer.from(utxos[0].redeem_script, "hex"), null, utxos[0].value);
+        var tx = txb.build();
+
+        var weight = SizeEstimation.estimateTxWeight(tx, utxos);
+        assert.equal(weight, 578);
+
+        var vsize = SizeEstimation.estimateTxVsize(tx, utxos);
+        assert.equal(vsize, 145);
+        cb();
+    });
+
+    it("estimates p2wsh multisig (1 of 1) estimation", function(cb) {
+        var wif = "L58TinpdSF52WNbKx7Jnyj5UohzDWxYupeiBd4FrnuPmPvBkLUzW";
+        var testPriv = bitcoin.ECPair.fromWIF(wif, bitcoin.networks.bitcoin);
+        var ws = bitcoin.script.multisig.output.encode(1, [testPriv.getPublicKeyBuffer()]);
+        var wsSha256 = bitcoin.crypto.sha256(ws);
+        var wp = bitcoin.script.witnessScriptHash.output.encode(wsSha256);
+
+        var utxos = [
+            {
+                txid: "d37f2a922c3e03d5c8e3bbb5e8f704d4eb221e4c9e1e3165201e58ddea54b440",
+                vout: 0,
+                value: 100000,
+                scriptpubkey_hex: wp,
+                witness_script: ws.toString("hex")
+            }
+        ];
+
+        var txb = new bitcoin.TransactionBuilder();
+        utxos.map(function(utxo) {
+            txb.addInput(utxo.txid, utxo.vout, bitcoin.Transaction.DEFAULT_SEQUENCE, utxo.scriptpubkey_hex);
+        });
+
+        txb.addOutput(Buffer.from("00145d6f02f47dc6c57093df246e3742cfe1e22ab410", "hex"), 73182);
+        txb.sign(0, testPriv, null, null, utxos[0].value, ws);
+        var tx = txb.build();
+
+        var weight = SizeEstimation.estimateTxWeight(tx, utxos);
+        assert.equal(weight, 443);
+
+        var vsize = SizeEstimation.estimateTxVsize(tx, utxos);
+        assert.equal(vsize, 111);
+        cb();
+    });
+
+    it("estimates p2wsh multisig (1 of 1) estimation", function(cb) {
+        var wif = "L58TinpdSF52WNbKx7Jnyj5UohzDWxYupeiBd4FrnuPmPvBkLUzW";
+        var testPriv = bitcoin.ECPair.fromWIF(wif, bitcoin.networks.bitcoin);
+        var ws = bitcoin.script.multisig.output.encode(1, [testPriv.getPublicKeyBuffer()]);
+        var wsSha256 = bitcoin.crypto.sha256(ws);
+        var wp = bitcoin.script.witnessScriptHash.output.encode(wsSha256);
+
+        var utxos = [
+            {
+                txid: "d37f2a922c3e03d5c8e3bbb5e8f704d4eb221e4c9e1e3165201e58ddea54b440",
+                vout: 0,
+                value: 100000,
+                scriptpubkey_hex: wp,
+                witness_script: ws.toString("hex")
+            }
+        ];
+
+        var txb = new bitcoin.TransactionBuilder();
+        utxos.map(function(utxo) {
+            txb.addInput(utxo.txid, utxo.vout, bitcoin.Transaction.DEFAULT_SEQUENCE, utxo.scriptpubkey_hex);
+        });
+
+        txb.addOutput(Buffer.from("00145d6f02f47dc6c57093df246e3742cfe1e22ab410", "hex"), 73182);
+        txb.sign(0, testPriv, null, null, utxos[0].value, ws);
+        var tx = txb.build();
+
+        var weight = SizeEstimation.estimateTxWeight(tx, utxos);
+        assert.equal(weight, 443);
+
+        var vsize = SizeEstimation.estimateTxVsize(tx, utxos);
+        assert.equal(vsize, 111);
+        cb();
+    });
+
     it("estimates p2wpkh weight 2", function(cb) {
         var utxos = [
             {
