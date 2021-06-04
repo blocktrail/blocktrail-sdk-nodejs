@@ -18,6 +18,7 @@ The Blocktrail SDK is tested against;
    - 5.11
    - 6.3.0
    - 7.1.0
+   - 8.10.0 (advise)
  - Browser:
    - Google Chrome 48 / latest
    - Firefox 49 / latest
