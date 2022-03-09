@@ -118,7 +118,7 @@ module.exports = function (grunt) {
 
         exec: {
             // does 'sources concat' as tasks, because we don't want it minified by the asmcrypto grunt
-            asmcryptobuild: 'cd ./vendor/asmcrypto.js; npm install; grunt sources concat --with pbkdf2-hmac-sha512'
+            asmcryptobuild: 'cd ./vendor/asmcrypto.js; npm install; grunt sources concat'
         },
 
         /*

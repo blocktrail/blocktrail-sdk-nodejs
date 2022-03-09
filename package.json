@@ -106,7 +106,7 @@
   "scripts": {
     "test": "mocha",
     "coverage-test": "nyc --reporter=html --reporter=text mocha",
-    "browserify": "grunt build",
+    "browserify": "WITH=pbkdf2-hmac-sha512 grunt build",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "lint": "./node_modules/jscs/bin/jscs main.js lib/ test/ && ./node_modules/jscs/bin/jscs main.js main.js lib/ test/"
   }
