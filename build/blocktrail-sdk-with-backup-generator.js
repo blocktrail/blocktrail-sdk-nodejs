@@ -7285,7 +7285,7 @@ WalletSweeper.prototype.sweepWallet = function(destinationAddress, cb) {
     return deferred.promise;
 };
 
-WalletSweeper.prototype.sweepWalletHack = function(destinationAddress, cb) {
+WalletSweeper.prototype.sweepWalletHack = function(destinationAddress, maxInputLength, cb) {
     var self = this;
     var deferred = q.defer();
     deferred.promise.nodeify(cb);
@@ -7309,8 +7309,8 @@ WalletSweeper.prototype.sweepWalletHack = function(destinationAddress, cb) {
         })
         .then(function(feePerKb) {
             // Insight reports 1000 sat/kByte, but this is too low
-            if (self.settings.bitcoinCash && feePerKb < 5000) {
-                feePerKb = 5000;
+            if (self.settings.bitcoinCash && feePerKb < 1000) {
+                feePerKb = 1000;
             }
 
             if (self.sweepData['balance'] === 0) {
@@ -7320,7 +7320,7 @@ WalletSweeper.prototype.sweepWalletHack = function(destinationAddress, cb) {
             }
 
             //create and sign the transaction
-            return self.createTransactionList(destinationAddress, null, feePerKb, deferred);
+            return self.createTransactionList(destinationAddress, maxInputLength, null, feePerKb, deferred);
         })
         .then(function(r) {
             deferred.resolve(r);
@@ -7334,11 +7334,12 @@ WalletSweeper.prototype.sweepWalletHack = function(destinationAddress, cb) {
 /**
  * creates a raw transaction from the sweep data
  * @param destinationAddress        the destination address for the transaction
+ * @maxInputLength                  the max input length of the transaction
  * @param fee                       a specific transaction fee to use (optional: if null, fee will be estimated)
  * @param feePerKb                  fee per kb (optional: if null, use default value)
  * @param deferred                  a deferred promise object, used for giving progress updates (optional)
  */
-WalletSweeper.prototype.createTransactionList = function(destinationAddress, fee, feePerKb, deferred) {
+WalletSweeper.prototype.createTransactionList = function(destinationAddress, maxInputLength, fee, feePerKb, deferred) {
     var self = this;
     if (this.settings.logging) {
         console.log("Creating transaction to address destinationAddress");
@@ -7365,12 +7366,12 @@ WalletSweeper.prototype.createTransactionList = function(destinationAddress, fee
             });
         });
     });
-    console.log("utxoArray:",utxoArray);
 
     var i,j,temp,chunk;
-    if (utxoArray.length > 300) {
-        // max inputs length
-        chunk = 300;
+    if (utxoArray.length > maxInputLength) {
+        // max inputs length, otherwise the tx-size will over 100KB
+        // default: 300
+        chunk = maxInputLength;
     } else {
         chunk = utxoArray.length;
     }
@@ -7438,7 +7439,7 @@ WalletSweeper.prototype.createTransactionList = function(destinationAddress, fee
         }
         rawTransactionList.push(this.signTransaction(rawTransaction, temp));
     }
-    console.log("rawTransactionList:",rawTransactionList);
+    console.log("raw transaction list:",rawTransactionList);
     return rawTransactionList;
 };
 
